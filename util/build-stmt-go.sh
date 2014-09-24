@@ -52,26 +52,21 @@ date=$(date)
 cat > "$target" <<EOF
 /**
  * This file generated automatically.  Do not modify.
- * Last updated $date.
  */
 
 package $package
 
-const (
-  BuildRepoRoot = "$root"
-  BuildBranch = "$branch"
-  BuildCommit = "$commit$modified"
-  BuildHost = "$host"
-  BuildUser = "$user"
-  BuildDate = "$date"
-  BuildStatement = "Build " +
-                   BuildRepoRoot + " " +
-                   BuildBranch + " " +
-                   BuildCommit + " " +
-                   BuildHost + " " +
-                   BuildUser + " " +
-                   BuildDate
-)
+import "github.com/BellerophonMobile/logberry"
+
+var buildmeta = logberry.BuildMetadata{
+  RepoRoot: "$root",
+  Branch:   "$branch",
+  Commit:   "$commit$modified",
+  Host:     "$host",
+  User:     "$user",
+  Date:     "$date",
+}
+
 EOF
 
 #-- Done!

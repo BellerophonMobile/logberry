@@ -6,6 +6,39 @@ services and applications.  It is focused on generating logs, rather
 than managing them, and tries to be lightweight while also taking a
 more semantic approach than is typical.
 
+## License
+
+Logberry is provided under the open source
+[MIT license](http://opensource.org/licenses/MIT):
+
+> The MIT License (MIT)
+>
+> Copyright (c) 2014 Bellerophon Mobile
+> 
+>
+> Permission is hereby granted, free of charge, to any person
+> obtaining a copy of this software and associated documentation files
+> (the "Software"), to deal in the Software without restriction,
+> including without limitation the rights to use, copy, modify, merge,
+> publish, distribute, sublicense, and/or sell copies of the Software,
+> and to permit persons to whom the Software is furnished to do so,
+> subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be
+> included in all copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
+
+
+## Introduction
+
 Most log output libraries fall into one of two camps:
 
  * Super simple, with a global API that's really easy to use but has
@@ -104,7 +137,6 @@ development.  The most important observations include:
    should be straightforward to extract inputs against a particular
    sub-component for re-running in detailed debugging, or to write
    simple scripts and tools to summarize or visualize logs.
-  
 
  * Like all libraries, logging should be simple to use and quick to
    get started.  However, The logging needs of a small, one-off, fun
@@ -138,8 +170,8 @@ development.  The most important observations include:
    "should not be a feature of the application-level logger."  That's
    largely true for both services and applications, but a long-lived
    service does need to take management into account to some extent.
-   An example includes some mechanism to ensure output streams don't
-   break when a daily log file is rotated out.
+   An example includes incorporating some mechanism to ensure output
+   streams don't break when a daily log file is rotated out.
 
 More obvious or smaller points include:
 
@@ -170,33 +202,12 @@ More obvious or smaller points include:
    report parameters that are expensive to generate should still be
    able to be skipped entirely.
 
+Log libraries need to play nicely with other components
 
-## License
 
-Logberry is provided under the open source
-[MIT license](http://opensource.org/licenses/MIT):
+Build information
 
-> The MIT License (MIT)
->
-> Copyright (c) 2014 Bellerophon Mobile
-> 
->
-> Permission is hereby granted, free of charge, to any person
-> obtaining a copy of this software and associated documentation files
-> (the "Software"), to deal in the Software without restriction,
-> including without limitation the rights to use, copy, modify, merge,
-> publish, distribute, sublicense, and/or sell copies of the Software,
-> and to permit persons to whom the Software is furnished to do so,
-> subject to the following conditions:
->
-> The above copyright notice and this permission notice shall be
-> included in all copies or substantial portions of the Software.
->
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-> NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-> BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-> ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> SOFTWARE.
+API structure encourages proper concurrent execution trace containment.
+
+
+The structure of the API should make this 
