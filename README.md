@@ -61,6 +61,44 @@ chance Logberry is complementary to, rather than competing with, your
 preferred log output engine.
 
 
+## Minimal Example
+
+Logberry can be installed directly through Go:
+
+    go get github.com/BellerophonMobile/logberry
+
+A very simple use is then:
+
+```go
+package main
+
+import (
+	"errors"
+	"github.com/BellerophonMobile/logberry"
+)
+
+func main() {
+	logberry.AddOutput(logberry.NewStdOutput())
+
+  logberry.Build(buildmeta)
+  logberry.CommandLine()
+
+  log := logberry.NewComponentLog("testcmpnt")
+
+  log.Info("The bananas have gotten loose!", &logberry.Data{"Fruit": "bananas"})
+  log.Error("Could not launch", errors.New("Failure in hyperdrive!"))
+}
+```
+
+The buildmeta object is an instance of `logberry.BuildMetadata`.  It
+can be managed by hand or generated using the utility script in
+`logberry/util/build-stmt-go.sh`, i.e., as part of the build process.
+
+In a terminal this produces the output:
+
+![Colored logberry terminal output.](https://raw.githubusercontent.com/BellerophonMobile/logberry/master/docs/figures/minimal-colors.png)
+
+
 ## Related Work
 
 There are a number of logging libraries available for Go, including:
@@ -202,10 +240,8 @@ More obvious or smaller points include:
    report parameters that are expensive to generate should still be
    able to be skipped entirely.
 
-Log libraries need to play nicely with other components
 
-
-Build information
+## Build information
 
 API structure encourages proper concurrent execution trace containment.
 
