@@ -22,6 +22,77 @@ type OutputDriver interface {
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
+type JSONOutput struct {
+	writer io.Writer
+
+	Start time.Time
+	DifferentialTime bool
+}
+
+//----------------------------------------------------------------------
+func NewJSONOutput(w io.Writer) *JSONOutput {
+	return &JSONOutput{
+		writer: w,
+		Start: time.Now(),
+		DifferentialTime: false,
+	}
+}
+
+
+//------------------------------------------------------
+func (o *JSONOutput) timestamp() string {
+	if (o.DifferentialTime) {
+		return time.Since(o.Start).String()
+	}
+
+	return time.Now().Format(time.RFC3339)
+	// end timestamp
+}
+
+
+func (o *JSONOutput) criticalerror(component string,
+	                                 err error) error {
+
+	fmt.Fprintf(o.writer, "{ \"Class\": \"%s\", \"Component\": \"%s\", \"Msg\": \"%s\" }\n",
+		CLASSTEXT[ERROR],
+		component,
+		err.Error())
+
+	// end criticalerror
+	return err
+}
+
+
+func (o *JSONOutput) log(component string,
+                         class StatementClass,
+                         msg string,
+                         data interface{}) error {
+
+	var entry = make(map[string]interface{})
+	entry["Class"] = CLASSTEXT[class]
+	entry["Component"] = component
+	entry["Time"] = o.timestamp()
+	entry["Msg"] = msg
+	entry["Data"] = data
+
+	var bytes []byte
+	var err error
+	bytes, err = json.Marshal(entry)
+	if err != nil {
+		wrapped := WrapError("Could not marshal log entry", err)
+		return o.criticalerror(wrapped.Error(), err)
+		return wrapped
+	}
+
+	o.writer.Write(bytes)
+	o.writer.Write([]byte("\n"))
+
+	return nil
+}
+
+
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 type TextOutput struct {
 	writer io.Writer
 
@@ -69,7 +140,7 @@ func NewTextOutput(w io.Writer) *TextOutput {
 }
 
 
-//----------------------------------------------------------------------
+//------------------------------------------------------
 func (o *TextOutput) timestamp() string {
 
 	if (o.DifferentialTime) {
@@ -123,12 +194,16 @@ func (o *TextOutput) log(component string,
 		}
 	}
 
+	var writsofar int = 28 + len(component) + len(msg)
+
 	// Set the color
 	var color int = WHITE
 	var bold bool = false
 	if o.Color {
 		switch class {
-		case ERROR: color = RED; bold = true
+		case ERROR: fallthrough;
+		case FATAL:
+			color = RED; bold = true
 		case METADATA: color = BLUE
 		case INFO: color = WHITE
 		}
@@ -145,8 +220,13 @@ func (o *TextOutput) log(component string,
 	o.writer.Write([]byte(component))
 	o.writer.Write([]byte(" "))
 
-	if class == ERROR {
+	switch class {
+	case ERROR:
 		o.writer.Write([]byte("[ERROR] "))
+		writsofar += 8
+	case FATAL:
+		o.writer.Write([]byte("[FATAL ERROR] "))
+		writsofar += 14
 	}
 
 	o.writer.Write([]byte(msg))
@@ -154,9 +234,7 @@ func (o *TextOutput) log(component string,
 
 	// Space out and then write the data fields
 
-	var writsofar int = 28 + len(component) + len(msg)
 	if class == ERROR {
-		writsofar += 8
 	}
 
 	for ; writsofar < 72; writsofar++ {

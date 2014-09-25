@@ -1,5 +1,20 @@
 package logberry
 
+import (
+	"os"
+	"path"
+)
+
+
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+var program string
+
+func init() {
+	program = path.Base(os.Args[0])
+}
+
+
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 
@@ -7,11 +22,20 @@ type StatementClass int
 
 const (
 	ERROR StatementClass = iota
+	FATAL
 	METADATA
 	INFO
 )
 
-type Data map[string]string
+var CLASSTEXT = [...]string {
+	"error",
+	"fatal",
+	"metadata",
+	"info",
+};
+
+
+type Data map[string]interface{}
 
 
 //------------------------------------------------------
@@ -50,6 +74,32 @@ func logprimitive(component string,
 	return accumerror
 }
 
+
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+func SetProgram(label string) {
+	program = label
+}
+
+func Build(build BuildMetadata) error {
+	return logprimitive(program, METADATA, "Build", build)
+}
+
+func CommandLine() error {
+	return logprimitive(program, METADATA, "Command line",
+		&Data{"Args": os.Args})
+}
+
+func Configuration(data interface{}) error {
+	return logprimitive(program, METADATA, "Configuration", data)
+}
+
+func FatalError(msg string, err error) error {
+	logprimitive(program, FATAL, msg,
+		&Data{ "Error": err.Error() })
+	os.Exit(1)
+	return nil
+}
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
