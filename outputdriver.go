@@ -136,9 +136,11 @@ var TERMINAL_STYLES = [...]terminalstyle {
 	{ WHITE, false},            // info
 	{ BLUE, false},             // configuration
 	{ GREEN, false},            // instantiate
-	{ WHITE, false},            // resource
+	{ BLACK, false},            // finalize
 	{ WHITE, false},            // task_start
 	{ WHITE, false},            // task_finish
+	{ WHITE, false},            // resource
+	{ WHITE, false},            // service
 	{ RED, true},               // unknown
 }
 

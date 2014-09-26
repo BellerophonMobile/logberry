@@ -19,9 +19,11 @@ const (
 	INFO
 	CONFIGURATION
 	INSTANTIATE
-	RESOURCE
+	FINALIZE
 	TASK_START
 	TASK_FINISH
+	RESOURCE
+	SERVICE
 	UNKNOWN // This is the sentinel, must be last!
 )
 
@@ -32,9 +34,11 @@ var STATEMENT_CLASS_TEXT = [...]string {
 	"info",
 	"configuration",
 	"instantiate",
-	"resource",
+	"finalize",
 	"task_start",
 	"task_finish",
+	"resource",
+	"service",
 	"unknown",
 };
 
@@ -141,35 +145,39 @@ type ComponentLog struct {
 	Component string
 }
 
-func NewComponent(component string) *ComponentLog {
+func NewComponent(component string, data interface{}) *ComponentLog {
+	logprimitive(component, INSTANTIATE, "Instantiate", data)
 	return &ComponentLog{
 		Component: component,
 	}
+}
+
+func (log *ComponentLog) Finalize() {
+	logprimitive(log.Component, FINALIZE, "Finalize", nil)
 }
 
 func (log *ComponentLog) Build(build BuildMetadata) {
 	logprimitive(log.Component, CONFIGURATION, "Build", build)
 }
 
-func (log *ComponentLog) Instantiate(data interface{}) {
-	logprimitive(log.Component, INSTANTIATE, "Instantiate", data)
-}
-
 func (log *ComponentLog) Info(msg string, data interface{}) {
 	logprimitive(log.Component, INFO, msg, data)
 }
 
-func (log *ComponentLog) Error(msg string, err error) interface{} {
+func (log *ComponentLog) Error(msg string, err error) error {
 	// Note that this can't/shouldn't just throw err into the data blob
 	// because the standard errors package error doesn't expose
 	// anything, even the message.  So you basically have to reduce to a
 	// string via Error().
+	e := WrapError(err, msg)
 	logprimitive(log.Component, ERROR, msg, &Data{ "Error": err.Error() })
-	return err
+	return e
 }
 
-func (log *ComponentLog) Failure(msg string) {
+func (log *ComponentLog) Failure(msg string) error {
+	e := NewError(msg)
 	logprimitive(log.Component, ERROR, msg, nil)
+	return e
 }
 
 func (log *ComponentLog) Warning(msg string) {
@@ -195,16 +203,32 @@ type Task struct {
 
 
 func (task *Task) Error(err error) error {
-	e := WrapError(err, task.Msg, " failed")
-	task.Component.Error(e.Error(), err)
+	if task.Long {
+		task.Msg = "@Error " + task.Msg
+	}
+
+	task.Msg += " failed"
+	e := WrapError(err, task.Msg)
+	logprimitive(task.Component.Component, ERROR, task.Msg,
+		&Data{ "Error": err.Error() })
 	return e
 }
 
-func (task *Task) Failure(msg string) {
-	task.Component.Failure(msg)
+func (task *Task) Failure(msg string) error {
+	if task.Long {
+		task.Msg = "@Error " + task.Msg
+	}
+
+	task.Msg += " failed"
+	e := WrapError(NewError(msg), task.Msg)
+	logprimitive(task.Component.Component, ERROR, task.Msg,
+		&Data{ "Error": msg })
+	return e
 }
 
 func (task *Task) Success() {
+
+	// If this was a longrunning task, compute duration and alter fields
 	if task.Long {
 		duration := time.Now().Sub(task.Start)
 
@@ -218,6 +242,15 @@ func (task *Task) Success() {
 
 
 //------------------------------------------------------
+func (log *ComponentLog) Task(msg string, resource interface{}) *Task {
+	return &Task{
+		Component: log,
+		Class: RESOURCE,
+		Msg: msg,
+		Data: &Data{"Resource": resource},
+	}
+}
+
 func (log *ComponentLog) LongTask(msg string, data interface{}) *Task {
 	logprimitive(log.Component, TASK_START, "@Start " + msg, data)
 
@@ -238,5 +271,14 @@ func (log *ComponentLog) ResourceTask(msg string, resource interface{}) *Task {
 		Class: RESOURCE,
 		Msg: msg,
 		Data: &Data{"Resource": resource},
+	}
+}
+
+func (log *ComponentLog) ServiceTask(msg string, service interface{}) *Task {
+	return &Task{
+		Component: log,
+		Class: SERVICE,
+		Msg: msg,
+		Data: &Data{"Service": service},
 	}
 }
