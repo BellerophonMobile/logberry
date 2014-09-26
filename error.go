@@ -41,3 +41,7 @@ func (e *Error) Error() string {
 
 	return e.Msg;
 }
+
+func (e *Error) String() string {
+	return e.Error()
+}

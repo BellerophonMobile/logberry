@@ -130,7 +130,7 @@ func Configuration(data interface{}) {
  */
 func Fatal(msg string, err error) {
 	logprimitive(toplevel, FATAL, msg,
-		&Data{ "Error": err })
+		&Data{ "Error": err.Error() })
 	os.Exit(1)
 }
 
@@ -159,8 +159,12 @@ func (log *ComponentLog) Info(msg string, data interface{}) {
 	logprimitive(log.Component, INFO, msg, data)
 }
 
-func (log *ComponentLog) Error(msg string, err error) error {
-	logprimitive(log.Component, ERROR, msg, &Data{ "Error": err })
+func (log *ComponentLog) Error(msg string, err error) interface{} {
+	// Note that this can't/shouldn't just throw err into the data blob
+	// because the standard errors package error doesn't expose
+	// anything, even the message.  So you basically have to reduce to a
+	// string via Error().
+	logprimitive(log.Component, ERROR, msg, &Data{ "Error": err.Error() })
 	return err
 }
 
