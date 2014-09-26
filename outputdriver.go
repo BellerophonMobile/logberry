@@ -7,16 +7,24 @@ import (
 	"time"
 	"fmt"
 	"encoding/json"
+	"log"
 )
 
+func init() {
+	if len(TERMINAL_STYLES) != int(UNKNOWN) + 1 {
+		log.Fatal("Fatal internal error: len(TERMINAL_STYLES) != |StatementClass|")
+	}
+
+	// end init
+}
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 type OutputDriver interface {
-  log(component string,
+  Log(component string,
       class StatementClass,
       msg string,
-      data interface{}) error
+      data interface{})
 }
 
 
@@ -51,25 +59,24 @@ func (o *JSONOutput) timestamp() string {
 
 
 func (o *JSONOutput) criticalerror(component string,
-	                                 err error) error {
-
+	                                 err error) {
+ 
 	fmt.Fprintf(o.writer, "{ \"Class\": \"%s\", \"Component\": \"%s\", \"Msg\": \"%s\" }\n",
-		CLASSTEXT[ERROR],
+		STATEMENT_CLASS_TEXT[ERROR],
 		component,
 		err.Error())
 
-	// end criticalerror
-	return err
+	LoggingError(err)
 }
 
 
-func (o *JSONOutput) log(component string,
+func (o *JSONOutput) Log(component string,
                          class StatementClass,
                          msg string,
-                         data interface{}) error {
+                         data interface{}) {
 
 	var entry = make(map[string]interface{})
-	entry["Class"] = CLASSTEXT[class]
+	entry["Class"] = STATEMENT_CLASS_TEXT[class]
 	entry["Component"] = component
 	entry["Time"] = o.timestamp()
 	entry["Msg"] = msg
@@ -79,15 +86,14 @@ func (o *JSONOutput) log(component string,
 	var err error
 	bytes, err = json.Marshal(entry)
 	if err != nil {
-		wrapped := WrapError("Could not marshal log entry", err)
-		return o.criticalerror(wrapped.Error(), err)
-		return wrapped
+		o.criticalerror(component, WrapError(err, "Could not marshal log entry"))
+		return
 	}
 
 	o.writer.Write(bytes)
 	o.writer.Write([]byte("\n"))
 
-	return nil
+	// end JSONOutput::Log
 }
 
 
@@ -111,10 +117,30 @@ const (
 	MAGENTA
 	CYAN
 	WHITE
+)
 
+const (
 	HIGH int = 90
 	LOW int = 30
-	)
+)
+
+type terminalstyle struct {
+	color int
+	bold bool
+}
+
+var TERMINAL_STYLES = [...]terminalstyle {
+	{ RED, true},               // error
+	{ RED, true},               // fatal
+	{ YELLOW, true},            // warning
+	{ WHITE, false},            // info
+	{ BLUE, false},             // configuration
+	{ GREEN, false},            // instantiate
+	{ WHITE, false},            // resource
+	{ WHITE, false},            // task_start
+	{ WHITE, false},            // task_finish
+	{ RED, true},               // unknown
+}
 
 
 //----------------------------------------------------------------------
@@ -154,12 +180,11 @@ func (o *TextOutput) timestamp() string {
 
 
 func (o *TextOutput) criticalerror(component string,
-	                                 err error) error {
+	                                 err error) {
 
 	if o.Color {
 		fmt.Fprintf(o.writer, "\x1b[%d;1m", HIGH+RED)
 	}
-
 
 	fmt.Fprintf(o.writer, "%v %v [ERROR] %v\n",
 		o.timestamp(), component, err.Error())
@@ -170,15 +195,19 @@ func (o *TextOutput) criticalerror(component string,
 
 	o.writer.Write([]byte("\n"))
 
-	// end criticalerror
-	return err
+	LoggingError(err)
 }
 
 
-func (o *TextOutput) log(component string,
+func (o *TextOutput) Log(component string,
                          class StatementClass,
                          msg string,
-                         data interface{}) error {
+                         data interface{}) {
+
+	if class < 0 || class > UNKNOWN {
+		o.criticalerror(component, NewError("Class", class, "out of range"))
+		return
+	}
 
 	// Marshal the data first in case there's an error
 	var bytes []byte
@@ -188,25 +217,20 @@ func (o *TextOutput) log(component string,
 		var err error
 		bytes, err = json.Marshal(data)
 		if err != nil {
-			wrapped := WrapError("Could not marshal log entry fields", err)
-			return o.criticalerror(wrapped.Error(), err)
-			return wrapped
+			o.criticalerror(component,
+				WrapError(err, "Could not marshal log entry fields"))
+			return
 		}
 	}
 
-	var writsofar int = 28 + len(component) + len(msg)
+	var writsofar int = 28 + len(program) + len(component) + len(msg)
 
 	// Set the color
 	var color int = WHITE
 	var bold bool = false
 	if o.Color {
-		switch class {
-		case ERROR: fallthrough;
-		case FATAL:
-			color = RED; bold = true
-		case METADATA: color = BLUE
-		case INFO: color = WHITE
-		}
+		color = TERMINAL_STYLES[class].color
+		bold = TERMINAL_STYLES[class].bold
 
 		fmt.Fprintf(o.writer, "\x1b[%dm", HIGH+color)
 		if bold {
@@ -216,6 +240,8 @@ func (o *TextOutput) log(component string,
 
 	// Write the timestamp, component, and message
 	o.writer.Write([]byte(o.timestamp()))
+	o.writer.Write([]byte(" "))
+	o.writer.Write([]byte(program))
 	o.writer.Write([]byte(" "))
 	o.writer.Write([]byte(component))
 	o.writer.Write([]byte(" "))
@@ -245,6 +271,8 @@ func (o *TextOutput) log(component string,
 		fmt.Fprintf(o.writer, "\x1b[0;%dm", LOW+color)
 	}
 
+	o.writer.Write([]byte(STATEMENT_CLASS_TEXT[class]))
+	o.writer.Write([]byte(" "))
 	o.writer.Write(bytes)
 
 	if o.Color {
@@ -252,6 +280,4 @@ func (o *TextOutput) log(component string,
 	}
 	o.writer.Write([]byte("\n"))
 
-
-	return nil
 }
