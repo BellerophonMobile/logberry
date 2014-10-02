@@ -6,13 +6,19 @@ import (
 )
 
 func main() {
+
 	logberry.AddOutput(logberry.NewStdOutput())
 
   logberry.Build(buildmeta)
   logberry.CommandLine()
 
-  log := logberry.NewComponent("testcmpnt")
+  logberry.Info("The bananas have gotten loose!",
+		&logberry.D{"Status": "insane"})
 
-  log.Info("The bananas have gotten loose!", &logberry.Data{"Fruit": "bananas"})
-  log.Error("Could not launch", errors.New("Failure in hyperdrive!"))
+  logberry.Error("Could not launch", errors.New("Failure in hyperdrive!"))
+
+	logberry.Warning("Power drain");
+
+  logberry.Info("Continuing on", &logberry.D{"Code": "Red"})
+
 }

@@ -5,27 +5,27 @@ import (
 )
 
 
-type Error struct {
+type LogError struct {
 	Msg string
 	Src []error
 }
 
 
-func NewError(data ...interface{}) *Error {
-	return &Error{fmt.Sprint(data...), []error{}}
+func NewError(data ...interface{}) *LogError {
+	return &LogError{fmt.Sprint(data...), []error{}}
 }
 
-func WrapError(err error, data ...interface{}) *Error {
-	return &Error{fmt.Sprint(data...), []error{err}}
+func WrapError(err error, data ...interface{}) *LogError {
+	return &LogError{fmt.Sprint(data...), []error{err}}
 }
 
 
-func (e *Error) AddError(err error) {
+func (e *LogError) AddError(err error) {
 	e.Src = append(e.Src, err)
 }
 
 
-func (e *Error) Error() string {
+func (e *LogError) Error() string {
 
 	if len(e.Src) == 1 {
 		return e.Msg + "---" + e.Src[0].Error()
@@ -42,6 +42,6 @@ func (e *Error) Error() string {
 	return e.Msg;
 }
 
-func (e *Error) String() string {
+func (e *LogError) String() string {
 	return e.Error()
 }
