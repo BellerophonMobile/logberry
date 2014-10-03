@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"encoding/json"
 	"log"
+
+	"github.com/BellerophonMobile/logberry/terminal"
 )
 
 func init() {
@@ -232,13 +234,13 @@ var TERMINAL_STYLES = [...]terminalstyle {
 //----------------------------------------------------------------------
 func NewStdOutput() *TextOutput {
 	t := NewTextOutput(os.Stdout)
-	t.Color = IsTerminal(syscall.Stdout)
+	t.Color = terminal.IsTerminal(syscall.Stdout)
 	return t
 }
 
 func NewErrOutput() *TextOutput {
 	t := NewTextOutput(os.Stderr)
-	t.Color = IsTerminal(syscall.Stderr)
+	t.Color = terminal.IsTerminal(syscall.Stderr)
 	return t
 }
 

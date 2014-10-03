@@ -5,7 +5,7 @@
 
 // +build linux,!appengine darwin freebsd
 
-package logberry
+package terminal
 
 import (
 	"syscall"

@@ -5,7 +5,7 @@
 
 // +build windows
 
-package logberry
+package terminal
 
 import (
 	"syscall"
