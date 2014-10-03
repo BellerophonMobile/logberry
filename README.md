@@ -1,4 +1,4 @@
-Logberry <img src="https://raw.githubusercontent.com/BellerophonMobile/logberry/master/logberry.png" height="64" title="Logberry" alt="Picture of a strawberry" />
+Logberry <img src="https://raw.githubusercontent.com/BellerophonMobile/logberry/master/docs/logberry.png" height="64" title="Logberry" alt="Picture of a strawberry" />
 ========
 
 Logberry is a structured logging package for [Go](http://golang.org/)
