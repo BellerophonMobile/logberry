@@ -8,8 +8,8 @@ type ComponentLog struct {
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-func NewComponent(component string, data interface{}) *ComponentLog {
-	var d = DBuild(data)
+func NewComponent(component string, data ...interface{}) *ComponentLog {
+	var d = DAggregate(data)
 	LogPrimitive(component, INSTANTIATE, "Instantiate", d)
 	return &ComponentLog{
 		Component: component,
