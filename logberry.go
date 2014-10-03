@@ -60,13 +60,25 @@ func init() {
 		log.Fatal("Fatal internal error: " +
 			"len(STATEMENT_CLASS_TEXT) != |StatementClass|")
 	}
+
+	AddOutputDriver(NewStdOutput())
 }
 
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-func AddOutput(driver OutputDriver) {
+func AddOutputDriver(driver OutputDriver) OutputDriver {
 	outputdrivers = append(outputdrivers, driver)
+	return driver
+}
+
+func SetOutputDriver(driver OutputDriver) OutputDriver {
+	ClearOutputDrivers()
+	return AddOutputDriver(driver)
+}
+
+func ClearOutputDrivers() {
+	outputdrivers = []OutputDriver{}
 }
 
 func AddErrorListener(listener ErrorListener) {

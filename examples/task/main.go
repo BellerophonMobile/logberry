@@ -12,17 +12,18 @@ type test struct {
 
 func main() {
 
-	logberry.AddOutput(logberry.NewStdOutput())
-
   log := logberry.NewComponent("testcmpnt", &logberry.D{"Alpha": "Beta"})
 
 	value := &test{ StringField: "Banana", IntField: 24 }
+
 
 	task := log.Task("Some non-trivial activity", value)
 
 	task.Success()
 
+
 	task = log.ResourceTask("Read some resource", "/dev/null")
+
 	task.Failure("Can't read /dev/null")
 
 }

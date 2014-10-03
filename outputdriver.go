@@ -22,9 +22,91 @@ func init() {
 //----------------------------------------------------------------------
 type OutputDriver interface {
   Log(component string,
-      class StatementClass,
-      msg string,
-      data interface{})
+    class StatementClass,
+    msg string,
+    data *D)
+}
+
+type LogEntry struct {
+	Component string
+	Class StatementClass
+	Msg string
+	Data *D
+}
+
+
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+type ThreadSafeOutput struct {
+	driver OutputDriver
+	output chan *LogEntry
+}
+
+
+func NewThreadSafeOutput(driver OutputDriver, buffer int) *ThreadSafeOutput {
+
+	ts := &ThreadSafeOutput {
+		driver: driver,
+		output: make(chan *LogEntry, buffer),
+	}
+
+	go ts.process()
+
+	return ts
+}
+
+func (x *ThreadSafeOutput) Log(component string,
+                               class StatementClass,
+                               msg string,
+                               data *D) {
+	x.output <- &LogEntry{
+		Component: component,
+		Class: class,
+		Msg: msg,
+		Data: data,
+	}
+}
+
+func (x *ThreadSafeOutput) process() {
+
+	for {
+		e := <- x.output
+		x.driver.Log(e.Component, e.Class, e.Msg, e.Data)
+	}
+
+}
+
+
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+type MultiplexerOutput struct {
+	drivers []OutputDriver
+}
+
+// MultiplexerOutput is not necessary for basic multiple output.
+// logberry's core supports multiple outputs.  But the multiplexer
+// permits arrangements such as feeding the core output to a
+// ThreadSafeOutput, which in turns feeds to a multiplexer, and then
+// through that to several outputs.
+func NewMultiplexerOutput() *MultiplexerOutput {
+	return &MultiplexerOutput {
+		drivers: make([]OutputDriver, 0),
+	}
+}
+
+func (x *MultiplexerOutput) AddOutputDriver(out OutputDriver) {
+	x.drivers = append(x.drivers, out)
+}
+
+func (x *MultiplexerOutput) Log(component string,
+                               class StatementClass,
+                               msg string,
+                               data *D) {
+
+	for _,out := range(x.drivers) {
+		out.Log(component, class, msg, data)
+	}
+
 }
 
 
@@ -73,7 +155,7 @@ func (o *JSONOutput) criticalerror(component string,
 func (o *JSONOutput) Log(component string,
                          class StatementClass,
                          msg string,
-                         data interface{}) {
+                         data *D) {
 
 	var entry = make(map[string]interface{})
 	entry["Class"] = STATEMENT_CLASS_TEXT[class]
@@ -206,7 +288,7 @@ func (o *TextOutput) criticalerror(component string,
 func (o *TextOutput) Log(component string,
                          class StatementClass,
                          msg string,
-                         data interface{}) {
+                         data *D) {
 
 	if class < 0 || class > UNKNOWN {
 		o.criticalerror(component, NewError("Class", class, "out of range"))

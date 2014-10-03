@@ -7,8 +7,6 @@ import (
 
 func main() {
 
-	logberry.AddOutput(logberry.NewStdOutput())
-
   log := logberry.NewComponent("testcmpnt", &logberry.D{"Rolling": "basic"})
 
   log.Info("Component is processing", &logberry.D{"ID": "757"})

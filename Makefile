@@ -1,7 +1,7 @@
 
 sources=$(wildcard *.go)
 
-all: bin bin/minimal bin/component bin/task
+all: bin bin/minimal bin/component bin/task bin/threaded bin/multiplexer
 
 
 #-----------------------------------------------------------------------
@@ -9,11 +9,17 @@ all: bin bin/minimal bin/component bin/task
 bin/minimal: examples/minimal/build.go examples/minimal/main.go $(sources)
 	cd bin; go build github.com/BellerophonMobile/logberry/examples/minimal
 
-bin/component: examples/component/build.go examples/component/main.go $(sources)
+bin/component: examples/component/main.go $(sources)
 	cd bin; go build github.com/BellerophonMobile/logberry/examples/component
 
-bin/task: examples/task/build.go examples/task/main.go $(sources)
+bin/task: examples/task/main.go $(sources)
 	cd bin; go build github.com/BellerophonMobile/logberry/examples/task
+
+bin/threaded: examples/threaded/main.go $(sources)
+	cd bin; go build github.com/BellerophonMobile/logberry/examples/threaded
+
+bin/multiplexer: examples/multiplexer/main.go $(sources)
+	cd bin; go build github.com/BellerophonMobile/logberry/examples/multiplexer
 
 
 #-----------------------------------------------------------------------
