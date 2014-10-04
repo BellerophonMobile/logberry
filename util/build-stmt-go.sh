@@ -58,7 +58,7 @@ package $package
 
 import "github.com/BellerophonMobile/logberry"
 
-var buildmeta = logberry.BuildMetadata{
+var buildmeta = &logberry.BuildMetadata{
   RepoRoot: "$root",
   Branch:   "$branch",
   Commit:   "$commit$modified",
