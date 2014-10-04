@@ -7,16 +7,16 @@ import (
 
 func main() {
 
-  log := logberry.NewComponent("testcmpnt", &logberry.D{"Rolling": "basic"})
+  cmp := logberry.Main.Component("testcmpnt", &logberry.D{"Mode": "basic"})
 
-  log.Info("Component is processing", &logberry.D{"ID": "757"})
+  cmp.Info("Component is processing", &logberry.D{"Task": "757"})
 
-	log.Info("Generically report a message")
+	cmp.Info("Generic message")
 
-	log.Info("Generically report some data", 7, 42, 39)
+	cmp.Info("Generic data", 7, 42, 39)
 
-	log.Service("Contacted some resource", &logberry.D{ "Host": "localhost:9" })
+  cmp.Error("Aborting processing", errors.New("CPU meltdown"))
 
-  log.Error("Aborting processing", errors.New("Abnormal event!"))
+	cmp.Cleanup()
 
 }

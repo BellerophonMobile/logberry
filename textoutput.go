@@ -43,29 +43,17 @@ const (
 type terminalstyle struct {
 	color int
 	bold bool
+	intensity int
 }
 
-var TerminalStyles = [...]terminalstyle {
-	{ RED, true },               // error
-	{ RED, true },               // fatal
-	{ YELLOW, true },            // warning
-	{ WHITE, false },            // info
-	{ BLUE, false },             // configuration
-	{ GREEN, true },             // ready
-	{ GREEN, false },            // instantiate
-	{ BLACK, false },            // finalize
-	{ WHITE, false },            // task
-	{ WHITE, false },            // task_start
-	{ WHITE, false },            // task_finish
-	{ WHITE, false },            // resource
-	{ WHITE, false },            // service
-	{ WHITE, false },            // query
-	{ WHITE, false },            // assert
-	{ WHITE, false },            // calculate
-	{ WHITE, false },            // read
-	{ WHITE, false },            // write
-	{ WHITE, false },            // connect
-	{ WHITE, false },            // disconnect
+var ReportTerminalStyles = [...]terminalstyle {
+	{ RED,    true,  HIGH_INTENSITY },               // error
+	{ RED,    true,  HIGH_INTENSITY },               // fatal
+	{ YELLOW, true,  HIGH_INTENSITY },               // warning
+	{ WHITE,  false, HIGH_INTENSITY },               // info
+	{ BLUE,   false, LOW_INTENSITY  },               // configuration
+	{ GREEN,  true,  HIGH_INTENSITY },               // start
+	{ BLACK,  false, HIGH_INTENSITY },               // finish
 }
 
 
@@ -173,16 +161,17 @@ func (o *TextOutput) Report(context *Context,
 	// Set the color
 	var color int = WHITE
 	if o.Color {
-		color = TerminalStyles[class].color
+		color = ReportTerminalStyles[class].color
 
 		// Terminal commands produce no text, so don't include in writsofar
-		o.printf("\x1b[%dm", HIGH_INTENSITY+color)
-		if TerminalStyles[class].bold {
+		o.printf("\x1b[%dm", ReportTerminalStyles[class].intensity+color)
+		if ReportTerminalStyles[class].bold {
 			o.printf("\x1b[1m")
 		}
 	}
 
 	// Write the timestamp, component, and message
+
 	writsofar += o.printf("%v %v ",
 		o.timestamp(), context.Label)
 
@@ -193,6 +182,10 @@ func (o *TextOutput) Report(context *Context,
 		writsofar += o.printf("[FATAL ERROR] ")
 	}
 
+	if context.class == TASK) {
+
+}
+
 	writsofar += o.printf("%v ", msg)
 
 	// Space out and then write the data fields
@@ -202,15 +195,14 @@ func (o *TextOutput) Report(context *Context,
 	}
 
 	if o.Color {
-		o.printf("\x1b[0;%dm", LOW_INTENSITY+color)
+		if color != BLACK {
+			o.printf("\x1b[0;%dm", LOW_INTENSITY+color)
+		} else {
+			o.printf("\x1b[0;%dm", HIGH_INTENSITY+color)
+		}
 	}
 
-	var parentID uint64
-	if context.Parent != nil {
-		parentID = context.Parent.ID
-	}
-
-	o.printf("%v %v:%v %s", EventClassText[class], parentID, context.ID, bytes)
+	o.printf("%v %v %s", EventClassText[class], context.ID, bytes)
 
 	if o.Color {
 		o.printf("\x1b[0m")

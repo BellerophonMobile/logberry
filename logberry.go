@@ -31,11 +31,9 @@ const (
 	WARNING
 	INFO
 	CONFIGURATION
-	READY
-	INSTANTIATE
-	FINALIZE
-	TASK_START
-	TASK_FINISH
+	START
+	FINISH
+/*
 	RESOURCE
 	SERVICE
 	QUERY
@@ -45,6 +43,7 @@ const (
 	WRITE
 	CONNECT
 	DISCONNECT
+*/
 	eventclass_sentinel
 )
 
@@ -54,11 +53,9 @@ var EventClassText = [...]string {
 	"warning",
 	"info",
 	"configuration",
-	"ready",
-	"instantiate",
-	"finalize",
-	"task_start",
-	"task_finish",
+	"start",
+	"finish",
+/*
 	"resource",
 	"service",
 	"query",
@@ -68,6 +65,7 @@ var EventClassText = [...]string {
   "write",
   "connect",
   "disconnect",
+*/
 }
 
 
