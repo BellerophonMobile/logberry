@@ -1,17 +1,32 @@
 package logberry
 
 import (
+	"os"
+	"path"
 	"log"
-//	"time"
 )
 
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-type StatementClass int
-
+type ContextClass int
 const (
-	ERROR StatementClass = iota
+	COMPONENT ContextClass = iota
+	INSTANCE
+	TASK
+	contextclass_sentinel
+)
+
+var ContextClassText = [...]string {
+	"component",
+	"instance",
+	"task",
+}
+
+
+type EventClass int
+const (
+	ERROR EventClass = iota
 	FATAL
 	WARNING
 	INFO
@@ -19,15 +34,20 @@ const (
 	READY
 	INSTANTIATE
 	FINALIZE
-	TASK
 	TASK_START
 	TASK_FINISH
 	RESOURCE
 	SERVICE
-	UNKNOWN // This is the sentinel, must be last!
+	QUERY
+	CALCULATE
+	LOAD
+	STORE
+	CONNECT
+	DISCONNECT
+	eventclass_sentinel
 )
 
-var STATEMENT_CLASS_TEXT = [...]string {
+var EventClassText = [...]string {
 	"error",
 	"fatal",
 	"warning",
@@ -36,80 +56,44 @@ var STATEMENT_CLASS_TEXT = [...]string {
 	"ready",
 	"instantiate",
 	"finalize",
-	"task",
 	"task_start",
 	"task_finish",
 	"resource",
 	"service",
-	"unknown",
-};
-
-
-//------------------------------------------------------
-type ErrorListener interface {
-	LoggingError(err error)
+	"query",
+  "calculate",
+  "load",
+  "store",
+  "connect",
+  "disconnect",
 }
 
 
 //------------------------------------------------------
-var outputdrivers = []OutputDriver{}
-var errorlisteners = []ErrorListener{}
+var Std *Root
+var Main *Context
 
+
+//------------------------------------------------------
 func init() {
-	if len(STATEMENT_CLASS_TEXT) != int(UNKNOWN) + 1 {
+
+	//-- Check that labels are defined for all the enumerations
+	if len(ContextClassText) != int(contextclass_sentinel) {
 		log.Fatal("Fatal internal error: " +
-			"len(STATEMENT_CLASS_TEXT) != |StatementClass|")
+			"len(ContextClassText) != |ContextClass|")
 	}
 
-	AddOutputDriver(NewStdOutput())
-}
-
-
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-func AddOutputDriver(driver OutputDriver) OutputDriver {
-	outputdrivers = append(outputdrivers, driver)
-	return driver
-}
-
-func SetOutputDriver(driver OutputDriver) OutputDriver {
-	ClearOutputDrivers()
-	return AddOutputDriver(driver)
-}
-
-func ClearOutputDrivers() {
-	outputdrivers = []OutputDriver{}
-}
-
-func AddErrorListener(listener ErrorListener) {
-	errorlisteners = append(errorlisteners, listener)
-}
-
-
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-/*
- * Report an error that occurred in logging itself.
- * Public so OutputDrivers in other packages can utilize.
- */
-func LoggingError(err error) {
-	for _,listener := range(errorlisteners) {
-		listener.LoggingError(err)
-	}
-	// end logerror
-}
-
-/*
- * Internal multiplexer out to all active OutputDrivers.
- */
-func LogPrimitive(component string,
-	                class StatementClass,
-	                msg string,
-                  data *D) {
-
-	for _,driver := range(outputdrivers) {
-		driver.Log(component, class, msg, data)
+	if len(EventClassText) != int(eventclass_sentinel) {
+		log.Fatal("Fatal internal error: " +
+			"len(EventClassText) != |EventClass|")
 	}
 
-	// end LogPrimitive
+	//-- Construct the standard default root
+	Std = NewRoot(path.Base(os.Args[0]))
+	Std.AddOutputDriver(NewStdOutput())
+
+	//-- Construct the standard default context
+	Main = Std.NewContext(COMPONENT, "main")
+
+	// end init
 }
