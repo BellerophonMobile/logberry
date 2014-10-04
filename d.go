@@ -14,6 +14,7 @@ func (x *D) Set(k string, v interface{}) *D {
 	return x
 }
 
+
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func DBuild(data interface{}) *D {
@@ -47,6 +48,12 @@ func DBuild(data interface{}) *D {
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
 			d[vtype.Field(i).Name] = f.Interface()
+		}
+
+	case reflect.Map:
+		var vals = val.MapKeys()
+		for _, k := range(vals) {
+			d[k.String()] = val.MapIndex(k).Interface()
 		}
 
 	default:

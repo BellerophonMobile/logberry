@@ -69,6 +69,12 @@ func TestDBuild(t *testing.T) {
 			ex: "{\"Fruit\":\"Banana\"}",
 		},
 
+
+		{
+			v: DBuild(map[string]int{ "Sector": 12, "System": 4 }),
+			ex: "{\"Sector\":12,\"System\":4}",
+		},
+
 	}
 
 
