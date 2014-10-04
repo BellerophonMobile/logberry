@@ -1,9 +1,21 @@
 package main
 
 import (
-//	"errors"
 	"github.com/BellerophonMobile/logberry"
 )
+
+
+func startEngines() error {
+
+	logberry.Main.Info("Spooling engines",
+		&logberry.D{"Block": "C", "Power": 2})
+
+	logberry.Main.Warning("Power drain");
+
+	return logberry.Main.Failure("Failure in hyperdrive!")
+
+}
+
 
 func main() {
 
@@ -11,22 +23,27 @@ func main() {
 
 	logberry.Main.CommandLine()
 
-	logberry.Main.Environment()
+	flightdata := struct {
+		Destination string
+		Cargo string
+	}{
+		"Tau Ceti",
+		"Hopes and dreams",
+	}
 
-	logberry.Main.Process()
+	shipdata := struct {
+		Name string
+		Tier int
+	}{
+		"Hyperion",
+		9,
+	}
 
-//  logberry.Info("Bananas are loose!", &logberry.D{"Status": "insane"})
+	logberry.Main.Info("Starting flight", flightdata, shipdata)
 
-//  logberry.Info("Continuing on", &logberry.D{"Code": "Red", "Power": 2})
-
-//	logberry.Warning("Power drain");
-
-//  logberry.Error("Could not launch", errors.New("Failure in hyperdrive!"))
+	e := startEngines()
+	if e != nil {
+		logberry.Main.Fatal("Flight aborted", e)
+	}
 
 }
-
-/*
- * Verbosity controllable down a hierarchy branch?
- * Unique IDs for Contexts
- * Actions
- */

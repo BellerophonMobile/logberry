@@ -6,15 +6,19 @@ import (
 	"path/filepath"
 	"strings"
 	"os/user"
+	"sync/atomic"
 )
 
 
 type Context struct {
+	ID uint64
 	Root *Root
 	Parent *Context
 	Class ContextClass
 	Label string
 }
+
+var numcontexts uint64
 
 
 //----------------------------------------------------------------------
@@ -22,6 +26,7 @@ type Context struct {
 func NewContext(parent *Context, class ContextClass, label string) *Context {
 
 	c := &Context {
+		ID: atomic.AddUint64(&numcontexts, 1),
 		Parent: parent,
 		Class: class,
 		Label: label,
@@ -121,4 +126,38 @@ func (x *Context) Process() {
 
 	x.Root.Report(x, CONFIGURATION, "Process", &d)
 
+}
+
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+func (x *Context) Info(msg string, data ...interface{}) {
+	x.Root.Report(x, INFO, msg, DAggregate(data))
+}
+
+func (x *Context) Warning(msg string, data ...interface{}) {
+	x.Root.Report(x, WARNING, msg, DAggregate(data))
+}
+
+func (x *Context) Error(msg string, err error, data ...interface{}) error {
+
+	// Note that this can't/shouldn't just throw err into the data blob
+	// because the standard errors package error doesn't expose
+	// anything, even the message.  So you basically have to reduce to a
+	// string via Error().
+
+	x.Root.Report(x, ERROR, msg, DAggregate(data).Set("Error", err.Error()))
+	return WrapError(err, msg)
+
+}
+
+// Failure is the same as Error but doesn't take an error object.
+func (x *Context) Failure(msg string, data ...interface{}) error {
+	x.Root.Report(x, ERROR, msg, DAggregate(data))
+	return NewError(msg)
+}
+
+// Generally only the top level should invoke fatal, not components.
+func (x *Context) Fatal(msg string, err error, data ...interface{}) {
+	x.Root.Report(x, FATAL, msg, DAggregate(data).Set("Error", err.Error()))
+	os.Exit(1)
 }

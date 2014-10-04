@@ -45,7 +45,7 @@ type terminalstyle struct {
 	bold bool
 }
 
-var TERMINAL_STYLES = [...]terminalstyle {
+var TerminalStyles = [...]terminalstyle {
 	{ RED, true },               // error
 	{ RED, true },               // fatal
 	{ YELLOW, true },            // warning
@@ -172,20 +172,19 @@ func (o *TextOutput) Report(context *Context,
 
 	// Set the color
 	var color int = WHITE
-	var bold bool = false
 	if o.Color {
-		color = TERMINAL_STYLES[class].color
-		bold = TERMINAL_STYLES[class].bold
+		color = TerminalStyles[class].color
 
-		writsofar += o.printf("\x1b[%dm", HIGH_INTENSITY+color)
-		if bold {
-			writsofar += o.printf("\x1b[1m")
+		// Terminal commands produce no text, so don't include in writsofar
+		o.printf("\x1b[%dm", HIGH_INTENSITY+color)
+		if TerminalStyles[class].bold {
+			o.printf("\x1b[1m")
 		}
 	}
 
 	// Write the timestamp, component, and message
-	writsofar += o.printf("%v %v %v ",
-		o.timestamp(), context.Root.Tag, context.Label)
+	writsofar += o.printf("%v %v ",
+		o.timestamp(), context.Label)
 
 	switch class {
 	case ERROR:
@@ -206,7 +205,12 @@ func (o *TextOutput) Report(context *Context,
 		o.printf("\x1b[0;%dm", LOW_INTENSITY+color)
 	}
 
-	o.printf("%v %s", EventClassText[class], bytes)
+	var parentID uint64
+	if context.Parent != nil {
+		parentID = context.Parent.ID
+	}
+
+	o.printf("%v %v:%v %s", EventClassText[class], parentID, context.ID, bytes)
 
 	if o.Color {
 		o.printf("\x1b[0m")
