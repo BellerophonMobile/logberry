@@ -39,6 +39,7 @@ type test struct {
 func TestDBuild(t *testing.T) {
 
 	var tests = []expectation {
+
 		{
 			v: DBuild(nil),
 			ex: "{}",
@@ -73,6 +74,11 @@ func TestDBuild(t *testing.T) {
 		{
 			v: DBuild(map[string]int{ "Sector": 12, "System": 4 }),
 			ex: "{\"Sector\":12,\"System\":4}",
+		},
+
+		{
+			v: DBuild(map[int]string{ 12: "Joe", 4: "Tom"}),
+			ex: "{\"12\":\"Joe\",\"4\":\"Tom\"}",
 		},
 
 	}
