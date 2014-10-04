@@ -37,7 +37,7 @@ func NewContext(parent *Context, class ContextClass, label string, data ...inter
 		Class: class,
 		Label: label,
 
-		Data = DAggregate(data)
+		Data: DAggregate(data),
 	}
 
 	if parent != nil {
@@ -100,7 +100,7 @@ func (x *Context) Finalize(data ...interface{}) {
 
 //------------------------------------------------------
 func (x *Context) Task(label string, data ...interface{}) *Context {
-	c := NewContext(x, TASK, text, data...)
+	c := NewContext(x, TASK, label, data...)
 	return c
 }
 
@@ -226,7 +226,7 @@ func (x *Context) Error(msg string, err error, data ...interface{}) error {
 
 	d := DAggregate(data)
 	d.Set("Error", err.Error())
-	if x.Class = TASK {
+	if x.Class == TASK {
 		d.CopyFrom(x.Data)
 	}
 
@@ -241,8 +241,7 @@ func (x *Context) Failure(msg string, data ...interface{}) error {
 	x.Clock()
 
 	d := DAggregate(data)
-	d.Set("Error", err.Error())
-	if x.Class = TASK {
+	if x.Class == TASK {
 		d.CopyFrom(x.Data)
 	}
 
@@ -258,7 +257,7 @@ func (x *Context) Fatal(msg string, err error, data ...interface{}) {
 
 	d := DAggregate(data)
 	d.Set("Error", err.Error())
-	if x.Class = TASK {
+	if x.Class == TASK {
 		d.CopyFrom(x.Data)
 	}
 

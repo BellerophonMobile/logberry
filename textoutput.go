@@ -182,10 +182,6 @@ func (o *TextOutput) Report(context *Context,
 		writsofar += o.printf("[FATAL ERROR] ")
 	}
 
-	if context.class == TASK) {
-
-}
-
 	writsofar += o.printf("%v ", msg)
 
 	// Space out and then write the data fields
