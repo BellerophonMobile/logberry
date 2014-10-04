@@ -2,6 +2,7 @@ package logberry
 
 import (
 	"reflect"
+	"fmt"
 )
 
 type D map[string]interface{}
@@ -53,7 +54,7 @@ func DBuild(data interface{}) *D {
 	case reflect.Map:
 		var vals = val.MapKeys()
 		for _, k := range(vals) {
-			d[k.String()] = val.MapIndex(k).Interface()
+			d[fmt.Sprint(k.Interface())] = val.MapIndex(k).Interface()
 		}
 
 	default:
