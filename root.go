@@ -12,7 +12,7 @@ type OutputDriver interface {
 	Attach(root *Root)
 	Detach()
 
-	Report(context Context,
+	Report(context *Context,
 	  class EventClass,
 	  msg string,
 	  data *D)
@@ -85,7 +85,9 @@ func (x *Root) SetErrorListener(listener ErrorListener) *Root {
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func (x *Root) NewContext(class ContextClass, label string) *Context {
-	return NewContext(x, class, label)
+	c := NewContext(nil, class, label)
+	c.Root = x
+	return c
 }
 
 
@@ -102,7 +104,7 @@ func (x *Root) InternalError(err error) {
 /*
  * Internal multiplexer out to all active OutputDrivers.
  */
-func (x *Root) Report(context Context,
+func (x *Root) Report(context *Context,
 	                    class EventClass,
 	                    msg string,
 	                    data *D) {

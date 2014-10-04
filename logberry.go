@@ -39,9 +39,10 @@ const (
 	RESOURCE
 	SERVICE
 	QUERY
+	ASSERT
 	CALCULATE
-	LOAD
-	STORE
+	READ
+	WRITE
 	CONNECT
 	DISCONNECT
 	eventclass_sentinel
@@ -61,9 +62,10 @@ var EventClassText = [...]string {
 	"resource",
 	"service",
 	"query",
+	"assert",
   "calculate",
-  "load",
-  "store",
+  "read",
+  "write",
   "connect",
   "disconnect",
 }

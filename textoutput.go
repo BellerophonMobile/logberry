@@ -60,9 +60,10 @@ var TERMINAL_STYLES = [...]terminalstyle {
 	{ WHITE, false },            // resource
 	{ WHITE, false },            // service
 	{ WHITE, false },            // query
+	{ WHITE, false },            // assert
 	{ WHITE, false },            // calculate
-	{ WHITE, false },            // load
-	{ WHITE, false },            // store
+	{ WHITE, false },            // read
+	{ WHITE, false },            // write
 	{ WHITE, false },            // connect
 	{ WHITE, false },            // disconnect
 }
@@ -143,7 +144,7 @@ func (o *TextOutput) printf(msg string, a ...interface{}) int {
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-func (o *TextOutput) Report(context Context,
+func (o *TextOutput) Report(context *Context,
                             class EventClass,
                             msg string,
                             data *D) {
@@ -205,7 +206,7 @@ func (o *TextOutput) Report(context Context,
 		o.printf("\x1b[0;%dm", LOW_INTENSITY+color)
 	}
 
-	o.printf("%v %v", EventClassText[class], bytes)
+	o.printf("%v %s", EventClassText[class], bytes)
 
 	if o.Color {
 		o.printf("\x1b[0m")

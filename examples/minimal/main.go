@@ -2,14 +2,18 @@ package main
 
 import (
 //	"errors"
- _ "github.com/BellerophonMobile/logberry"
+	"github.com/BellerophonMobile/logberry"
 )
 
 func main() {
 
-//  logberry.Build(buildmeta)
+	logberry.Main.Build(buildmeta)
 
-//  logberry.CommandLine()
+	logberry.Main.CommandLine()
+
+	logberry.Main.Environment()
+
+	logberry.Main.Process()
 
 //  logberry.Info("Bananas are loose!", &logberry.D{"Status": "insane"})
 
@@ -20,3 +24,9 @@ func main() {
 //  logberry.Error("Could not launch", errors.New("Failure in hyperdrive!"))
 
 }
+
+/*
+ * Verbosity controllable down a hierarchy branch?
+ * Unique IDs for Contexts
+ * Actions
+ */
