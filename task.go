@@ -61,7 +61,7 @@ func newtask(parent Context, long bool, activity string, data []interface{}) *Ta
 
 	if long {
 		t.Timed = true
-		t.Root.TaskEvent(t, START, t.Data)
+		t.Root.TaskEvent(t, START)
 		t.Start = time.Now()
 	}
 
@@ -183,7 +183,7 @@ func (x *Task) Finished(data ...interface{}) {
 
 	x.Clock()
 	x.Data.AggregateFrom(data)
-	x.Root.TaskEvent(x, FINISH, x.Data)
+	x.Root.TaskEvent(x, FINISH)
 
 }
 
@@ -191,7 +191,7 @@ func (x *Task) Success(data ...interface{}) {
 
 	x.Clock()
 	x.Data.AggregateFrom(data)
-	x.Root.TaskEvent(x, SUCCESS, x.Data)
+	x.Root.TaskEvent(x, SUCCESS)
 
 }
 
@@ -206,7 +206,7 @@ func (x *Task) Error(err error, data ...interface{}) error {
 	x.Data.AggregateFrom(data)
 	x.Data.Set(x.Root.FieldPrefix+"Error", err.Error())
 
-	x.Root.TaskEvent(x, ERROR, x.Data)
+	x.Root.TaskEvent(x, ERROR)
 
 	return WrapError(err, x.Activity + " failed")
 
@@ -218,7 +218,7 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 	x.Clock()
 	x.Data.AggregateFrom(data)
 	x.Data.Set(x.Root.FieldPrefix+"Error", msg)
-	x.Root.TaskEvent(x, ERROR, x.Data)
+	x.Root.TaskEvent(x, ERROR)
 
 	return WrapError(NewError(msg), x.Activity + " failed")
 

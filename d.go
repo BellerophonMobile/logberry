@@ -37,12 +37,20 @@ func DBuild(data interface{}) *D {
 
 	var val = reflect.ValueOf(data)
 
-	switch val.Kind() {
+	// Chain through any pointers or interfaces
+	done := false
+	for !done {
+		switch val.Kind() {
+		case reflect.Interface: fallthrough
+		case reflect.Ptr:
+			val = val.Elem()
 
-	case reflect.Interface: fallthrough
-	case reflect.Ptr:
-		val = val.Elem()
-		fallthrough
+		default:
+			done = true
+		}
+	}
+
+	switch val.Kind() {
 
 	case reflect.Struct:
 		var vtype = val.Type()
@@ -64,6 +72,7 @@ func DBuild(data interface{}) *D {
 	}
 
 	return &d
+
 	// end DBuild
 }
 

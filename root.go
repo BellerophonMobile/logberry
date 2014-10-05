@@ -14,14 +14,13 @@ type OutputDriver interface {
 	Attach(root *Root)
 	Detach()
 
-	ComponentEvent(context *Component,
+	ComponentEvent(component *Component,
 	  class ContextEventClass,
 	  msg string,
 	  data *D)
 
 	TaskEvent(task *Task,
-		event ContextEventClass,
-		data *D);
+		event ContextEventClass)
 
 //	Action(action Action)
 }
@@ -126,11 +125,10 @@ func (x *Root) ComponentEvent(component *Component,
  * Internal multiplexer out to all active OutputDrivers.
  */
 func (x *Root) TaskEvent(task *Task,
-	event ContextEventClass,
-	data *D) {
+	event ContextEventClass) {
 
 	for _,driver := range(x.outputdrivers) {
-		driver.TaskEvent(task, event, data)
+		driver.TaskEvent(task, event)
 	}
 
 	// end TaskEvent

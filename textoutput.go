@@ -8,7 +8,10 @@ import (
 	"io"
 	"time"
 	"fmt"
-	"encoding/json"
+//	"encoding/json"
+	"bytes"
+
+	"reflect"
 
 	"github.com/BellerophonMobile/logberry/terminal"
 )
@@ -144,6 +147,52 @@ func (o *TextOutput) printf(msg string, a ...interface{}) int {
 	return n
 }
 
+func keyrenderrecurse(bytes *bytes.Buffer, data interface{}) {
+
+	var val = reflect.ValueOf(data)
+
+	switch val.Kind() {
+
+	case reflect.Interface: fallthrough
+	case reflect.Ptr:
+		keyrenderrecurse(bytes, val.Elem().Interface())
+
+
+	case reflect.Map:
+		var vals = val.MapKeys()
+		for _, k := range(vals) {
+			fmt.Fprintf(bytes, "%s=", k.Interface())
+			keyrenderrecurse(bytes, val.MapIndex(k).Interface())
+		}
+
+	case reflect.Struct:
+		var vtype = val.Type()
+		for i := 0; i < val.NumField(); i++ {
+			var f = val.Field(i)
+			fmt.Fprintf(bytes, "%s=", vtype.Field(i).Name)
+			keyrenderrecurse(bytes, f.Interface())
+		}
+
+	case reflect.String:
+		fmt.Fprintf(bytes, "%q", val.String())
+
+	default:
+		fmt.Fprintf(bytes, "%v", val.Interface())
+
+		// end switch type
+	}
+
+		fmt.Fprint(bytes, " ")
+}
+
+func keyrender(data interface{}) []byte {
+
+	var bytes = new(bytes.Buffer)
+	keyrenderrecurse(bytes, data)
+	return bytes.Bytes()
+
+}
+
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -155,7 +204,8 @@ func (o *TextOutput) contextevent(cxttype string,
 	style *TerminalStyle) {
 
 	// Marshal the data first in case there's an error
-	var bytes []byte
+	var bytes []byte = keyrender(data)
+/*
 	if data == nil {
 		bytes = []byte("{}")
 	} else {
@@ -166,6 +216,7 @@ func (o *TextOutput) contextevent(cxttype string,
 			return
 		}
 	}
+*/
 
 	var writsofar int
 
@@ -239,8 +290,7 @@ func (o *TextOutput) ComponentEvent(component *Component,
 
 //----------------------------------------------------------------------
 func (o *TextOutput) TaskEvent(task *Task,
-  event ContextEventClass,
-  data *D) {
+  event ContextEventClass) {
 
 	var msg string = task.Activity
 	var style *TerminalStyle
@@ -274,7 +324,7 @@ func (o *TextOutput) TaskEvent(task *Task,
 
 	}
 
-	o.contextevent("task", task, event, msg, data, style)
+	o.contextevent("task", task, event, msg, task.Data, style)
 
 	// end TaskEvent
 }
