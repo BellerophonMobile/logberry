@@ -29,7 +29,7 @@ var ContextEventClassText = [...]string {
 	"fatal",
 	"warning",
 	"info",
-	"configuration",
+	"config",
 	"start",
 	"finish",
 	"success",

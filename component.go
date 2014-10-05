@@ -201,6 +201,11 @@ func (x *Component) Info(msg string, data ...interface{}) {
 	x.Root.ComponentEvent(x, INFO, msg, DAggregate(data))
 }
 
+func (x *Component) Recovered(msg string, err error, data ...interface{}) {
+	x.Root.ComponentEvent(x, WARNING, msg, 
+		DAggregate(data).Set(x.Root.FieldPrefix+"Error", err.Error()))
+}
+
 func (x *Component) Warning(msg string, data ...interface{}) {
 	x.Root.ComponentEvent(x, WARNING, msg, DAggregate(data))
 }

@@ -8,7 +8,8 @@ all: bin \
      bin/threaded \
      bin/multiplexer \
      bin/toplevel \
-     bin/blueberry
+     bin/blueberry \
+     bin/flightpath
 
 
 #-----------------------------------------------------------------------

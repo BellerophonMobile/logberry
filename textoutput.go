@@ -28,6 +28,7 @@ type TextOutput struct {
 
 	Color bool
 
+	IDOffset int
 	DataOffset int
 }
 
@@ -92,7 +93,8 @@ func NewTextOutput(w io.Writer) *TextOutput {
 	return &TextOutput{
 		writer: w,
 		Start: time.Now(),
-		DataOffset: 84,
+		IDOffset: 84,
+		DataOffset: 100,
 	}
 }
 
@@ -147,7 +149,7 @@ func (o *TextOutput) printf(msg string, a ...interface{}) int {
 	return n
 }
 
-func keyrenderrecurse(bytes *bytes.Buffer, data interface{}) {
+func keyrenderrecurse(bytes *bytes.Buffer, wrap bool, data interface{}) {
 
 	var val = reflect.ValueOf(data)
 
@@ -155,22 +157,37 @@ func keyrenderrecurse(bytes *bytes.Buffer, data interface{}) {
 
 	case reflect.Interface: fallthrough
 	case reflect.Ptr:
-		keyrenderrecurse(bytes, val.Elem().Interface())
+		keyrenderrecurse(bytes, wrap, val.Elem().Interface())
 
 
 	case reflect.Map:
 		var vals = val.MapKeys()
+		if wrap {
+			fmt.Fprint(bytes, "{ ")
+		}
 		for _, k := range(vals) {
 			fmt.Fprintf(bytes, "%s=", k.Interface())
-			keyrenderrecurse(bytes, val.MapIndex(k).Interface())
+			keyrenderrecurse(bytes, true, val.MapIndex(k).Interface())
+		}
+		if wrap {
+			fmt.Fprint(bytes, "}")
 		}
 
 	case reflect.Struct:
 		var vtype = val.Type()
+
+		if wrap {
+			fmt.Fprint(bytes, "{ ")
+		}
+
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
 			fmt.Fprintf(bytes, "%s=", vtype.Field(i).Name)
-			keyrenderrecurse(bytes, f.Interface())
+			keyrenderrecurse(bytes, true, f.Interface())
+		}
+
+		if wrap {
+			fmt.Fprint(bytes, "}")
 		}
 
 	case reflect.String:
@@ -188,7 +205,7 @@ func keyrenderrecurse(bytes *bytes.Buffer, data interface{}) {
 func keyrender(data interface{}) []byte {
 
 	var bytes = new(bytes.Buffer)
-	keyrenderrecurse(bytes, data)
+	keyrenderrecurse(bytes, false, data)
 	return bytes.Bytes()
 
 }
@@ -248,7 +265,7 @@ func (o *TextOutput) contextevent(cxttype string,
 
 	// Space out and then write the data fields
 
-	for writsofar < o.DataOffset {
+	for writsofar < o.IDOffset {
 		writsofar += o.printf(" ")
 	}
 
@@ -260,7 +277,13 @@ func (o *TextOutput) contextevent(cxttype string,
 		}
 	}
 
-	o.printf("%v %v %v %s", ContextEventClassText[event], cxttype, context.GetUID(), bytes)
+	writsofar += o.printf("%7v %v %-2v ", ContextEventClassText[event], cxttype, context.GetUID())
+
+	for writsofar < o.DataOffset {
+		writsofar += o.printf(" ")
+	}
+
+	o.printf("%s", bytes)
 
 	if o.Color {
 		o.printf("\x1b[0m")
@@ -302,9 +325,7 @@ func (o *TextOutput) TaskEvent(task *Task,
 		style = &TerminalStyle{WHITE, false, HIGH_INTENSITY}
 
 	case FINISH:
-		if (task.Timed) {
-			msg += " finished"
-		}
+		msg += " completed"
 		style = &TerminalStyle{WHITE, false, HIGH_INTENSITY}
 
 	case SUCCESS:
