@@ -122,7 +122,10 @@ Of note in these logs are:
    duplicative marshaling code.
  * Log entries have a structured, parseable format, with easily
    extracted data fields.
-
+ * The API is very flexible, from fairly structured usage as above to
+   [completely flat
+   logging](https://github.com/BellerophonMobile/logberry/blob/master/examples/toplevel/main.go)
+   similar to a more typical logging package.
 
 ## Read More
 
