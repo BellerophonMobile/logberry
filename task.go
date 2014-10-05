@@ -181,19 +181,25 @@ func (x *Task) AggregateData(data ...interface{}) *D {
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-func (x *Task) Complete(data ...interface{}) {
+// Always returns nil
+func (x *Task) Complete(data ...interface{}) error {
 
 	x.Clock()
 	x.Data.AggregateFrom(data)
 	x.Root.TaskEvent(x, FINISH)
 
+	return nil
+
 }
 
-func (x *Task) Success(data ...interface{}) {
+// Always returns nil.
+func (x *Task) Success(data ...interface{}) error {
 
 	x.Clock()
 	x.Data.AggregateFrom(data)
 	x.Root.TaskEvent(x, SUCCESS)
+
+	return nil
 
 }
 

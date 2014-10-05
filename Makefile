@@ -7,7 +7,8 @@ all: bin \
      bin/task \
      bin/threaded \
      bin/multiplexer \
-     bin/toplevel
+     bin/toplevel \
+     bin/blueberry
 
 
 #-----------------------------------------------------------------------
