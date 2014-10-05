@@ -39,8 +39,6 @@ func NewRoot(tag string) *Root {
 		errorlisteners: make([]ErrorListener, 0),
 
 		Tag: tag,
-
-		FieldPrefix: "#",
 	}
 }
 

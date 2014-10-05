@@ -66,13 +66,35 @@ func (x *Component) Component(label string, data ...interface{}) *Component {
 }
 
 func (x *Component) Task(activity string, data ...interface{}) *Task {
-	return newtask(x, false, activity, data...)
+	return newtask(x, false, activity, data)
 }
-
 func (x *Component) LongTask(activity string, data ...interface{}) *Task {
-	return newtask(x, true, activity, data...)
+	return newtask(x, true, activity, data)
 }
 
+func (x *Component) CalculationTask(activity string, calculation interface{}, data ...interface{}) *Task {
+	return calculationtask(x, false, activity, calculation, data...)
+}
+func (x *Component) LongCalculationTask(activity string, calculation interface{}, data ...interface{}) *Task {
+	return calculationtask(x, true, activity, calculation, data...)
+}
+
+func (x *Component) ResourceTask(activity string, resource interface{}, data ...interface{}) *Task {
+	return resourcetask(x, false, activity, resource, data...)
+}
+func (x *Component) LongResourceTask(activity string, resource interface{}, data ...interface{}) *Task {
+	return resourcetask(x, true, activity, resource, data...)
+}
+
+func (x *Component) ServiceTask(activity string, service interface{}, query interface{}, data ...interface{}) *Task {
+	return servicetask(x, false, activity, service, query, data...)
+}
+func (x *Component) LongServiceTask(activity string, service interface{}, query interface{}, data ...interface{}) *Task {
+	return servicetask(x, true, activity, service, query, data...)
+}
+
+
+//----------------------------------------------------------------------
 func (x *Component) GetLabel() string {
 	return x.Label
 }

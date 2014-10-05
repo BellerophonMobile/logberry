@@ -209,7 +209,7 @@ func (o *TextOutput) contextevent(cxttype string,
 		}
 	}
 
-	o.printf("%v %v-%v %s", ContextEventClassText[event], cxttype, context.GetUID(), bytes)
+	o.printf("%v %v %v %s", ContextEventClassText[event], cxttype, context.GetUID(), bytes)
 
 	if o.Color {
 		o.printf("\x1b[0m")

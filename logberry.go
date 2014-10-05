@@ -52,37 +52,26 @@ var ComponentClassText = [...]string {
 type ActivityClass int
 const (
 	APPLICATION ActivityClass = iota
-	CALCULATE
+	CALCULATION
 	RESOURCE
 	SERVICE
-	QUERY
-	ASSERT
-	READ
-	WRITE
+/*
 	CONNECT
 	DISCONNECT
-	ENCRYPT
-	DECRYPT
-	SIGN
-	AUTHENTICATE
+	SECURE
+	UNSECURE
+	ATTEST
+	VERIFY
+	RENDER
+*/
 	activityclasssentinel
 )
 
 var ActivityClassText = [...]string {
 	"app",
-	"calculate",
+	"calculation",
 	"resource",
 	"service",
-	"query",
-	"assert",
-	"read",
-	"write",
-	"connect",
-	"disconnect",
-	"encrypt",
-	"decrypt",
-	"sign",
-	"authenticate",
 }
 
 
