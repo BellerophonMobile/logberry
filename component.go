@@ -229,7 +229,9 @@ func (x *Component) Failure(msg string, data ...interface{}) error {
 // Generally only the top level should invoke fatal, not sub-components.
 func (x *Component) Fatal(msg string, err error, data ...interface{}) {
 
-	x.Root.ComponentEvent(x, FATAL, msg, DAggregate(data))
+	x.Root.ComponentEvent(x, FATAL, msg, 
+		DAggregate(data).Set(x.Root.FieldPrefix+"Error", err.Error()))
+
 	os.Exit(1)
 
 }

@@ -1,25 +1,19 @@
 
 sources=$(wildcard *.go)
 
-all: bin bin/minimal bin/component bin/task bin/threaded bin/multiplexer
+all: bin \
+     bin/minimal \
+     bin/component \
+     bin/task \
+     bin/threaded \
+     bin/multiplexer \
+     bin/toplevel
 
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
-bin/minimal: examples/minimal/build.go examples/minimal/main.go $(sources)
-	cd bin; go build github.com/BellerophonMobile/logberry/examples/minimal
-
-bin/component: examples/component/main.go $(sources)
-	cd bin; go build github.com/BellerophonMobile/logberry/examples/component
-
-bin/task: examples/task/main.go $(sources)
-	cd bin; go build github.com/BellerophonMobile/logberry/examples/task
-
-bin/threaded: examples/threaded/main.go $(sources)
-	cd bin; go build github.com/BellerophonMobile/logberry/examples/threaded
-
-bin/multiplexer: examples/multiplexer/main.go $(sources)
-	cd bin; go build github.com/BellerophonMobile/logberry/examples/multiplexer
+bin/%: examples/%/build.go examples/%/main.go $(sources)
+	cd bin; go build github.com/BellerophonMobile/logberry/examples/$(subst bin/,,$@)
 
 
 #-----------------------------------------------------------------------
@@ -31,3 +25,4 @@ bin:
 	./util/build-stmt-go.sh > $@
 
 .PHONY: all
+.SECONDARY:

@@ -23,7 +23,5 @@ _testmain.go
 *.test
 
 *~
-/examples/minimal/build.go
-/examples/component/build.go
-/examples/task/build.go
+/examples/*/build.go
 /bin/

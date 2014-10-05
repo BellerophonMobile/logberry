@@ -4,18 +4,13 @@ import (
 	"github.com/BellerophonMobile/logberry"
 )
 
-
-func startEngines() error {
-
-	logberry.Main.Info("Spooling engines",
-		&logberry.D{"Block": "C", "Power": 2})
-
-	logberry.Main.Warning("Power drain");
-
-	return logberry.Main.Failure("Failure in hyperdrive!")
-
+var target = struct {
+	Destination string
+	Priority int
+}{
+	"Tau Ceti",
+	1,
 }
-
 
 func main() {
 
@@ -23,27 +18,14 @@ func main() {
 
 	logberry.Main.CommandLine()
 
-	flightdata := struct {
-		Destination string
-		Cargo string
-	}{
-		"Tau Ceti",
-		"Hopes and dreams",
-	}
+	logberry.Main.Info("Spooling engines", &logberry.D{"Block": "C", "Power": 2})
+	logberry.Main.Info("Calculating flightpath", target)
+	logberry.Main.Info("Ignition")
 
-	shipdata := struct {
-		Name string
-		Tier int
-	}{
-		"Hyperion",
-		9,
-	}
+	logberry.Main.Warning("Power drain");
 
-	logberry.Main.Info("Starting flight", flightdata, shipdata)
+	e := logberry.Main.Failure("Failure in hyperdrive!")
 
-	e := startEngines()
-	if e != nil {
-		logberry.Main.Fatal("Flight aborted", e)
-	}
+	logberry.Main.Fatal("Aborting flight", e)
 
 }
