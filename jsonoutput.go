@@ -1,31 +1,28 @@
 package logberry
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"time"
-	"encoding/json"
 )
 
-
 type JSONOutput struct {
-	root *Root
+	root   *Root
 	writer io.Writer
 
-	Start time.Time
+	Start            time.Time
 	DifferentialTime bool
 }
-
 
 //----------------------------------------------------------------------
 func NewJSONOutput(w io.Writer) *JSONOutput {
 	return &JSONOutput{
-		writer: w,
-		Start: time.Now(),
+		writer:           w,
+		Start:            time.Now(),
 		DifferentialTime: false,
 	}
 }
-
 
 //----------------------------------------------------------------------
 func (x *JSONOutput) Attach(root *Root) {
@@ -36,11 +33,10 @@ func (x *JSONOutput) Detach() {
 	x.root = nil
 }
 
-
 //----------------------------------------------------------------------
 func (x *JSONOutput) timestamp() string {
 
-	if (x.DifferentialTime) {
+	if x.DifferentialTime {
 		return time.Since(x.Start).String()
 	}
 
@@ -49,16 +45,14 @@ func (x *JSONOutput) timestamp() string {
 	// end timestamp
 }
 
-
 func (x *JSONOutput) internalerror(err error) {
- 
+
 	fmt.Fprintf(x.writer, "{\"EntryType\":\"error\",\"Error\": %q}\n",
 		err.Error())
 
 	x.root.InternalError(WrapError(err, "Could not output log entry"))
 
 }
-
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -92,9 +86,9 @@ func (x *JSONOutput) contextevent(entrytype string,
 }
 
 func (x *JSONOutput) ComponentEvent(component *Component,
-  event ContextEventClass,
-  msg string,
-  data *D) {
+	event ContextEventClass,
+	msg string,
+	data *D) {
 
 	if event < 0 || event >= contexteventclasssentinel {
 		x.internalerror(NewError("ContextEventClass out of range for component event",
@@ -108,7 +102,7 @@ func (x *JSONOutput) ComponentEvent(component *Component,
 }
 
 func (x *JSONOutput) TaskEvent(task *Task,
-  event ContextEventClass) {
+	event ContextEventClass) {
 
 	var msg string = task.Activity
 
@@ -117,7 +111,7 @@ func (x *JSONOutput) TaskEvent(task *Task,
 		msg += " start"
 
 	case FINISH:
-		if (task.Timed) {
+		if task.Timed {
 			msg += " finished"
 		}
 
@@ -140,9 +134,9 @@ func (x *JSONOutput) TaskEvent(task *Task,
 }
 
 func (x *JSONOutput) TaskProgress(task *Task,
-  event ContextEventClass,
-  msg string,
-  data *D) {
+	event ContextEventClass,
+	msg string,
+	data *D) {
 
 	if event < 0 || event >= contexteventclasssentinel {
 		x.internalerror(NewError("ContextEventClass out of range for task progress",

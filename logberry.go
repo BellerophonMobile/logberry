@@ -3,15 +3,15 @@ package logberry
 import (
 	"sync/atomic"
 
+	"log"
 	"os"
 	"path"
-	"log"
 )
-
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 type ContextEventClass int
+
 const (
 	ERROR ContextEventClass = iota
 	FATAL
@@ -24,7 +24,7 @@ const (
 	contexteventclasssentinel
 )
 
-var ContextEventClassText = [...]string {
+var ContextEventClassText = [...]string{
 	"error",
 	"fatal",
 	"warning",
@@ -35,45 +35,44 @@ var ContextEventClassText = [...]string {
 	"success",
 }
 
-
 type ComponentClass int
+
 const (
 	COMPONENT ComponentClass = iota
 	INSTANCE
 	componentclasssentinel
 )
 
-var ComponentClassText = [...]string {
+var ComponentClassText = [...]string{
 	"component",
 	"instance",
 }
 
-
 type ActivityClass int
+
 const (
 	APPLICATION ActivityClass = iota
 	CALCULATION
 	RESOURCE
 	SERVICE
-/*
-	CONNECT
-	DISCONNECT
-	SECURE
-	UNSECURE
-	ATTEST
-	VERIFY
-	RENDER
-*/
+	/*
+		CONNECT
+		DISCONNECT
+		SECURE
+		UNSECURE
+		ATTEST
+		VERIFY
+		RENDER
+	*/
 	activityclasssentinel
 )
 
-var ActivityClassText = [...]string {
+var ActivityClassText = [...]string{
 	"app",
 	"calculation",
 	"resource",
 	"service",
 }
-
 
 type Context interface {
 	GetUID() uint64
@@ -94,16 +93,13 @@ type Context interface {
 
 	ServiceTask(activity string, service interface{}, query interface{}, data ...interface{}) *Task
 	LongServiceTask(activity string, service interface{}, query interface{}, data ...interface{}) *Task
-
 }
-
 
 //------------------------------------------------------
 var Std *Root
 var Main *Component
 
 var numcontexts uint64
-
 
 //------------------------------------------------------
 func init() {
@@ -124,7 +120,6 @@ func init() {
 			"len(ComponentClassText) != |ComponentClass|")
 	}
 
-
 	//-- Construct the standard default root
 	Std = NewRoot(path.Base(os.Args[0]))
 	Std.AddOutputDriver(NewStdOutput())
@@ -135,7 +130,6 @@ func init() {
 	// end init
 }
 
-
 func newcontextuid() uint64 {
-	return atomic.AddUint64(&numcontexts, 1)-1
+	return atomic.AddUint64(&numcontexts, 1) - 1
 }

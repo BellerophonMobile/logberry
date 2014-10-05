@@ -6,7 +6,6 @@ import (
 	"net/http"
 )
 
-
 func geticon(proc logberry.Context) error {
 
 	url := "https://raw.githubusercontent.com/BellerophonMobile/logberry/master/docs/logberry.png"
@@ -24,15 +23,14 @@ func geticon(proc logberry.Context) error {
 
 }
 
-
 func main() {
 
-	var value = struct{
+	var value = struct {
 		StringField string
-		IntField int
+		IntField    int
 	}{
 		StringField: "Banana",
-		IntField: 24,
+		IntField:    24,
 	}
 
 	processor := logberry.Main.LongTask("Some data task", value)
@@ -41,7 +39,7 @@ func main() {
 
 	myfilename := "/home/nouser/doesnotexist"
 	read := processor.ResourceTask("Read app data", myfilename)
-	if _,err := ioutil.ReadFile(myfilename); err != nil {
+	if _, err := ioutil.ReadFile(myfilename); err != nil {
 		read.Error(err)
 	} else {
 		read.Complete()

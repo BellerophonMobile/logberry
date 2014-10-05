@@ -4,15 +4,14 @@ import (
 	"time"
 )
 
-
 type Task struct {
-	UID uint64
+	UID    uint64
 	Parent Context
-	Root *Root
-	Label string
+	Root   *Root
+	Label  string
 
 	Activity string
-	Class ActivityClass
+	Class    ActivityClass
 
 	Timed bool
 	Start time.Time
@@ -21,10 +20,9 @@ type Task struct {
 }
 
 const (
-	LONG = true
+	LONG  = true
 	SHORT = false
 )
-
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -32,20 +30,20 @@ func newtask(parent Context, long bool, activity string, data []interface{}) *Ta
 
 	var class = APPLICATION
 	if data != nil && len(data) > 0 {
-		if ac,ok := data[0].(ActivityClass); ok {
+		if ac, ok := data[0].(ActivityClass); ok {
 			class = ac
 			data = data[1:]
 		}
 	}
 
-	t := &Task {
-		UID: newcontextuid(),
+	t := &Task{
+		UID:    newcontextuid(),
 		Parent: parent,
-		Root: parent.GetRoot(),
-		Label: parent.GetLabel(),
+		Root:   parent.GetRoot(),
+		Label:  parent.GetLabel(),
 
 		Activity: activity,
-		Class: class,
+		Class:    class,
 
 		Data: DAggregate(data),
 	}
@@ -70,34 +68,34 @@ func newtask(parent Context, long bool, activity string, data []interface{}) *Ta
 }
 
 func calculationtask(parent Context, long bool, activity string, calculation interface{}, data ...interface{}) *Task {
-	return newtask(parent, long, activity, 
-		append([]interface{} {
-		CALCULATION,
-		&D{
-			parent.GetRoot().FieldPrefix+"Calculation": calculation,
-	  } },
-		data...))
+	return newtask(parent, long, activity,
+		append([]interface{}{
+			CALCULATION,
+			&D{
+				parent.GetRoot().FieldPrefix + "Calculation": calculation,
+			}},
+			data...))
 }
 
 func resourcetask(parent Context, long bool, activity string, resource interface{}, data ...interface{}) *Task {
 	return newtask(parent, long, activity,
-		append([]interface{} {
-		RESOURCE,
-		&D {
-			parent.GetRoot().FieldPrefix+"Resource": resource,
-		} },
-		data...))
+		append([]interface{}{
+			RESOURCE,
+			&D{
+				parent.GetRoot().FieldPrefix + "Resource": resource,
+			}},
+			data...))
 }
 
 func servicetask(parent Context, long bool, activity string, service interface{}, query interface{}, data ...interface{}) *Task {
 	return newtask(parent, long, activity,
-		append([]interface{} { 
-		SERVICE,
-		&D{
-		  parent.GetRoot().FieldPrefix+"Service": service,
-		  parent.GetRoot().FieldPrefix+"Query": query,
-	  } },
-		data...))
+		append([]interface{}{
+			SERVICE,
+			&D{
+				parent.GetRoot().FieldPrefix + "Service": service,
+				parent.GetRoot().FieldPrefix + "Query":   query,
+			}},
+			data...))
 }
 
 //----------------------------------------------------------------------
@@ -133,7 +131,6 @@ func (x *Task) LongServiceTask(activity string, service interface{}, query inter
 	return servicetask(x, true, activity, service, query, data...)
 }
 
-
 //----------------------------------------------------------------------
 func (x *Task) GetLabel() string {
 	return x.Label
@@ -152,32 +149,31 @@ func (x *Task) GetRoot() *Root {
 }
 
 func (x *Task) Time() {
-  x.Timed = true
-  x.Start = time.Now()
+	x.Timed = true
+	x.Start = time.Now()
 }
 
 func (x *Task) Clock() time.Duration {
 
-  if !x.Timed {
-    return 0
-  }
+	if !x.Timed {
+		return 0
+	}
 
-  d := time.Now().Sub(x.Start)
-  x.Data.Set(x.Root.FieldPrefix+"Duration", d)
-  return d
+	d := time.Now().Sub(x.Start)
+	x.Data.Set(x.Root.FieldPrefix+"Duration", d)
+	return d
 
 }
 
 func (x *Task) AddData(k string, v interface{}) *D {
-  (*x.Data)[k] = v
+	(*x.Data)[k] = v
 	return x.Data
 }
 
 func (x *Task) AggregateData(data ...interface{}) *D {
-  x.Data.AggregateFrom(data)
+	x.Data.AggregateFrom(data)
 	return x.Data
 }
-
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -216,7 +212,7 @@ func (x *Task) Error(err error, data ...interface{}) error {
 
 	x.Root.TaskEvent(x, ERROR)
 
-	return WrapError(err, x.Activity + " failed")
+	return WrapError(err, x.Activity+" failed")
 
 }
 
@@ -228,10 +224,9 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 	x.Data.Set(x.Root.FieldPrefix+"Error", msg)
 	x.Root.TaskEvent(x, ERROR)
 
-	return WrapError(NewError(msg), x.Activity + " failed")
+	return WrapError(NewError(msg), x.Activity+" failed")
 
 }
-
 
 //----------------------------------------------------------------------
 // ----------------------------------------------------------------------

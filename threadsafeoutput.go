@@ -1,14 +1,12 @@
 package logberry
 
-
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 type ThreadSafeOutput struct {
-	root *Root
-	driver OutputDriver
+	root    *Root
+	driver  OutputDriver
 	channel chan logevent
 }
-
 
 type logevent interface {
 	Log(driver OutputDriver)
@@ -16,9 +14,9 @@ type logevent interface {
 
 type componentevent struct {
 	component *Component
-	class ContextEventClass
-	msg string
-	data *D
+	class     ContextEventClass
+	msg       string
+	data      *D
 }
 
 func (x *componentevent) Log(driver OutputDriver) {
@@ -26,7 +24,7 @@ func (x *componentevent) Log(driver OutputDriver) {
 }
 
 type taskevent struct {
-	task *Task
+	task  *Task
 	event ContextEventClass
 }
 
@@ -35,23 +33,22 @@ func (x *taskevent) Log(driver OutputDriver) {
 }
 
 type taskprogress struct {
-	task *Task
+	task  *Task
 	event ContextEventClass
-	msg string
-	data *D
+	msg   string
+	data  *D
 }
 
 func (x *taskprogress) Log(driver OutputDriver) {
 	driver.TaskProgress(x.task, x.event, x.msg, x.data)
 }
 
-
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func NewThreadSafeOutput(driver OutputDriver, buffer int) *ThreadSafeOutput {
 
-	ts := &ThreadSafeOutput {
-		driver: driver,
+	ts := &ThreadSafeOutput{
+		driver:  driver,
 		channel: make(chan logevent, buffer),
 	}
 
@@ -63,12 +60,11 @@ func NewThreadSafeOutput(driver OutputDriver, buffer int) *ThreadSafeOutput {
 func (x *ThreadSafeOutput) process() {
 
 	for {
-		e := <- x.channel
+		e := <-x.channel
 		e.Log(x.driver)
 	}
 
 }
-
 
 //----------------------------------------------------------------------
 func (x *ThreadSafeOutput) Attach(root *Root) {
@@ -81,17 +77,16 @@ func (x *ThreadSafeOutput) Detach() {
 	x.root = nil
 }
 
-
 func (x *ThreadSafeOutput) ComponentEvent(component *Component,
-  class ContextEventClass,
-  msg string,
-  data *D) {
+	class ContextEventClass,
+	msg string,
+	data *D) {
 
-	x.channel <- &componentevent {
+	x.channel <- &componentevent{
 		component: component,
-		class: class,
-		msg: msg,
-		data: data,
+		class:     class,
+		msg:       msg,
+		data:      data,
 	}
 
 }
@@ -99,8 +94,8 @@ func (x *ThreadSafeOutput) ComponentEvent(component *Component,
 func (x *ThreadSafeOutput) TaskEvent(task *Task,
 	event ContextEventClass) {
 
-	x.channel <- &taskevent {
-		task: task,
+	x.channel <- &taskevent{
+		task:  task,
 		event: event,
 	}
 
@@ -111,11 +106,11 @@ func (x *ThreadSafeOutput) TaskProgress(task *Task,
 	msg string,
 	data *D) {
 
-	x.channel <- &taskprogress {
-		task: task,
+	x.channel <- &taskprogress{
+		task:  task,
 		event: event,
-		msg: msg,
-		data: data,
+		msg:   msg,
+		data:  data,
 	}
 
 }

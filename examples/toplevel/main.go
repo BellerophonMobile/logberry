@@ -4,18 +4,16 @@ import (
 	"github.com/BellerophonMobile/logberry"
 )
 
-
 func startEngines() error {
 
 	logberry.Main.Info("Spooling engines",
 		&logberry.D{"Block": "C", "Power": 2})
 
-	logberry.Main.Warning("Power drain");
+	logberry.Main.Warning("Power drain")
 
 	return logberry.Main.Failure("Failure in hyperdrive!")
 
 }
-
 
 func main() {
 
@@ -25,7 +23,7 @@ func main() {
 
 	flightdata := struct {
 		Destination string
-		Cargo string
+		Cargo       string
 	}{
 		"Tau Ceti",
 		"Hopes and dreams",

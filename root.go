@@ -1,8 +1,7 @@
 package logberry
 
-
 type Root struct {
-	outputdrivers []OutputDriver
+	outputdrivers  []OutputDriver
 	errorlisteners []ErrorListener
 
 	Tag string
@@ -15,9 +14,9 @@ type OutputDriver interface {
 	Detach()
 
 	ComponentEvent(component *Component,
-	  event ContextEventClass,
-	  msg string,
-	  data *D)
+		event ContextEventClass,
+		msg string,
+		data *D)
 
 	TaskEvent(task *Task,
 		event ContextEventClass)
@@ -27,30 +26,28 @@ type OutputDriver interface {
 		msg string,
 		data *D)
 
-//	Action(action Action)
+	//	Action(action Action)
 }
 
 type ErrorListener interface {
 	InternalError(err error)
 }
 
-
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func NewRoot(tag string) *Root {
 	return &Root{
-		outputdrivers: make([]OutputDriver, 0, 1),
+		outputdrivers:  make([]OutputDriver, 0, 1),
 		errorlisteners: make([]ErrorListener, 0),
 
 		Tag: tag,
 	}
 }
 
-
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func (x *Root) ClearOutputDrivers() {
-	for _,o := range(x.outputdrivers) {
+	for _, o := range x.outputdrivers {
 		o.Detach()
 	}
 	x.outputdrivers = make([]OutputDriver, 0, 1)
@@ -69,7 +66,6 @@ func (x *Root) SetOutputDriver(driver OutputDriver) *Root {
 	x.AddOutputDriver(driver)
 	return x
 }
-
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -91,7 +87,6 @@ func (x *Root) SetErrorListener(listener ErrorListener) *Root {
 	return x
 }
 
-
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func (x *Root) NewComponent(label string, data ...interface{}) *Component {
@@ -100,12 +95,11 @@ func (x *Root) NewComponent(label string, data ...interface{}) *Component {
 	return c
 }
 
-
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 // Report an error that occurred in logging itself.
 func (x *Root) InternalError(err error) {
-	for _,listener := range(x.errorlisteners) {
+	for _, listener := range x.errorlisteners {
 		listener.InternalError(err)
 	}
 	// end logerror
@@ -122,7 +116,7 @@ func (x *Root) ComponentEvent(component *Component,
 	// Root doesn't check that event is within range because the output
 	// drivers need to actually report the error anyway.
 
-	for _,driver := range(x.outputdrivers) {
+	for _, driver := range x.outputdrivers {
 		driver.ComponentEvent(component, event, msg, data)
 	}
 
@@ -138,7 +132,7 @@ func (x *Root) TaskEvent(task *Task,
 	// Root doesn't check that event is within range because the output
 	// drivers need to actually report the error anyway.
 
-	for _,driver := range(x.outputdrivers) {
+	for _, driver := range x.outputdrivers {
 		driver.TaskEvent(task, event)
 	}
 
@@ -156,7 +150,7 @@ func (x *Root) TaskProgress(task *Task,
 	// Root doesn't check that event is within range because the output
 	// drivers need to actually report the error anyway.
 
-	for _,driver := range(x.outputdrivers) {
+	for _, driver := range x.outputdrivers {
 		driver.TaskProgress(task, event, msg, data)
 	}
 

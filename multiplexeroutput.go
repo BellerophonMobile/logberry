@@ -1,8 +1,7 @@
 package logberry
 
-
 type MultiplexerOutput struct {
-	root *Root
+	root    *Root
 	drivers []OutputDriver
 }
 
@@ -14,7 +13,7 @@ type MultiplexerOutput struct {
 // ThreadSafeOutput, which in turns feeds to a multiplexer, and then
 // through that to several outputs.
 func NewMultiplexerOutput() *MultiplexerOutput {
-	return &MultiplexerOutput {
+	return &MultiplexerOutput{
 		drivers: make([]OutputDriver, 0),
 	}
 }
@@ -23,30 +22,28 @@ func (x *MultiplexerOutput) AddOutputDriver(out OutputDriver) {
 	x.drivers = append(x.drivers, out)
 }
 
-
 //----------------------------------------------------------------------
 func (x *MultiplexerOutput) Attach(root *Root) {
 	x.root = root
-	for _,out := range(x.drivers) {
+	for _, out := range x.drivers {
 		out.Attach(root)
 	}
 }
 
 func (x *MultiplexerOutput) Detach() {
-	for _,out := range(x.drivers) {
+	for _, out := range x.drivers {
 		out.Detach()
 	}
 	x.root = nil
 }
 
-
 //----------------------------------------------------------------------
 func (x *MultiplexerOutput) ComponentEvent(component *Component,
-  class ContextEventClass,
-  msg string,
-  data *D) {
+	class ContextEventClass,
+	msg string,
+	data *D) {
 
-	for _,out := range(x.drivers) {
+	for _, out := range x.drivers {
 		out.ComponentEvent(component, class, msg, data)
 	}
 
@@ -55,7 +52,7 @@ func (x *MultiplexerOutput) ComponentEvent(component *Component,
 func (x *MultiplexerOutput) TaskEvent(task *Task,
 	event ContextEventClass) {
 
-	for _,out := range(x.drivers) {
+	for _, out := range x.drivers {
 		out.TaskEvent(task, event)
 	}
 
@@ -66,7 +63,7 @@ func (x *MultiplexerOutput) TaskProgress(task *Task,
 	msg string,
 	data *D) {
 
-	for _,out := range(x.drivers) {
+	for _, out := range x.drivers {
 		out.TaskProgress(task, event, msg, data)
 	}
 

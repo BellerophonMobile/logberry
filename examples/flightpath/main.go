@@ -4,15 +4,14 @@ import (
 	"github.com/BellerophonMobile/logberry"
 )
 
-
 type destination struct {
-	Planet string
+	Planet   string
 	Priority int
 }
 
 var enginelog *logberry.Component
 
-func route(dest destination) ([]byte,error) {
+func route(dest destination) ([]byte, error) {
 	return []byte{0xDE, 0xAD, 0xBE, 0xEF}, logberry.NewError("Unstable route")
 }
 
@@ -35,7 +34,7 @@ func startengines(dest destination) error {
 }
 
 func monitorengines() {
-	enginelog.Warning("Low power levels", "80%");
+	enginelog.Warning("Low power levels", "80%")
 }
 
 func stopengines() error {
@@ -45,7 +44,6 @@ func stopengines() error {
 	return task.Failure("Unknown coil")
 
 }
-
 
 func main() {
 	var target = destination{"Hera", 7}

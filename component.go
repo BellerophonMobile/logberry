@@ -2,22 +2,20 @@ package logberry
 
 import (
 	"os"
+	"os/user"
 	"path"
 	"path/filepath"
 	"strings"
-	"os/user"
 )
 
-
 type Component struct {
-	UID uint64
+	UID    uint64
 	Parent Context
-	Root *Root
-	Label string
+	Root   *Root
+	Label  string
 
 	Class ComponentClass
 }
-
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -25,18 +23,18 @@ func newcomponent(parent Context, label string, data ...interface{}) *Component 
 
 	var class = COMPONENT
 	if data != nil && len(data) > 0 {
-		if cc,ok := data[0].(ComponentClass); ok {
+		if cc, ok := data[0].(ComponentClass); ok {
 			class = cc
 			data = data[1:]
 		}
 	}
 	d := DAggregate(data)
 
-	c := &Component {
-		UID: newcontextuid(),
+	c := &Component{
+		UID:    newcontextuid(),
 		Parent: parent,
-		Label: label,
-		Class: class,
+		Label:  label,
+		Class:  class,
 	}
 
 	if parent != nil {
@@ -93,7 +91,6 @@ func (x *Component) LongServiceTask(activity string, service interface{}, query 
 	return servicetask(x, true, activity, service, query, data...)
 }
 
-
 //----------------------------------------------------------------------
 func (x *Component) GetLabel() string {
 	return x.Label
@@ -111,7 +108,6 @@ func (x *Component) GetRoot() *Root {
 	return x.Root
 }
 
-
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func (x *Component) Build(build *BuildMetadata) {
@@ -120,32 +116,32 @@ func (x *Component) Build(build *BuildMetadata) {
 
 func (x *Component) CommandLine() {
 
-	hostname,err := os.Hostname()
+	hostname, err := os.Hostname()
 	if err != nil {
 		x.Root.InternalError(WrapError(err, "Could not retrieve hostname"))
 		return
 	}
 
-	u,err := user.Current()
+	u, err := user.Current()
 	if err != nil {
 		x.Root.InternalError(WrapError(err, "Could not retrieve user info"))
 		return
 	}
 
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-  if err != nil {
+	if err != nil {
 		x.Root.InternalError(WrapError(err, "Could not retrieve program path"))
 		return
-  }
+	}
 
 	prog := path.Base(os.Args[0])
 
 	d := D{
-		"Host": hostname,
-		"User": u.Username,
-		"Path": dir,
+		"Host":    hostname,
+		"User":    u.Username,
+		"Path":    dir,
 		"Program": prog,
-		"Args": os.Args[1:],
+		"Args":    os.Args[1:],
 	}
 
 	x.Root.ComponentEvent(x, CONFIGURATION, "Command line", &d)
@@ -156,28 +152,28 @@ func (x *Component) Environment() {
 
 	d := D{}
 	for _, e := range os.Environ() {
-    pair := strings.Split(e, "=")
+		pair := strings.Split(e, "=")
 		d[pair[0]] = pair[1]
-  }
+	}
 	x.Root.ComponentEvent(x, CONFIGURATION, "Environment", &d)
 
 }
 
 func (x *Component) Process() {
 
-	hostname,err := os.Hostname()
+	hostname, err := os.Hostname()
 	if err != nil {
 		x.Root.InternalError(WrapError(err, "Could not retrieve hostname"))
 		return
 	}
 
-	wd,err := os.Getwd()
-  if err != nil {
+	wd, err := os.Getwd()
+	if err != nil {
 		x.Root.InternalError(WrapError(err, "Could not retrieve working dir"))
 		return
-  }
+	}
 
-	u,err := user.Current()
+	u, err := user.Current()
 	if err != nil {
 		x.Root.InternalError(WrapError(err, "Could not retrieve user info"))
 		return
@@ -185,10 +181,10 @@ func (x *Component) Process() {
 
 	d := D{
 		"Host": hostname,
-		"WD": wd,
-		"UID": u.Uid,
+		"WD":   wd,
+		"UID":  u.Uid,
 		"User": u.Username,
-		"PID": os.Getpid(),
+		"PID":  os.Getpid(),
 	}
 
 	x.Root.ComponentEvent(x, CONFIGURATION, "Process", &d)
@@ -202,7 +198,7 @@ func (x *Component) Info(msg string, data ...interface{}) {
 }
 
 func (x *Component) Recovered(msg string, err error, data ...interface{}) {
-	x.Root.ComponentEvent(x, WARNING, msg, 
+	x.Root.ComponentEvent(x, WARNING, msg,
 		DAggregate(data).Set(x.Root.FieldPrefix+"Error", err.Error()))
 }
 
@@ -234,13 +230,12 @@ func (x *Component) Failure(msg string, data ...interface{}) error {
 // Generally only the top level should invoke fatal, not sub-components.
 func (x *Component) Fatal(msg string, err error, data ...interface{}) {
 
-	x.Root.ComponentEvent(x, FATAL, msg, 
+	x.Root.ComponentEvent(x, FATAL, msg,
 		DAggregate(data).Set(x.Root.FieldPrefix+"Error", err.Error()))
 
 	os.Exit(1)
 
 }
-
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

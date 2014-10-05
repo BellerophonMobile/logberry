@@ -3,10 +3,9 @@ package main
 import (
 	"github.com/BellerophonMobile/logberry"
 
-	"time"
 	"sync"
+	"time"
 )
-
 
 func out(thread int, log *logberry.Component, wg *sync.WaitGroup) {
 
@@ -46,13 +45,12 @@ func out(thread int, log *logberry.Component, wg *sync.WaitGroup) {
 
 }
 
-
 func main() {
 	var wg sync.WaitGroup
 
 	logberry.Std.SetOutputDriver(logberry.NewThreadSafeOutput(logberry.NewStdOutput(), 7))
 
-  log := logberry.Main.Component("test", &logberry.D{"Rolling": "heavy"})
+	log := logberry.Main.Component("test", &logberry.D{"Rolling": "heavy"})
 
 	wg.Add(2)
 	go out(2, log, &wg)
@@ -63,7 +61,7 @@ func main() {
 	log.Info("Done")
 
 	time.Sleep(5 * time.Second) // Necessary so threadsafe output
-	                            // goroutine isn't cut off by main
-	                            // program termination immediately
-	                            // after wait.
+	// goroutine isn't cut off by main
+	// program termination immediately
+	// after wait.
 }

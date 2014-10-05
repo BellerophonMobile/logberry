@@ -3,12 +3,12 @@ package logberry
 import (
 	"log"
 
+	"fmt"
+	"io"
 	"os"
 	"syscall"
-	"io"
 	"time"
-	"fmt"
-//	"encoding/json"
+	//	"encoding/json"
 	"bytes"
 
 	"reflect"
@@ -16,19 +16,18 @@ import (
 	"github.com/BellerophonMobile/logberry/terminal"
 )
 
-
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 type TextOutput struct {
-	root *Root
+	root   *Root
 	writer io.Writer
 
-	Start time.Time
+	Start            time.Time
 	DifferentialTime bool
 
 	Color bool
 
-	IDOffset int
+	IDOffset   int
 	DataOffset int
 }
 
@@ -45,24 +44,24 @@ const (
 
 const (
 	HIGH_INTENSITY int = 90
-	LOW_INTENSITY int = 30
+	LOW_INTENSITY  int = 30
 )
 
 type TerminalStyle struct {
-	color int
-	bold bool
+	color     int
+	bold      bool
 	intensity int
 }
 
-var ContextEventTerminalStyles = [...]TerminalStyle {
-	{ RED,    true,  HIGH_INTENSITY },               // error
-	{ RED,    true,  HIGH_INTENSITY },               // fatal
-	{ YELLOW, true,  HIGH_INTENSITY },               // warning
-	{ WHITE,  false, HIGH_INTENSITY },               // info
-	{ BLUE,   false, LOW_INTENSITY  },               // configuration
-	{ GREEN,  true,  HIGH_INTENSITY },               // start
-	{ BLACK,  false, HIGH_INTENSITY },               // finish
-	{ WHITE,  false, HIGH_INTENSITY },               // success
+var ContextEventTerminalStyles = [...]TerminalStyle{
+	{RED, true, HIGH_INTENSITY},    // error
+	{RED, true, HIGH_INTENSITY},    // fatal
+	{YELLOW, true, HIGH_INTENSITY}, // warning
+	{WHITE, false, HIGH_INTENSITY}, // info
+	{BLUE, false, LOW_INTENSITY},   // configuration
+	{GREEN, true, HIGH_INTENSITY},  // start
+	{BLACK, false, HIGH_INTENSITY}, // finish
+	{WHITE, false, HIGH_INTENSITY}, // success
 }
 
 func init() {
@@ -91,9 +90,9 @@ func NewErrOutput() *TextOutput {
 
 func NewTextOutput(w io.Writer) *TextOutput {
 	return &TextOutput{
-		writer: w,
-		Start: time.Now(),
-		IDOffset: 84,
+		writer:     w,
+		Start:      time.Now(),
+		IDOffset:   84,
 		DataOffset: 100,
 	}
 }
@@ -107,12 +106,11 @@ func (o *TextOutput) Detach() {
 	o.root = nil
 }
 
-
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func (o *TextOutput) timestamp() string {
 
-	if (o.DifferentialTime) {
+	if o.DifferentialTime {
 		return time.Since(o.Start).String()
 	}
 
@@ -142,7 +140,7 @@ func (o *TextOutput) internalerror(err error) {
 
 // Convenience function to handle the potential write error.
 func (o *TextOutput) printf(msg string, a ...interface{}) int {
-	n,e := fmt.Fprintf(o.writer, msg, a...)
+	n, e := fmt.Fprintf(o.writer, msg, a...)
 	if e != nil {
 		o.internalerror(e)
 	}
@@ -155,17 +153,17 @@ func keyrenderrecurse(bytes *bytes.Buffer, wrap bool, data interface{}) {
 
 	switch val.Kind() {
 
-	case reflect.Interface: fallthrough
+	case reflect.Interface:
+		fallthrough
 	case reflect.Ptr:
 		keyrenderrecurse(bytes, wrap, val.Elem().Interface())
-
 
 	case reflect.Map:
 		var vals = val.MapKeys()
 		if wrap {
 			fmt.Fprint(bytes, "{ ")
 		}
-		for _, k := range(vals) {
+		for _, k := range vals {
 			fmt.Fprintf(bytes, "%s=", k.Interface())
 			keyrenderrecurse(bytes, true, val.MapIndex(k).Interface())
 		}
@@ -199,7 +197,7 @@ func keyrenderrecurse(bytes *bytes.Buffer, wrap bool, data interface{}) {
 		// end switch type
 	}
 
-		fmt.Fprint(bytes, " ")
+	fmt.Fprint(bytes, " ")
 }
 
 func keyrender(data interface{}) []byte {
@@ -210,30 +208,29 @@ func keyrender(data interface{}) []byte {
 
 }
 
-
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func (o *TextOutput) contextevent(cxttype string,
 	context Context,
-  event ContextEventClass,
-  msg string,
-  data *D,
+	event ContextEventClass,
+	msg string,
+	data *D,
 	style *TerminalStyle) {
 
 	// Marshal the data first in case there's an error
 	var bytes []byte = keyrender(data)
-/*
-	if data == nil {
-		bytes = []byte("{}")
-	} else {
-		var err error
-		bytes, err = json.Marshal(data)
-		if err != nil {
-			o.internalerror(WrapError(err, "Could not marshal log entry fields", context.GetUID()))
-			return
+	/*
+		if data == nil {
+			bytes = []byte("{}")
+		} else {
+			var err error
+			bytes, err = json.Marshal(data)
+			if err != nil {
+				o.internalerror(WrapError(err, "Could not marshal log entry fields", context.GetUID()))
+				return
+			}
 		}
-	}
-*/
+	*/
 
 	var writsofar int
 
@@ -295,9 +292,9 @@ func (o *TextOutput) contextevent(cxttype string,
 
 //----------------------------------------------------------------------
 func (o *TextOutput) ComponentEvent(component *Component,
-  event ContextEventClass,
-  msg string,
-  data *D) {
+	event ContextEventClass,
+	msg string,
+	data *D) {
 
 	if event < 0 || event >= contexteventclasssentinel {
 		o.internalerror(NewError("ContextEventClass out of range for component event",
@@ -313,7 +310,7 @@ func (o *TextOutput) ComponentEvent(component *Component,
 
 //----------------------------------------------------------------------
 func (o *TextOutput) TaskEvent(task *Task,
-  event ContextEventClass) {
+	event ContextEventClass) {
 
 	var msg string = task.Activity
 	var style *TerminalStyle
@@ -352,9 +349,9 @@ func (o *TextOutput) TaskEvent(task *Task,
 
 //----------------------------------------------------------------------
 func (o *TextOutput) TaskProgress(task *Task,
-  event ContextEventClass,
-  msg string,
-  data *D) {
+	event ContextEventClass,
+	msg string,
+	data *D) {
 
 	if event < 0 || event >= contexteventclasssentinel {
 		o.internalerror(NewError("ContextEventClass out of range for task progress",

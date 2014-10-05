@@ -1,12 +1,11 @@
 package logberry
 
 import (
-	"reflect"
 	"fmt"
+	"reflect"
 )
 
 type D map[string]interface{}
-
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -14,7 +13,6 @@ func (x *D) Set(k string, v interface{}) *D {
 	(*x)[k] = v
 	return x
 }
-
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -41,7 +39,8 @@ func DBuild(data interface{}) *D {
 	done := false
 	for !done {
 		switch val.Kind() {
-		case reflect.Interface: fallthrough
+		case reflect.Interface:
+			fallthrough
 		case reflect.Ptr:
 			val = val.Elem()
 
@@ -61,7 +60,7 @@ func DBuild(data interface{}) *D {
 
 	case reflect.Map:
 		var vals = val.MapKeys()
-		for _, k := range(vals) {
+		for _, k := range vals {
 			d[fmt.Sprint(k.Interface())] = val.MapIndex(k).Interface()
 		}
 
@@ -83,7 +82,7 @@ func (x *D) CopyFromD(data *D) *D {
 		return x
 	}
 
-	for k,v := range((*data)) {
+	for k, v := range *data {
 		(*x)[k] = v
 	}
 
@@ -113,7 +112,8 @@ func (x *D) CopyFrom(data interface{}) *D {
 
 	switch val.Kind() {
 
-	case reflect.Interface: fallthrough
+	case reflect.Interface:
+		fallthrough
 	case reflect.Ptr:
 		val = val.Elem()
 		fallthrough
@@ -126,7 +126,7 @@ func (x *D) CopyFrom(data interface{}) *D {
 		}
 
 	default:
-		var prev,find = (*x)["value"]
+		var prev, find = (*x)["value"]
 		if find {
 			switch prev.(type) {
 			case []interface{}:
