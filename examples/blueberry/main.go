@@ -51,7 +51,7 @@ func main() {
 		logberry.Main.Fatal("Could not download icon", err)
 	}
 
-	// Super inefficient.  Bare with it for this example...
+	// Super inefficient.  Bear with it for this example...
 	for i := range swaps {
 		icon = bytes.Replace(icon, []byte(swaps[i].old), []byte(swaps[i].new), -1)
 	}

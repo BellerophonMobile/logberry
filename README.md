@@ -44,8 +44,8 @@ A very simple use is then:
 package main
 
 import (
-	"errors"
 	"github.com/BellerophonMobile/logberry"
+	"errors"
 	"os"
 )
 
