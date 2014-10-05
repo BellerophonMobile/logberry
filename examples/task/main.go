@@ -2,28 +2,41 @@ package main
 
 import (
 	"github.com/BellerophonMobile/logberry"
+	"io/ioutil"
 )
-
-type test struct {
-	StringField string
-	IntField int
-}
 
 
 func main() {
 
-  log := logberry.NewComponent("testcmpnt", &logberry.D{"Alpha": "Beta"})
+	myfilename := "/home/nouser/doesnotexist"
+	read := logberry.Main.Task("Read app data", myfilename)
+	if _,err := ioutil.ReadFile(myfilename); err != nil {
+		read.Error(err)
+	} else {
+		read.Success()
+	}
 
-	value := &test{ StringField: "Banana", IntField: 24 }
+/*
 
+	var value = struct{
+		StringField string
+		IntField int
+	}{
+		StringField: "Banana",
+		IntField: 24,
+	}
 
-	task := log.Task("Some non-trivial activity", value)
+	background := logberry.Main.Task("A quick task", value)
+
+	task := logberry.Main.Task("Some non-trivial activity", value)
+
+	task.SetData("User", "joe")
 
 	task.Success()
 
 
-	task = log.ResourceTask("Read some resource", "/dev/null")
+	task = logberry.Main.LongTask("A longer task")
+	task.Success()
 
-	task.Failure("Can't read /dev/null")
-
+*/
 }

@@ -13,10 +13,14 @@ func main() {
 
 	cmp.Info("Generic message")
 
+	in := cmp.Component("object0", logberry.INSTANCE)
+	in.Info("Somewhere in object lifecycle")
+	in.Finalize()
+
 	cmp.Info("Generic data", 7, 42, 39)
 
   cmp.Error("Aborting processing", errors.New("CPU meltdown"))
 
-	cmp.Cleanup()
+	cmp.Finalize()
 
 }

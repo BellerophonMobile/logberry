@@ -161,6 +161,51 @@ func TestCopyFrom(t *testing.T) {
 }
 
 //----------------------------------------------------------------------
+func TestAggregateFrom(t *testing.T) {
+
+	var tests = []expectation {
+
+		{
+			v: (&D{}).AggregateFrom([]interface{}{nil}),
+			ex: "{}",
+		},
+
+		{
+			v: (&D{}).AggregateFrom([]interface{}{8, 9, "mushi"}),
+			ex: "{\"value\":[8,9,\"mushi\"]}",
+		},
+
+		{
+			v: (&D{}).AggregateFrom([]interface{}{8, &D{"Fruit":"Banana"}, 9, "mushi"}),
+			ex: "{\"Fruit\":\"Banana\",\"value\":[8,9,\"mushi\"]}",
+		},
+
+		{
+			v: (&D{}).AggregateFrom([]interface{}{8, &D{"Fruit":"Banana"}, 9, &D{"Fruit":"Candy"}}),
+			ex: "{\"Fruit\":\"Candy\",\"value\":[8,9]}",
+		},
+
+
+		// Above are (or should be) same tests as TestDAggregate
+
+		{
+			v: (&D{"Ship": "Black Pearl"}).AggregateFrom([]interface{}{nil}),
+			ex: "{\"Ship\":\"Black Pearl\"}",
+		},
+
+		{
+			v: (&D{"Ship": "Black Pearl"}).AggregateFrom([]interface{}{8, 9, "mushi"}),
+			ex: "{\"Ship\":\"Black Pearl\",\"value\":[8,9,\"mushi\"]}",
+		},
+
+	}
+
+	runcases(tests, t)
+
+	// end TestAggregateFrom
+}
+
+//----------------------------------------------------------------------
 func TestDAggregate(t *testing.T) {
 
 	var tests = []expectation {

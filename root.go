@@ -6,16 +6,22 @@ type Root struct {
 	errorlisteners []ErrorListener
 
 	Tag string
+
+	FieldPrefix string
 }
 
 type OutputDriver interface {
 	Attach(root *Root)
 	Detach()
 
-	Report(context *Context,
-	  class EventClass,
+	ComponentEvent(context *Component,
+	  class ContextEventClass,
 	  msg string,
 	  data *D)
+
+	TaskEvent(task *Task,
+		event ContextEventClass,
+		data *D);
 
 //	Action(action Action)
 }
@@ -33,6 +39,8 @@ func NewRoot(tag string) *Root {
 		errorlisteners: make([]ErrorListener, 0),
 
 		Tag: tag,
+
+		FieldPrefix: "#",
 	}
 }
 
@@ -84,8 +92,8 @@ func (x *Root) SetErrorListener(listener ErrorListener) *Root {
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-func (x *Root) NewContext(class ContextClass, label string) *Context {
-	c := NewContext(nil, class, label)
+func (x *Root) NewComponent(label string, data ...interface{}) *Component {
+	c := newcomponent(nil, label, DAggregate(data))
 	c.Root = x
 	return c
 }
@@ -104,14 +112,28 @@ func (x *Root) InternalError(err error) {
 /*
  * Internal multiplexer out to all active OutputDrivers.
  */
-func (x *Root) Report(context *Context,
-	                    class EventClass,
-	                    msg string,
-	                    data *D) {
+func (x *Root) ComponentEvent(component *Component,
+	event ContextEventClass,
+	msg string,
+	data *D) {
 
 	for _,driver := range(x.outputdrivers) {
-		driver.Report(context, class, msg, data)
+		driver.ComponentEvent(component, event, msg, data)
 	}
 
-	// end Report
+	// end ComponentEvent
+}
+
+/*
+ * Internal multiplexer out to all active OutputDrivers.
+ */
+func (x *Root) TaskEvent(task *Task,
+	event ContextEventClass,
+	data *D) {
+
+	for _,driver := range(x.outputdrivers) {
+		driver.TaskEvent(task, event, data)
+	}
+
+	// end TaskEvent
 }

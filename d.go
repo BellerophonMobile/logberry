@@ -139,7 +139,7 @@ func (x *D) CopyFrom(data interface{}) *D {
 }
 
 //------------------------------------------------------
-func (x *D) AggregateInto(dataarr []interface{}) *D {
+func (x *D) AggregateFrom(dataarr []interface{}) *D {
 
 	for i := 0; i < len(dataarr); i++ {
 		x.CopyFrom(dataarr[i])
@@ -147,13 +147,13 @@ func (x *D) AggregateInto(dataarr []interface{}) *D {
 
 	return x
 
-	// and AggregateInto
+	// and AggregateFrom
 }
 
 func DAggregate(dataarr []interface{}) *D {
 
 	// This is done this way rather than creating a blank and calling
-	// AggregateInto() on it in order to not create D objects
+	// AggregateFrom() on it in order to not create D objects
 	// unnecessarily, i.e., if the user passes a single one in, it will
 	// be used directly.
 
@@ -171,7 +171,10 @@ func DAggregate(dataarr []interface{}) *D {
 		accum.CopyFrom(dataarr[i])
 	}
 
-	return (&D{}).AggregateInto(dataarr)
+	return accum
+
+	// Alternatively, if wanted D objects to be safe, just do:
+	//	return (&D{}).AggregateFrom(dataarr)
 
 	// end DAggregate
 }
