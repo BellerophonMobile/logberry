@@ -8,7 +8,7 @@ import (
 )
 
 
-func out(thread int, log *logberry.ComponentLog, wg *sync.WaitGroup) {
+func out(thread int, log *logberry.Component, wg *sync.WaitGroup) {
 
 	for i := 0; i < 100; i++ {
 		log.Info(`
@@ -50,9 +50,9 @@ func out(thread int, log *logberry.ComponentLog, wg *sync.WaitGroup) {
 func main() {
 	var wg sync.WaitGroup
 
-	logberry.SetOutputDriver(logberry.NewThreadSafeOutput(logberry.NewStdOutput(), 7))
+	logberry.Std.SetOutputDriver(logberry.NewThreadSafeOutput(logberry.NewStdOutput(), 7))
 
-  log := logberry.NewComponent("testcmpnt", &logberry.D{"Rolling": "basic"})
+  log := logberry.Main.Component("test", &logberry.D{"Rolling": "heavy"})
 
 	wg.Add(2)
 	go out(2, log, &wg)

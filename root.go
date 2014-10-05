@@ -114,6 +114,9 @@ func (x *Root) ComponentEvent(component *Component,
 	msg string,
 	data *D) {
 
+	// Root doesn't check that event is within range because the output
+	// drivers need to actually report the error anyway.
+
 	for _,driver := range(x.outputdrivers) {
 		driver.ComponentEvent(component, event, msg, data)
 	}
@@ -126,6 +129,9 @@ func (x *Root) ComponentEvent(component *Component,
  */
 func (x *Root) TaskEvent(task *Task,
 	event ContextEventClass) {
+
+	// Root doesn't check that event is within range because the output
+	// drivers need to actually report the error anyway.
 
 	for _,driver := range(x.outputdrivers) {
 		driver.TaskEvent(task, event)

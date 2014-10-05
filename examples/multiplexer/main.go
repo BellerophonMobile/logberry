@@ -14,9 +14,9 @@ func main() {
 	m := logberry.NewMultiplexerOutput()
 	m.AddOutputDriver(logberry.NewStdOutput())
 	m.AddOutputDriver(logberry.NewJSONOutput(os.Stdout))
-	logberry.SetOutputDriver(m)
+	logberry.Std.SetOutputDriver(m)
 
-  log := logberry.NewComponent("testcmpnt", &logberry.D{"Rolling": "basic"})
+  log := logberry.Main.Component("testcmpnt", &logberry.D{"Rolling": "Thunder"})
 
 	log.Info("Done")
 }

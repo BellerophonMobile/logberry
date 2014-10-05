@@ -1,7 +1,7 @@
 
 sources=$(wildcard *.go)
 
-all: bin bin/minimal bin/component bin/task # bin/threaded bin/multiplexer
+all: bin bin/minimal bin/component bin/task bin/threaded bin/multiplexer
 
 
 #-----------------------------------------------------------------------
