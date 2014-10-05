@@ -277,7 +277,7 @@ func (o *TextOutput) ComponentEvent(component *Component,
   data *D) {
 
 	if event < 0 || event >= contexteventclasssentinel {
-		o.internalerror(NewError("ContextEventClass out of range for component",
+		o.internalerror(NewError("ContextEventClass out of range for component event",
 			component.GetUID(), event))
 		return
 	}
@@ -318,7 +318,7 @@ func (o *TextOutput) TaskEvent(task *Task,
 		style = &TerminalStyle{RED, true, HIGH_INTENSITY}
 
 	default:
-		o.internalerror(NewError("ContextEventClass out of range for task",
+		o.internalerror(NewError("ContextEventClass out of range for task progress",
 			task.GetUID(), event))
 		return
 
@@ -327,4 +327,22 @@ func (o *TextOutput) TaskEvent(task *Task,
 	o.contextevent("task", task, event, msg, task.Data, style)
 
 	// end TaskEvent
+}
+
+//----------------------------------------------------------------------
+func (o *TextOutput) TaskProgress(task *Task,
+  event ContextEventClass,
+  msg string,
+  data *D) {
+
+	if event < 0 || event >= contexteventclasssentinel {
+		o.internalerror(NewError("ContextEventClass out of range for task progress",
+			task.GetUID(), event))
+		return
+	}
+
+	o.contextevent("task", task, event, msg, data,
+		&ContextEventTerminalStyles[event])
+
+	// end TaskProgress
 }

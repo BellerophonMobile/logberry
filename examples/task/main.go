@@ -7,11 +7,11 @@ import (
 )
 
 
-func geticon() error {
+func geticon(proc logberry.Context) error {
 
 	url := "https://raw.githubusercontent.com/BellerophonMobile/logberry/master/docs/logberry.png"
 
-	get := logberry.Main.LongResourceTask("Download strawberry icon", url)
+	get := proc.LongResourceTask("Download strawberry icon", url)
 	res, err := http.Get(url)
 	if err != nil {
 		return get.Error(err)
@@ -27,20 +27,6 @@ func geticon() error {
 
 func main() {
 
-	myfilename := "/home/nouser/doesnotexist"
-	read := logberry.Main.ResourceTask("Read app data", myfilename)
-	if _,err := ioutil.ReadFile(myfilename); err != nil {
-		read.Error(err)
-	} else {
-		read.Success()
-	}
-
-	if e := geticon(); e != nil {
-		logberry.Main.Error("Could not get icon", e)
-	}
-
-/*
-
 	var value = struct{
 		StringField string
 		IntField int
@@ -49,17 +35,27 @@ func main() {
 		IntField: 24,
 	}
 
-	background := logberry.Main.Task("A quick task", value)
+	processor := logberry.Main.LongTask("Some data task", value)
 
-	task := logberry.Main.Task("Some non-trivial activity", value)
+	processor.Info("Prepare some data")
 
-	task.SetData("User", "joe")
+	myfilename := "/home/nouser/doesnotexist"
+	read := processor.ResourceTask("Read app data", myfilename)
+	if _,err := ioutil.ReadFile(myfilename); err != nil {
+		read.Error(err)
+	} else {
+		read.Complete()
+	}
 
-	task.Success()
+	if e := geticon(processor); e != nil {
+		logberry.Main.Error("Could not get icon", e)
+	}
 
+	compute := processor.Task("Compute results")
+	compute.Complete()
 
-	task = logberry.Main.LongTask("A longer task")
-	task.Success()
+	processor.AddData("Throughput", 23.0/100.0)
 
-*/
+	processor.Complete()
+
 }

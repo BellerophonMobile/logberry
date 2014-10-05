@@ -97,7 +97,7 @@ func (x *JSONOutput) ComponentEvent(component *Component,
   data *D) {
 
 	if event < 0 || event >= contexteventclasssentinel {
-		x.internalerror(NewError("ContextEventClass out of range for component",
+		x.internalerror(NewError("ContextEventClass out of range for component event",
 			component.GetUID(), event))
 		return
 	}
@@ -128,7 +128,7 @@ func (x *JSONOutput) TaskEvent(task *Task,
 		msg += " failed"
 
 	default:
-		x.internalerror(NewError("ContextEventClass out of range for task",
+		x.internalerror(NewError("ContextEventClass out of range for task event",
 			task.GetUID(), event))
 		return
 
@@ -137,4 +137,20 @@ func (x *JSONOutput) TaskEvent(task *Task,
 	x.contextevent("task", task, event, msg, task.Data)
 
 	// end TaskEvent
+}
+
+func (x *JSONOutput) TaskProgress(task *Task,
+  event ContextEventClass,
+  msg string,
+  data *D) {
+
+	if event < 0 || event >= contexteventclasssentinel {
+		x.internalerror(NewError("ContextEventClass out of range for task progress",
+			task.GetUID(), event))
+		return
+	}
+
+	x.contextevent("task", task, event, msg, data)
+
+	// end TaskProgress
 }

@@ -60,3 +60,14 @@ func (x *MultiplexerOutput) TaskEvent(task *Task,
 	}
 
 }
+
+func (x *MultiplexerOutput) TaskProgress(task *Task,
+	event ContextEventClass,
+	msg string,
+	data *D) {
+
+	for _,out := range(x.drivers) {
+		out.TaskProgress(task, event, msg, data)
+	}
+
+}

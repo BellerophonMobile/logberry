@@ -15,12 +15,17 @@ type OutputDriver interface {
 	Detach()
 
 	ComponentEvent(component *Component,
-	  class ContextEventClass,
+	  event ContextEventClass,
 	  msg string,
 	  data *D)
 
 	TaskEvent(task *Task,
 		event ContextEventClass)
+
+	TaskProgress(task *Task,
+		event ContextEventClass,
+		msg string,
+		data *D)
 
 //	Action(action Action)
 }
@@ -135,6 +140,24 @@ func (x *Root) TaskEvent(task *Task,
 
 	for _,driver := range(x.outputdrivers) {
 		driver.TaskEvent(task, event)
+	}
+
+	// end TaskEvent
+}
+
+/*
+ * Internal multiplexer out to all active OutputDrivers.
+ */
+func (x *Root) TaskProgress(task *Task,
+	event ContextEventClass,
+	msg string,
+	data *D) {
+
+	// Root doesn't check that event is within range because the output
+	// drivers need to actually report the error anyway.
+
+	for _,driver := range(x.outputdrivers) {
+		driver.TaskProgress(task, event, msg, data)
 	}
 
 	// end TaskEvent

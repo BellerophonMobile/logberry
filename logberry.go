@@ -85,6 +85,16 @@ type Context interface {
 
 	Task(activity string, data ...interface{}) *Task
 	LongTask(activity string, data ...interface{}) *Task
+
+	CalculationTask(activity string, calculation interface{}, data ...interface{}) *Task
+	LongCalculationTask(activity string, calculation interface{}, data ...interface{}) *Task
+
+	ResourceTask(activity string, resource interface{}, data ...interface{}) *Task
+	LongResourceTask(activity string, resource interface{}, data ...interface{}) *Task
+
+	ServiceTask(activity string, service interface{}, query interface{}, data ...interface{}) *Task
+	LongServiceTask(activity string, service interface{}, query interface{}, data ...interface{}) *Task
+
 }
 
 

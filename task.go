@@ -168,18 +168,20 @@ func (x *Task) Clock() time.Duration {
 
 }
 
-func (x *Task) SetData(k string, v interface{}) {
+func (x *Task) AddData(k string, v interface{}) *D {
   (*x.Data)[k] = v
+	return x.Data
 }
 
-func (x *Task) AggregateData(data ...interface{}) {
+func (x *Task) AggregateData(data ...interface{}) *D {
   x.Data.AggregateFrom(data)
+	return x.Data
 }
 
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-func (x *Task) Finished(data ...interface{}) {
+func (x *Task) Complete(data ...interface{}) {
 
 	x.Clock()
 	x.Data.AggregateFrom(data)
@@ -226,13 +228,25 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 
 
 //----------------------------------------------------------------------
-//----------------------------------------------------------------------
-/*
+// ----------------------------------------------------------------------
+// Unlike the terminal events, this does not accumulate the given data
+// into the Task.  However, you may replicate that behavior
+// (aggregating & reporting all of the accumulated data so far) by:
+//
+//   foo.Info("Status report", foo.AggregateData("mushi", "sushi"))
+//
+// foo.AddData() may be used similarly.
 func (x *Task) Info(msg string, data ...interface{}) {
-	x.Root.TaskEvent(x, INFO, msg, DAggregate(data))
+	x.Root.TaskProgress(x, INFO, msg, DAggregate(data))
 }
 
+// Unlike the terminal events, this does not accumulate the given data
+// into the Task.  However, you may replicate that behavior
+// (aggregating & reporting all of the accumulated data so far) by:
+//
+//   foo.Warning("Status report", foo.AggregateData("mushi"))
+//
+// foo.AddData() may be used similarly.
 func (x *Task) Warning(msg string, data ...interface{}) {
-	x.Root.TaskEvent(x, WARNING, msg, DAggregate(data))
+	x.Root.TaskProgress(x, WARNING, msg, DAggregate(data))
 }
-*/
