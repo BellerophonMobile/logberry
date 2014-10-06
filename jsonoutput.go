@@ -72,6 +72,10 @@ func (x *JSONOutput) contextevent(entrytype string,
 	entry["Data"] = data
 	entry["Time"] = x.timestamp()
 
+	if context.IsHighlighted() {
+		entry["Highlight"] = true
+	}
+
 	var bytes []byte
 	var err error
 	bytes, err = json.Marshal(entry)

@@ -21,7 +21,7 @@ var swaps = [...]swap{
 
 func geticon(cxt logberry.Context, url string) ([]byte, error) {
 
-	task := cxt.LongResourceTask("Download icon", url)
+	task := cxt.Task("Download icon", url).Time()
 	res, err := http.Get(url)
 	if err != nil {
 		// Can fail via basic IO error
@@ -37,7 +37,7 @@ func geticon(cxt logberry.Context, url string) ([]byte, error) {
 		return nil, task.Error(err)
 	}
 
-	return bytes, task.Success()
+	return bytes, task.Highlight().Success()
 
 	// end geticon
 }

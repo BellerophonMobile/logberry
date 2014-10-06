@@ -17,6 +17,8 @@ type Task struct {
 	Start time.Time
 
 	Data *D
+
+	highlight bool
 }
 
 const (
@@ -148,9 +150,10 @@ func (x *Task) GetRoot() *Root {
 	return x.Root
 }
 
-func (x *Task) Time() {
+func (x *Task) Time() *Task {
 	x.Timed = true
 	x.Start = time.Now()
+	return x
 }
 
 func (x *Task) Clock() time.Duration {
@@ -165,7 +168,6 @@ func (x *Task) Clock() time.Duration {
 
 }
 
-
 func (x *Task) AddData(k string, v interface{}) *D {
 	(*x.Data)[k] = v
 	return x.Data
@@ -176,7 +178,22 @@ func (x *Task) AggregateData(data ...interface{}) *D {
 	return x.Data
 }
 
+func (x *Task) Highlight() *Task {
+	x.highlight = true
+	return x
+}
 
+func (x *Task) ClearHighlight() *Task {
+	x.highlight = false
+	return x
+}
+
+func (x *Task) IsHighlighted() bool {
+	return x.highlight
+}
+
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 func (x *Task) Calculation(calculation interface{}) *Task {
 	x.Class = CALCULATION
 	x.AddData("Calculation", calculation)

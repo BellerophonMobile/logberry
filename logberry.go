@@ -48,8 +48,8 @@ var ComponentClassText = [...]string{
 	"instance",
 }
 
-
 type TaskEventClass int
+
 const (
 	TASK_BEGIN TaskEventClass = iota
 	TASK_END
@@ -68,6 +68,7 @@ var TaskEventClassText = [...]string{
 }
 
 type TaskClass int
+
 const (
 	APPLICATION TaskClass = iota
 	CALCULATION
@@ -105,6 +106,8 @@ type Context interface {
 	Task(activity string, data ...interface{}) *Task
 	LongTask(activity string, data ...interface{}) *Task
 
+	IsHighlighted() bool
+
 	CalculationTask(activity string, calculation interface{}, data ...interface{}) *Task
 	LongCalculationTask(activity string, calculation interface{}, data ...interface{}) *Task
 
@@ -114,6 +117,10 @@ type Context interface {
 	ServiceTask(activity string, service interface{}, query interface{}, data ...interface{}) *Task
 	LongServiceTask(activity string, service interface{}, query interface{}, data ...interface{}) *Task
 }
+
+type highlightmarker int
+
+var HIGHLIGHT highlightmarker = 0xDEADBEEF
 
 //------------------------------------------------------
 var Std *Root
@@ -166,7 +173,6 @@ func InvalidComponentEventClass(event ComponentEventClass) bool {
 func InvalidComponentClass(class ComponentClass) bool {
 	return (class < 0 || class >= componentclasssentinel)
 }
-
 
 func InvalidTaskEventClass(event TaskEventClass) bool {
 	return (event < 0 || event >= taskeventclasssentinel)

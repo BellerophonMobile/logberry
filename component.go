@@ -15,6 +15,8 @@ type Component struct {
 	Label  string
 
 	Class ComponentClass
+
+	highlight bool
 }
 
 //----------------------------------------------------------------------
@@ -106,6 +108,20 @@ func (x *Component) GetParent() Context {
 
 func (x *Component) GetRoot() *Root {
 	return x.Root
+}
+
+func (x *Component) Highlight() *Component {
+	x.highlight = true
+	return x
+}
+
+func (x *Component) ClearHighlight() *Component {
+	x.highlight = false
+	return x
+}
+
+func (x *Component) IsHighlighted() bool {
+	return x.highlight
 }
 
 //----------------------------------------------------------------------
