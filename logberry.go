@@ -8,8 +8,8 @@ import (
 	"path"
 )
 
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
+// ComponentEventClass captures a simple enumeration of types of
+// events that may happen in a component's lifecycle.
 type ComponentEventClass int
 
 const (
@@ -35,6 +35,10 @@ var ComponentEventClassText = [...]string{
 	"fatal",
 }
 
+// ComponentClass captures a simple enumeration of types of
+// Components.  These are either components, to be taken as either
+// classes or just clusters of related functionality, or instances,
+// specific instantiations of objects.
 type ComponentClass int
 
 const (
@@ -48,6 +52,8 @@ var ComponentClassText = [...]string{
 	"instance",
 }
 
+// TaskEventClass captures a simple enumeration of types of major
+// events that may happen in a task's lifecycle.
 type TaskEventClass int
 
 const (
@@ -67,6 +73,9 @@ var TaskEventClassText = [...]string{
 	"error",
 }
 
+// Context is an interface for objects representing entities that
+// generate logging events.  It encompasses aspects common to both
+// Components and Tassks.
 type Context interface {
 	GetUID() uint64
 	GetLabel() string
@@ -79,17 +88,15 @@ type Context interface {
 	Task(activity string, data ...interface{}) *Task
 }
 
-type highlightmarker int
-
-var HIGHLIGHT highlightmarker = 0xDEADBEEF
-
-//------------------------------------------------------
+// Std is the default Root created at startup.
 var Std *Root
+
+// Main is the default Component created at startup, roughly intended
+// to represent main program execution.
 var Main *Component
 
 var numcontexts uint64
 
-//------------------------------------------------------
 func init() {
 
 	//-- Check that labels are defined for the enumerations
@@ -122,14 +129,20 @@ func newcontextuid() uint64 {
 	return atomic.AddUint64(&numcontexts, 1) - 1
 }
 
+// InvalidComponentEventClass returns true if event is within the
+// known enumeration of component events.
 func InvalidComponentEventClass(event ComponentEventClass) bool {
 	return (event < 0 || event >= componenteventclasssentinel)
 }
 
+// InvalidComponentClass returns true if class is within the known
+// enumeration of component classes.
 func InvalidComponentClass(class ComponentClass) bool {
 	return (class < 0 || class >= componentclasssentinel)
 }
 
+// InvalidTaskEventClass returns true if event is within the known
+// enumeration of task events.
 func InvalidTaskEventClass(event TaskEventClass) bool {
 	return (event < 0 || event >= taskeventclasssentinel)
 }

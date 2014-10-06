@@ -145,6 +145,11 @@ func TestCopyFrom(t *testing.T) {
 			v:  (&D{"Field2": "Atad", "Field1": "Data"}).CopyFrom(&test{StringField: "Banana", IntField: 7}),
 			ex: "{\"Field1\":\"Data\",\"Field2\":\"Atad\",\"IntField\":7,\"StringField\":\"Banana\"}",
 		},
+
+		{
+			v:  (&D{"Field2": "Atad", "Field1": "Data"}).CopyFrom(map[string]interface{}{"StringField": "Banana", "IntField": 7}),
+			ex: "{\"Field1\":\"Data\",\"Field2\":\"Atad\",\"IntField\":7,\"StringField\":\"Banana\"}",
+		},
 	}
 
 	runcases(tests, t)
