@@ -24,6 +24,8 @@ const (
 	componenteventclasssentinel
 )
 
+// ComponentEventClassText is an array mapping the ComponentEventClass
+// enumeration into text labels.
 var ComponentEventClassText = [...]string{
 	"start",
 	"finish",
@@ -47,6 +49,8 @@ const (
 	componentclasssentinel
 )
 
+// ComponentClassText is an array mapping the ComponentClass
+// enumeration into text labels.
 var ComponentClassText = [...]string{
 	"component",
 	"instance",
@@ -65,6 +69,8 @@ const (
 	taskeventclasssentinel
 )
 
+// TaskEventClassText is an array mapping the TaskEventClass
+// enumeration into text labels.
 var TaskEventClassText = [...]string{
 	"begin",
 	"end",
