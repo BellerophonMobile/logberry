@@ -106,7 +106,7 @@ func (x *Root) InternalError(err error) {
 }
 
 /*
- * Internal multiplexer out to all active OutputDrivers.
+ * Internal fan-out to all active OutputDrivers.
  */
 func (x *Root) ComponentEvent(component *Component,
 	event ComponentEventClass,
@@ -124,7 +124,7 @@ func (x *Root) ComponentEvent(component *Component,
 }
 
 /*
- * Internal multiplexer out to all active OutputDrivers.
+ * Internal fan-out to all active OutputDrivers.
  */
 func (x *Root) TaskEvent(task *Task,
 	event TaskEventClass) {
@@ -140,7 +140,7 @@ func (x *Root) TaskEvent(task *Task,
 }
 
 /*
- * Internal multiplexer out to all active OutputDrivers.
+ * Internal fan-out to all active OutputDrivers.
  */
 func (x *Root) TaskProgress(task *Task,
 	event TaskEventClass,
