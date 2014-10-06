@@ -10,29 +10,29 @@ import (
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-type ContextEventClass int
+type ComponentEventClass int
 
 const (
-	ERROR ContextEventClass = iota
-	FATAL
-	WARNING
-	INFO
-	CONFIGURATION
-	START
-	FINISH
-	SUCCESS
-	contexteventclasssentinel
+	COMPONENT_START ComponentEventClass = iota
+	COMPONENT_FINISH
+	COMPONENT_CONFIGURATION
+	COMPONENT_READY
+	COMPONENT_INFO
+	COMPONENT_WARNING
+	COMPONENT_ERROR
+	COMPONENT_FATAL
+	componenteventclasssentinel
 )
 
-var ContextEventClassText = [...]string{
-	"error",
-	"fatal",
-	"warning",
-	"info",
-	"config",
+var ComponentEventClassText = [...]string{
 	"start",
 	"finish",
-	"success",
+	"config",
+	"ready",
+	"info",
+	"warning",
+	"error",
+	"fatal",
 }
 
 type ComponentClass int
@@ -48,30 +48,50 @@ var ComponentClassText = [...]string{
 	"instance",
 }
 
-type ActivityClass int
 
+type TaskEventClass int
 const (
-	APPLICATION ActivityClass = iota
+	TASK_BEGIN TaskEventClass = iota
+	TASK_END
+	TASK_INFO
+	TASK_WARNING
+	TASK_ERROR
+	taskeventclasssentinel
+)
+
+var TaskEventClassText = [...]string{
+	"begin",
+	"end",
+	"info",
+	"warning",
+	"error",
+}
+
+type TaskClass int
+const (
+	APPLICATION TaskClass = iota
 	CALCULATION
 	RESOURCE
 	SERVICE
+	CONNECT
+	DISCONNECT
 	/*
-		CONNECT
-		DISCONNECT
 		SECURE
 		UNSECURE
 		ATTEST
 		VERIFY
 		RENDER
 	*/
-	activityclasssentinel
+	taskclasssentinel
 )
 
-var ActivityClassText = [...]string{
+var TaskClassText = [...]string{
 	"app",
 	"calculation",
 	"resource",
 	"service",
+	"connect",
+	"disconnect",
 }
 
 type Context interface {
@@ -105,19 +125,24 @@ var numcontexts uint64
 func init() {
 
 	//-- Check that labels are defined for the enumerations
-	if len(ContextEventClassText) != int(contexteventclasssentinel) {
+	if len(ComponentEventClassText) != int(componenteventclasssentinel) {
 		log.Fatal("Fatal internal error: " +
-			"len(ContextEventClassText) != |ContextEventClass|")
-	}
-
-	if len(ActivityClassText) != int(activityclasssentinel) {
-		log.Fatal("Fatal internal error: " +
-			"len(ActivityClassText) != |ActivityClass|")
+			"len(ComponentEventClassText) != |ComponentEventClass|")
 	}
 
 	if len(ComponentClassText) != int(componentclasssentinel) {
 		log.Fatal("Fatal internal error: " +
 			"len(ComponentClassText) != |ComponentClass|")
+	}
+
+	if len(TaskEventClassText) != int(taskeventclasssentinel) {
+		log.Fatal("Fatal internal error: " +
+			"len(TaskEventClassText) != |TaskEventClass|")
+	}
+
+	if len(TaskClassText) != int(taskclasssentinel) {
+		log.Fatal("Fatal internal error: " +
+			"len(TaskClassText) != |TaskClass|")
 	}
 
 	//-- Construct the standard default root
@@ -132,4 +157,21 @@ func init() {
 
 func newcontextuid() uint64 {
 	return atomic.AddUint64(&numcontexts, 1) - 1
+}
+
+func InvalidComponentEventClass(event ComponentEventClass) bool {
+	return (event < 0 || event >= componenteventclasssentinel)
+}
+
+func InvalidComponentClass(class ComponentClass) bool {
+	return (class < 0 || class >= componentclasssentinel)
+}
+
+
+func InvalidTaskEventClass(event TaskEventClass) bool {
+	return (event < 0 || event >= taskeventclasssentinel)
+}
+
+func InvalidTaskClass(class TaskClass) bool {
+	return (class < 0 || class >= taskclasssentinel)
 }

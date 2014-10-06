@@ -52,7 +52,7 @@ func newcomponent(parent Context, label string, data ...interface{}) *Component 
 	}
 
 	if parent != nil {
-		c.Root.ComponentEvent(c, START, "Instantiate", d)
+		c.Root.ComponentEvent(c, COMPONENT_START, "Instantiate", d)
 	}
 
 	return c
@@ -111,7 +111,11 @@ func (x *Component) GetRoot() *Root {
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func (x *Component) Build(build *BuildMetadata) {
-	x.Root.ComponentEvent(x, CONFIGURATION, "Build", DBuild(build))
+	x.Root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Build", DBuild(build))
+}
+
+func (x *Component) Configuration(data ...interface{}) {
+	x.Root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Configuration", DBuild(data))
 }
 
 func (x *Component) CommandLine() {
@@ -144,7 +148,7 @@ func (x *Component) CommandLine() {
 		"Args":    os.Args[1:],
 	}
 
-	x.Root.ComponentEvent(x, CONFIGURATION, "Command line", &d)
+	x.Root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Command line", &d)
 
 }
 
@@ -155,7 +159,7 @@ func (x *Component) Environment() {
 		pair := strings.Split(e, "=")
 		d[pair[0]] = pair[1]
 	}
-	x.Root.ComponentEvent(x, CONFIGURATION, "Environment", &d)
+	x.Root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Environment", &d)
 
 }
 
@@ -187,23 +191,23 @@ func (x *Component) Process() {
 		"PID":  os.Getpid(),
 	}
 
-	x.Root.ComponentEvent(x, CONFIGURATION, "Process", &d)
+	x.Root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Process", &d)
 
 }
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func (x *Component) Info(msg string, data ...interface{}) {
-	x.Root.ComponentEvent(x, INFO, msg, DAggregate(data))
+	x.Root.ComponentEvent(x, COMPONENT_INFO, msg, DAggregate(data))
 }
 
 func (x *Component) Recovered(msg string, err error, data ...interface{}) {
-	x.Root.ComponentEvent(x, WARNING, msg,
+	x.Root.ComponentEvent(x, COMPONENT_WARNING, msg,
 		DAggregate(data).Set(x.Root.FieldPrefix+"Error", err.Error()))
 }
 
 func (x *Component) Warning(msg string, data ...interface{}) {
-	x.Root.ComponentEvent(x, WARNING, msg, DAggregate(data))
+	x.Root.ComponentEvent(x, COMPONENT_WARNING, msg, DAggregate(data))
 }
 
 func (x *Component) Error(msg string, err error, data ...interface{}) error {
@@ -213,7 +217,7 @@ func (x *Component) Error(msg string, err error, data ...interface{}) error {
 	// anything, even the message.  So you basically have to reduce to a
 	// string via Error().
 
-	x.Root.ComponentEvent(x, ERROR, msg,
+	x.Root.ComponentEvent(x, COMPONENT_ERROR, msg,
 		DAggregate(data).Set(x.Root.FieldPrefix+"Error", err.Error()))
 	return WrapError(err, msg)
 
@@ -222,7 +226,7 @@ func (x *Component) Error(msg string, err error, data ...interface{}) error {
 // Failure is the same as Error but doesn't take an error object.
 func (x *Component) Failure(msg string, data ...interface{}) error {
 
-	x.Root.ComponentEvent(x, ERROR, msg, DAggregate(data))
+	x.Root.ComponentEvent(x, COMPONENT_ERROR, msg, DAggregate(data))
 	return NewError(msg)
 
 }
@@ -230,7 +234,7 @@ func (x *Component) Failure(msg string, data ...interface{}) error {
 // Generally only the top level should invoke fatal, not sub-components.
 func (x *Component) Fatal(msg string, err error, data ...interface{}) {
 
-	x.Root.ComponentEvent(x, FATAL, msg,
+	x.Root.ComponentEvent(x, COMPONENT_FATAL, msg,
 		DAggregate(data).Set(x.Root.FieldPrefix+"Error", err.Error()))
 
 	os.Exit(1)
@@ -240,5 +244,9 @@ func (x *Component) Fatal(msg string, err error, data ...interface{}) {
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func (x *Component) Finalize(data ...interface{}) {
-	x.Root.ComponentEvent(x, FINISH, "Finalize", DAggregate(data))
+	x.Root.ComponentEvent(x, COMPONENT_FINISH, "Finalize", DAggregate(data))
+}
+
+func (x *Component) Ready(msg string, data ...interface{}) {
+	x.Root.ComponentEvent(x, COMPONENT_READY, msg, DAggregate(data))
 }

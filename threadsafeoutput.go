@@ -14,7 +14,7 @@ type logevent interface {
 
 type componentevent struct {
 	component *Component
-	class     ContextEventClass
+	class     ComponentEventClass
 	msg       string
 	data      *D
 }
@@ -25,7 +25,7 @@ func (x *componentevent) Log(driver OutputDriver) {
 
 type taskevent struct {
 	task  *Task
-	event ContextEventClass
+	event TaskEventClass
 }
 
 func (x *taskevent) Log(driver OutputDriver) {
@@ -34,7 +34,7 @@ func (x *taskevent) Log(driver OutputDriver) {
 
 type taskprogress struct {
 	task  *Task
-	event ContextEventClass
+	event TaskEventClass
 	msg   string
 	data  *D
 }
@@ -78,7 +78,7 @@ func (x *ThreadSafeOutput) Detach() {
 }
 
 func (x *ThreadSafeOutput) ComponentEvent(component *Component,
-	class ContextEventClass,
+	class ComponentEventClass,
 	msg string,
 	data *D) {
 
@@ -92,7 +92,7 @@ func (x *ThreadSafeOutput) ComponentEvent(component *Component,
 }
 
 func (x *ThreadSafeOutput) TaskEvent(task *Task,
-	event ContextEventClass) {
+	event TaskEventClass) {
 
 	x.channel <- &taskevent{
 		task:  task,
@@ -102,7 +102,7 @@ func (x *ThreadSafeOutput) TaskEvent(task *Task,
 }
 
 func (x *ThreadSafeOutput) TaskProgress(task *Task,
-	event ContextEventClass,
+	event TaskEventClass,
 	msg string,
 	data *D) {
 

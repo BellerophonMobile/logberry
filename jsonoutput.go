@@ -58,13 +58,13 @@ func (x *JSONOutput) internalerror(err error) {
 //----------------------------------------------------------------------
 func (x *JSONOutput) contextevent(entrytype string,
 	context Context,
-	event ContextEventClass,
+	event string,
 	msg string,
 	data *D) {
 
 	var entry = make(map[string]interface{})
 	entry["EntryType"] = entrytype
-	entry["Event"] = ContextEventClassText[event]
+	entry["Event"] = event
 	entry["UID"] = context.GetUID()
 	entry["Tag"] = x.root.Tag
 	entry["Label"] = context.GetLabel()
@@ -86,65 +86,62 @@ func (x *JSONOutput) contextevent(entrytype string,
 }
 
 func (x *JSONOutput) ComponentEvent(component *Component,
-	event ContextEventClass,
+	event ComponentEventClass,
 	msg string,
 	data *D) {
 
-	if event < 0 || event >= contexteventclasssentinel {
-		x.internalerror(NewError("ContextEventClass out of range for component event",
+	if InvalidComponentEventClass(event) {
+		x.internalerror(NewError("ComponentEventClass out of range",
 			component.GetUID(), event))
 		return
 	}
 
-	x.contextevent("component", component, event, msg, data)
+	x.contextevent("component", component, ComponentEventClassText[event], msg, data)
 
 	// end ComponentEvent
 }
 
 func (x *JSONOutput) TaskEvent(task *Task,
-	event ContextEventClass) {
+	event TaskEventClass) {
 
 	var msg string = task.Activity
 
 	switch event {
-	case START:
+	case TASK_BEGIN:
 		msg += " start"
 
-	case FINISH:
+	case TASK_END:
 		if task.Timed {
-			msg += " finished"
+			msg += " success"
 		}
 
-	case SUCCESS:
-		msg += " success"
-
-	case ERROR:
-		msg += " failed"
+	case TASK_ERROR:
+		msg += " failure"
 
 	default:
-		x.internalerror(NewError("ContextEventClass out of range for task event",
+		x.internalerror(NewError("TaskEventClass out of range for TaskEvent()",
 			task.GetUID(), event))
 		return
 
 	}
 
-	x.contextevent("task", task, event, msg, task.Data)
+	x.contextevent("task", task, TaskEventClassText[event], msg, task.Data)
 
 	// end TaskEvent
 }
 
 func (x *JSONOutput) TaskProgress(task *Task,
-	event ContextEventClass,
+	event TaskEventClass,
 	msg string,
 	data *D) {
 
-	if event < 0 || event >= contexteventclasssentinel {
-		x.internalerror(NewError("ContextEventClass out of range for task progress",
+	if InvalidTaskEventClass(event) {
+		x.internalerror(NewError("TaskEventClass out of range for TaskProgress()",
 			task.GetUID(), event))
 		return
 	}
 
-	x.contextevent("task", task, event, msg, data)
+	x.contextevent("task", task, TaskEventClassText[event], msg, data)
 
 	// end TaskProgress
 }

@@ -42,7 +42,7 @@ func main() {
 	if _, err := ioutil.ReadFile(myfilename); err != nil {
 		read.Error(err)
 	} else {
-		read.Complete()
+		read.Success()
 	}
 
 	if e := geticon(processor); e != nil {
@@ -50,10 +50,10 @@ func main() {
 	}
 
 	compute := processor.Task("Compute results")
-	compute.Complete()
+	compute.Success()
 
 	processor.AddData("Throughput", 23.0/100.0)
 
-	processor.Complete()
+	processor.Success()
 
 }

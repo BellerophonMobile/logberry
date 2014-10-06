@@ -36,7 +36,7 @@ func main() {
 		tlog.Error(err)
 		os.Exit(1)
 	}
-	tlog.Complete(&logberry.D{"Result": res})
+	tlog.Success(&logberry.D{"Result": res})
 
 	// Shut down the component
 	cmplog.Finalize()

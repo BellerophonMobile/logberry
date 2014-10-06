@@ -1,25 +1,29 @@
 
-sources=$(wildcard *.go)
+lib_sources=$(wildcard *.go)
 
-all: test \
-     bin \
-     bin/minimal \
-     bin/component \
-     bin/task \
-     bin/threaded \
-     bin/multiplexer \
-     bin/toplevel \
-     bin/blueberry \
-     bin/flightpath
+examples= minimal               \
+          component             \
+          task                  \
+          threaded              \
+          multiplexer           \
+          toplevel              \
+          blueberry             \
+          flightpath
+
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
+all: test examples
+
 test:
 	go test -v
 
+examples: bin $(addprefix bin/, $(examples))
+
+
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
-bin/%: examples/%/build.go examples/%/main.go $(sources)
+bin/%: examples/%/build.go examples/%/main.go $(lib_sources)
 	cd bin; go build github.com/BellerophonMobile/logberry/examples/$(subst bin/,,$@)
 
 
@@ -31,5 +35,5 @@ bin:
 %build.go: 
 	./util/build-stmt-go.sh > $@
 
-.PHONY: all test
+.PHONY: all test examples
 .SECONDARY:

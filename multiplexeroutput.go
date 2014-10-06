@@ -39,7 +39,7 @@ func (x *MultiplexerOutput) Detach() {
 
 //----------------------------------------------------------------------
 func (x *MultiplexerOutput) ComponentEvent(component *Component,
-	class ContextEventClass,
+	class ComponentEventClass,
 	msg string,
 	data *D) {
 
@@ -50,7 +50,7 @@ func (x *MultiplexerOutput) ComponentEvent(component *Component,
 }
 
 func (x *MultiplexerOutput) TaskEvent(task *Task,
-	event ContextEventClass) {
+	event TaskEventClass) {
 
 	for _, out := range x.drivers {
 		out.TaskEvent(task, event)
@@ -59,7 +59,7 @@ func (x *MultiplexerOutput) TaskEvent(task *Task,
 }
 
 func (x *MultiplexerOutput) TaskProgress(task *Task,
-	event ContextEventClass,
+	event TaskEventClass,
 	msg string,
 	data *D) {
 

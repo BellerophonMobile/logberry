@@ -53,23 +53,36 @@ type TerminalStyle struct {
 	intensity int
 }
 
-var ContextEventTerminalStyles = [...]TerminalStyle{
-	{RED, true, HIGH_INTENSITY},    // error
-	{RED, true, HIGH_INTENSITY},    // fatal
-	{YELLOW, true, HIGH_INTENSITY}, // warning
-	{WHITE, false, HIGH_INTENSITY}, // info
-	{BLUE, false, LOW_INTENSITY},   // configuration
-	{GREEN, true, HIGH_INTENSITY},  // start
-	{BLACK, false, HIGH_INTENSITY}, // finish
-	{WHITE, false, HIGH_INTENSITY}, // success
+var ComponentEventTerminalStyles = [...]TerminalStyle{
+	{BLACK,  false, HIGH_INTENSITY},  // start
+	{BLACK,  false, HIGH_INTENSITY},  // finish
+	{BLUE,   false, LOW_INTENSITY},   // configuration
+	{GREEN,  true,  HIGH_INTENSITY},  // ready
+	{WHITE,  false, HIGH_INTENSITY},  // info
+	{YELLOW, false, HIGH_INTENSITY},  // warning
+	{RED,    true,  HIGH_INTENSITY},  // error
+	{RED,    true,  HIGH_INTENSITY},  // fatal
+}
+
+var TaskEventTerminalStyles = [...]TerminalStyle{
+	{WHITE,  false, HIGH_INTENSITY},  // begin
+	{WHITE,  false, HIGH_INTENSITY},  // end
+	{WHITE,  false, LOW_INTENSITY},   // info
+	{YELLOW, false, HIGH_INTENSITY},  // warning
+	{RED,    true,  HIGH_INTENSITY},  // error
 }
 
 func init() {
 
 	//-- Check that labels are defined for the enumerations
-	if len(ContextEventTerminalStyles) != int(contexteventclasssentinel) {
+	if len(ComponentEventTerminalStyles) != int(componenteventclasssentinel) {
 		log.Fatal("Fatal internal error: " +
-			"len(ContextEventTerminalStyles) != |ContextEventClass|")
+			"len(ComponentEventTerminalStyles) != |ComponentEventClass|")
+	}
+
+	if len(TaskEventTerminalStyles) != int(taskeventclasssentinel) {
+		log.Fatal("Fatal internal error: " +
+			"len(TaskEventTerminalStyles) != |TaskEventClass|")
 	}
 
 }
@@ -212,25 +225,10 @@ func keyrender(data interface{}) []byte {
 //----------------------------------------------------------------------
 func (o *TextOutput) contextevent(cxttype string,
 	context Context,
-	event ContextEventClass,
+	event string,
 	msg string,
 	data *D,
 	style *TerminalStyle) {
-
-	// Marshal the data first in case there's an error
-	var bytes []byte = keyrender(data)
-	/*
-		if data == nil {
-			bytes = []byte("{}")
-		} else {
-			var err error
-			bytes, err = json.Marshal(data)
-			if err != nil {
-				o.internalerror(WrapError(err, "Could not marshal log entry fields", context.GetUID()))
-				return
-			}
-		}
-	*/
 
 	var writsofar int
 
@@ -251,13 +249,6 @@ func (o *TextOutput) contextevent(cxttype string,
 	writsofar += o.printf("%v %v %v ",
 		o.timestamp(), context.GetRoot().Tag, context.GetLabel())
 
-	switch event {
-	case ERROR:
-		writsofar += o.printf("[ERROR] ")
-	case FATAL:
-		writsofar += o.printf("[FATAL ERROR] ")
-	}
-
 	writsofar += o.printf("%v ", msg)
 
 	// Space out and then write the data fields
@@ -274,13 +265,13 @@ func (o *TextOutput) contextevent(cxttype string,
 		}
 	}
 
-	writsofar += o.printf("%7v %v %-2v ", ContextEventClassText[event], cxttype, context.GetUID())
+	writsofar += o.printf("%7v %v %-2v ", event, cxttype, context.GetUID())
 
 	for writsofar < o.DataOffset {
 		writsofar += o.printf(" ")
 	}
 
-	o.printf("%s", bytes)
+	o.printf("%s", keyrender(data))
 
 	if o.Color {
 		o.printf("\x1b[0m")
@@ -292,75 +283,68 @@ func (o *TextOutput) contextevent(cxttype string,
 
 //----------------------------------------------------------------------
 func (o *TextOutput) ComponentEvent(component *Component,
-	event ContextEventClass,
+	event ComponentEventClass,
 	msg string,
 	data *D) {
 
-	if event < 0 || event >= contexteventclasssentinel {
-		o.internalerror(NewError("ContextEventClass out of range for component event",
+	if InvalidComponentEventClass(event) {
+		o.internalerror(NewError("ComponentEventClass out of range",
 			component.GetUID(), event))
 		return
 	}
 
-	o.contextevent("cmpt", component, event, msg, data,
-		&ContextEventTerminalStyles[event])
+	o.contextevent("cmpt", component, ComponentEventClassText[event], msg, data,
+		&ComponentEventTerminalStyles[event])
 
 	// end ComponentEvent
 }
 
 //----------------------------------------------------------------------
 func (o *TextOutput) TaskEvent(task *Task,
-	event ContextEventClass) {
+	event TaskEventClass) {
 
 	var msg string = task.Activity
 	var style *TerminalStyle
 
 	switch event {
-	case START:
+	case TASK_BEGIN:
 		msg += " start"
-		// if task.Timed { msg = "@Start " + msg }
 		style = &TerminalStyle{WHITE, false, HIGH_INTENSITY}
 
-	case FINISH:
-		msg += " completed"
-		style = &TerminalStyle{WHITE, false, HIGH_INTENSITY}
-
-	case SUCCESS:
+	case TASK_END:
 		msg += " success"
-		// if task.Timed { msg = "@Success " + msg } else { }
-		style = &TerminalStyle{GREEN, false, HIGH_INTENSITY}
+		style = &TerminalStyle{WHITE, false, HIGH_INTENSITY}
 
-	case ERROR:
-		msg += " failed"
-		// if task.Timed { msg = "@Failed " + msg } else { }
+	case TASK_ERROR:
+		msg += " failure"
 		style = &TerminalStyle{RED, true, HIGH_INTENSITY}
 
 	default:
-		o.internalerror(NewError("ContextEventClass out of range for task progress",
+		o.internalerror(NewError("TaskEventClass out of range for TaskEvent()",
 			task.GetUID(), event))
 		return
 
 	}
 
-	o.contextevent("task", task, event, msg, task.Data, style)
+	o.contextevent("task", task, TaskEventClassText[event], msg, task.Data, style)
 
 	// end TaskEvent
 }
 
 //----------------------------------------------------------------------
 func (o *TextOutput) TaskProgress(task *Task,
-	event ContextEventClass,
+	event TaskEventClass,
 	msg string,
 	data *D) {
 
-	if event < 0 || event >= contexteventclasssentinel {
-		o.internalerror(NewError("ContextEventClass out of range for task progress",
+	if InvalidTaskEventClass(event) {
+		o.internalerror(NewError("TaskEventClass out of range for TaskProgress()",
 			task.GetUID(), event))
 		return
 	}
 
-	o.contextevent("task", task, event, msg, data,
-		&ContextEventTerminalStyles[event])
+	o.contextevent("task", task, TaskEventClassText[event], msg, data,
+		&TaskEventTerminalStyles[event])
 
 	// end TaskProgress
 }

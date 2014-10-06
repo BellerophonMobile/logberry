@@ -11,7 +11,7 @@ type Task struct {
 	Label  string
 
 	Activity string
-	Class    ActivityClass
+	Class    TaskClass
 
 	Timed bool
 	Start time.Time
@@ -30,7 +30,7 @@ func newtask(parent Context, long bool, activity string, data []interface{}) *Ta
 
 	var class = APPLICATION
 	if data != nil && len(data) > 0 {
-		if ac, ok := data[0].(ActivityClass); ok {
+		if ac, ok := data[0].(TaskClass); ok {
 			class = ac
 			data = data[1:]
 		}
@@ -48,18 +48,18 @@ func newtask(parent Context, long bool, activity string, data []interface{}) *Ta
 		Data: DAggregate(data),
 	}
 
-	if t.Class < 0 || t.Class >= activityclasssentinel {
-		t.Root.InternalError(NewError("ActivityClass out of range", t.UID, t.Class))
+	if InvalidTaskClass(class) {
+		t.Root.InternalError(NewError("TaskClass out of range", t.UID, t.Class))
 		t.Data.Set(t.Root.FieldPrefix+"Class", t.Class)
 	} else {
-		t.Data.Set(t.Root.FieldPrefix+"Class", ActivityClassText[t.Class])
+		t.Data.Set(t.Root.FieldPrefix+"Class", TaskClassText[t.Class])
 	}
 
 	t.Data.Set(t.Root.FieldPrefix+"Parent", t.Parent.GetUID())
 
 	if long {
 		t.Timed = true
-		t.Root.TaskEvent(t, START)
+		t.Root.TaskEvent(t, TASK_BEGIN)
 		t.Start = time.Now()
 	}
 
@@ -165,6 +165,7 @@ func (x *Task) Clock() time.Duration {
 
 }
 
+
 func (x *Task) AddData(k string, v interface{}) *D {
 	(*x.Data)[k] = v
 	return x.Data
@@ -175,25 +176,44 @@ func (x *Task) AggregateData(data ...interface{}) *D {
 	return x.Data
 }
 
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-// Always returns nil
-func (x *Task) Complete(data ...interface{}) error {
 
-	x.Clock()
-	x.Data.AggregateFrom(data)
-	x.Root.TaskEvent(x, FINISH)
-
-	return nil
-
+func (x *Task) Calculation(calculation interface{}) *Task {
+	x.Class = CALCULATION
+	x.AddData("Calculation", calculation)
+	return x
 }
 
+func (x *Task) Resource(resource interface{}) *Task {
+	x.Class = RESOURCE
+	x.AddData("Resource", resource)
+	return x
+}
+
+func (x *Task) Service(service interface{}) *Task {
+	x.AddData("Service", service)
+	return x
+}
+
+func (x *Task) Connect(endpoint interface{}) *Task {
+	x.Class = CONNECT
+	x.AddData("Endpoint", endpoint)
+	return x
+}
+
+func (x *Task) Disconnect(endpoint interface{}) *Task {
+	x.Class = DISCONNECT
+	x.AddData("Endpoint", endpoint)
+	return x
+}
+
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 // Always returns nil.
 func (x *Task) Success(data ...interface{}) error {
 
 	x.Clock()
 	x.Data.AggregateFrom(data)
-	x.Root.TaskEvent(x, SUCCESS)
+	x.Root.TaskEvent(x, TASK_END)
 
 	return nil
 
@@ -210,7 +230,7 @@ func (x *Task) Error(err error, data ...interface{}) error {
 	x.Data.AggregateFrom(data)
 	x.Data.Set(x.Root.FieldPrefix+"Error", err.Error())
 
-	x.Root.TaskEvent(x, ERROR)
+	x.Root.TaskEvent(x, TASK_ERROR)
 
 	return WrapError(err, x.Activity+" failed")
 
@@ -222,7 +242,7 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 	x.Clock()
 	x.Data.AggregateFrom(data)
 	x.Data.Set(x.Root.FieldPrefix+"Error", msg)
-	x.Root.TaskEvent(x, ERROR)
+	x.Root.TaskEvent(x, TASK_ERROR)
 
 	return WrapError(NewError(msg), x.Activity+" failed")
 
@@ -238,7 +258,7 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 //
 // foo.AddData() may be used similarly.
 func (x *Task) Info(msg string, data ...interface{}) {
-	x.Root.TaskProgress(x, INFO, msg, DAggregate(data))
+	x.Root.TaskProgress(x, TASK_INFO, msg, DAggregate(data))
 }
 
 // Unlike the terminal events, this does not accumulate the given data
@@ -249,5 +269,5 @@ func (x *Task) Info(msg string, data ...interface{}) {
 //
 // foo.AddData() may be used similarly.
 func (x *Task) Warning(msg string, data ...interface{}) {
-	x.Root.TaskProgress(x, WARNING, msg, DAggregate(data))
+	x.Root.TaskProgress(x, TASK_WARNING, msg, DAggregate(data))
 }
