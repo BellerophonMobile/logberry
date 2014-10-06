@@ -1,16 +1,16 @@
 package terminal
 
-/*
-  Go 1.2 doesn't include Termios for FreeBSD. This should be added in
-  1.3 and th is could be merged with terminal_darwin.
-*/
-
 import (
 	"syscall"
 )
 
+
 const ioctlReadTermios = syscall.TIOCGETA
 
+/*
+  Go 1.2 doesn't include Termios for FreeBSD. This should be added in
+  1.3 and th is could be merged with terminal_darwin.
+*/
 type termios struct {
 	Iflag  uint32
 	Oflag  uint32
