@@ -5,7 +5,7 @@ examples= minimal               \
           component             \
           task                  \
           threaded              \
-          multiplexer           \
+          fanout                \
           toplevel              \
           blueberry             \
           flightpath
