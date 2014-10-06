@@ -31,57 +31,57 @@ type TextOutput struct {
 }
 
 const (
-	BLACK int = iota
-	RED
-	GREEN
-	YELLOW
-	BLUE
-	MAGENTA
-	CYAN
-	WHITE
+	black int = iota
+	red
+	green
+	yellow
+	blue
+	magenta
+	cyan
+	white
 )
 
 const (
-	HIGH_INTENSITY int = 90
-	LOW_INTENSITY  int = 30
+	high_intensity int = 90
+	low_intensity  int = 30
 )
 
-type TerminalStyle struct {
+type terminalstyle struct {
 	color     int
 	bold      bool
 	intensity int
 }
 
-var ComponentEventTerminalStyles = [...]TerminalStyle{
-	{BLACK, false, HIGH_INTENSITY},  // start
-	{BLACK, false, HIGH_INTENSITY},  // finish
-	{BLUE, false, LOW_INTENSITY},    // configuration
-	{GREEN, true, HIGH_INTENSITY},   // ready
-	{WHITE, false, HIGH_INTENSITY},  // info
-	{YELLOW, false, HIGH_INTENSITY}, // warning
-	{RED, true, HIGH_INTENSITY},     // error
-	{RED, true, HIGH_INTENSITY},     // fatal
+var componenteventterminalstyles = [...]terminalstyle{
+	{black, false, high_intensity},  // start
+	{black, false, high_intensity},  // finish
+	{blue, false, low_intensity},    // configuration
+	{green, true, high_intensity},   // ready
+	{white, false, high_intensity},  // info
+	{yellow, false, high_intensity}, // warning
+	{red, true, high_intensity},     // error
+	{red, true, high_intensity},     // fatal
 }
 
-var TaskEventTerminalStyles = [...]TerminalStyle{
-	{WHITE, false, HIGH_INTENSITY},  // begin
-	{WHITE, false, HIGH_INTENSITY},  // end
-	{WHITE, false, LOW_INTENSITY},   // info
-	{YELLOW, false, HIGH_INTENSITY}, // warning
-	{RED, true, HIGH_INTENSITY},     // error
+var taskeventterminalstyles = [...]terminalstyle{
+	{white, false, high_intensity},  // begin
+	{white, false, high_intensity},  // end
+	{white, false, low_intensity},   // info
+	{yellow, false, high_intensity}, // warning
+	{red, true, high_intensity},     // error
 }
 
 func init() {
 
 	//-- Check that labels are defined for the enumerations
-	if len(ComponentEventTerminalStyles) != int(componenteventclasssentinel) {
+	if len(componenteventterminalstyles) != int(componenteventclasssentinel) {
 		log.Fatal("Fatal internal error: " +
-			"len(ComponentEventTerminalStyles) != |ComponentEventClass|")
+			"len(componenteventterminalstyles) != |ComponentEventClass|")
 	}
 
-	if len(TaskEventTerminalStyles) != int(taskeventclasssentinel) {
+	if len(taskeventterminalstyles) != int(taskeventclasssentinel) {
 		log.Fatal("Fatal internal error: " +
-			"len(TaskEventTerminalStyles) != |TaskEventClass|")
+			"len(taskeventterminalstyles) != |TaskEventClass|")
 	}
 
 }
@@ -134,7 +134,7 @@ func (o *TextOutput) timestamp() string {
 func (o *TextOutput) internalerror(err error) {
 
 	if o.Color {
-		fmt.Fprintf(o.writer, "\x1b[%d;1m", HIGH_INTENSITY+RED)
+		fmt.Fprintf(o.writer, "\x1b[%d;1m", high_intensity+red)
 	}
 
 	fmt.Fprintf(o.writer, "%v [LOG ERROR] %v\n",
@@ -227,7 +227,7 @@ func (o *TextOutput) contextevent(cxttype string,
 	event string,
 	msg string,
 	data *D,
-	style *TerminalStyle) {
+	style *terminalstyle) {
 
 	var writsofar int
 
@@ -236,7 +236,7 @@ func (o *TextOutput) contextevent(cxttype string,
 	}
 
 	// Set the color
-	var color int = WHITE
+	var color int = white
 	if o.Color {
 		color = style.color
 
@@ -261,10 +261,10 @@ func (o *TextOutput) contextevent(cxttype string,
 	}
 
 	if o.Color {
-		if color != BLACK {
-			o.printf("\x1b[0;%dm", LOW_INTENSITY+color)
+		if color != black {
+			o.printf("\x1b[0;%dm", low_intensity+color)
 		} else {
-			o.printf("\x1b[0;%dm", HIGH_INTENSITY+color)
+			o.printf("\x1b[0;%dm", high_intensity+color)
 		}
 	}
 
@@ -296,7 +296,7 @@ func (o *TextOutput) ComponentEvent(component *Component,
 		return
 	}
 
-	var style = &ComponentEventTerminalStyles[event]
+	var style = &componenteventterminalstyles[event]
 
 	o.contextevent("cmpt", component, ComponentEventClassText[event], msg, data, style)
 
@@ -313,7 +313,7 @@ func (o *TextOutput) TaskEvent(task *Task,
 		return
 	}
 
-	var style = &TaskEventTerminalStyles[event]
+	var style = &taskeventterminalstyles[event]
 
 	var msg string = task.Activity
 
@@ -324,7 +324,7 @@ func (o *TextOutput) TaskEvent(task *Task,
 	case TASK_END:
 		msg += " success"
 		if task.highlight {
-			style = &TerminalStyle{GREEN, true, HIGH_INTENSITY}
+			style = &terminalstyle{green, true, high_intensity}
 		}
 
 	case TASK_ERROR:
@@ -354,7 +354,7 @@ func (o *TextOutput) TaskProgress(task *Task,
 		return
 	}
 
-	var style = &TaskEventTerminalStyles[event]
+	var style = &taskeventterminalstyles[event]
 
 	o.contextevent("task", task, TaskEventClassText[event], msg, data, style)
 
