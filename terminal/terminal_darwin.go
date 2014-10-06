@@ -9,4 +9,4 @@ import "syscall"
 
 const ioctlReadTermios = syscall.TIOCGETA
 
-type Termios syscall.Termios
+type termios syscall.Termios
