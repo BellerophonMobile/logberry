@@ -21,7 +21,7 @@ func startengines(dest destination) error {
 
 	enginelog.Info("Spooling engines", &logberry.D{"Block": "C", "Power": 2})
 
-	task := enginelog.CalculationTask("Make flightpath", dest)
+	task := enginelog.Task("Make flightpath", dest)
 	_, err := route(dest)
 	if err != nil {
 		return task.Error(err)
@@ -40,7 +40,7 @@ func monitorengines() {
 func stopengines() error {
 
 	coildevice := "/firefly/engine/coil/3"
-	task := enginelog.ResourceTask("Writing coil parameters", coildevice)
+	task := enginelog.Task("Writing coil parameters").Resource(coildevice)
 	return task.Failure("Unknown coil")
 
 }

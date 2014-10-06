@@ -10,7 +10,7 @@ func geticon(proc logberry.Context) error {
 
 	url := "https://raw.githubusercontent.com/BellerophonMobile/logberry/master/docs/logberry.png"
 
-	get := proc.LongResourceTask("Download strawberry icon", url)
+	get := proc.Task("Download strawberry icon").Resource(url)
 	res, err := http.Get(url)
 	if err != nil {
 		return get.Error(err)
@@ -33,12 +33,12 @@ func main() {
 		IntField:    24,
 	}
 
-	processor := logberry.Main.LongTask("Some data task", value)
+	processor := logberry.Main.Task("Some data task", value).Begin()
 
 	processor.Info("Prepare some data")
 
 	myfilename := "/home/nouser/doesnotexist"
-	read := processor.ResourceTask("Read app data", myfilename)
+	read := processor.Task("Read app data").Resource(myfilename)
 	if _, err := ioutil.ReadFile(myfilename); err != nil {
 		read.Error(err)
 	} else {

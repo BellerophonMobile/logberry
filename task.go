@@ -21,16 +21,9 @@ type Task struct {
 	highlight bool
 }
 
-const (
-	LONG  = true
-	SHORT = false
-)
+func newtask(parent Context, activity string, data []interface{}) *Task {
 
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-func newtask(parent Context, long bool, activity string, data []interface{}) *Task {
-
-	var class = APPLICATION
+	var class = UNCLASSED
 	if data != nil && len(data) > 0 {
 		if ac, ok := data[0].(TaskClass); ok {
 			class = ac
@@ -50,54 +43,18 @@ func newtask(parent Context, long bool, activity string, data []interface{}) *Ta
 		Data: DAggregate(data),
 	}
 
-	if InvalidTaskClass(class) {
-		t.Root.InternalError(NewError("TaskClass out of range", t.UID, t.Class))
-		t.Data.Set(t.Root.FieldPrefix+"Class", t.Class)
-	} else {
-		t.Data.Set(t.Root.FieldPrefix+"Class", TaskClassText[t.Class])
+	if t.Class != UNCLASSED {
+		if InvalidTaskClass(t.Class) {
+			t.Root.InternalError(NewError("TaskClass out of range", t.UID, t.Class))
+		} else {
+			t.Data.Set(t.Root.FieldPrefix+"Class", TaskClassText[t.Class])
+		}
 	}
 
 	t.Data.Set(t.Root.FieldPrefix+"Parent", t.Parent.GetUID())
 
-	if long {
-		t.Timed = true
-		t.Root.TaskEvent(t, TASK_BEGIN)
-		t.Start = time.Now()
-	}
-
 	return t
 
-}
-
-func calculationtask(parent Context, long bool, activity string, calculation interface{}, data ...interface{}) *Task {
-	return newtask(parent, long, activity,
-		append([]interface{}{
-			CALCULATION,
-			&D{
-				parent.GetRoot().FieldPrefix + "Calculation": calculation,
-			}},
-			data...))
-}
-
-func resourcetask(parent Context, long bool, activity string, resource interface{}, data ...interface{}) *Task {
-	return newtask(parent, long, activity,
-		append([]interface{}{
-			RESOURCE,
-			&D{
-				parent.GetRoot().FieldPrefix + "Resource": resource,
-			}},
-			data...))
-}
-
-func servicetask(parent Context, long bool, activity string, service interface{}, query interface{}, data ...interface{}) *Task {
-	return newtask(parent, long, activity,
-		append([]interface{}{
-			SERVICE,
-			&D{
-				parent.GetRoot().FieldPrefix + "Service": service,
-				parent.GetRoot().FieldPrefix + "Query":   query,
-			}},
-			data...))
 }
 
 //----------------------------------------------------------------------
@@ -106,31 +63,7 @@ func (x *Task) Component(label string, data ...interface{}) *Component {
 }
 
 func (x *Task) Task(activity string, data ...interface{}) *Task {
-	return newtask(x, false, activity, data)
-}
-func (x *Task) LongTask(activity string, data ...interface{}) *Task {
-	return newtask(x, true, activity, data)
-}
-
-func (x *Task) CalculationTask(activity string, calculation interface{}, data ...interface{}) *Task {
-	return calculationtask(x, false, activity, calculation, data...)
-}
-func (x *Task) LongCalculationTask(activity string, calculation interface{}, data ...interface{}) *Task {
-	return calculationtask(x, true, activity, calculation, data...)
-}
-
-func (x *Task) ResourceTask(activity string, resource interface{}, data ...interface{}) *Task {
-	return resourcetask(x, false, activity, resource, data...)
-}
-func (x *Task) LongResourceTask(activity string, resource interface{}, data ...interface{}) *Task {
-	return resourcetask(x, true, activity, resource, data...)
-}
-
-func (x *Task) ServiceTask(activity string, service interface{}, query interface{}, data ...interface{}) *Task {
-	return servicetask(x, false, activity, service, query, data...)
-}
-func (x *Task) LongServiceTask(activity string, service interface{}, query interface{}, data ...interface{}) *Task {
-	return servicetask(x, true, activity, service, query, data...)
+	return newtask(x, activity, data)
 }
 
 //----------------------------------------------------------------------
@@ -207,6 +140,7 @@ func (x *Task) Resource(resource interface{}) *Task {
 }
 
 func (x *Task) Service(service interface{}) *Task {
+	x.Class = SERVICE
 	x.AddData("Service", service)
 	return x
 }
@@ -223,8 +157,6 @@ func (x *Task) Disconnect(endpoint interface{}) *Task {
 	return x
 }
 
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
 // Always returns nil.
 func (x *Task) Success(data ...interface{}) error {
 
@@ -265,8 +197,12 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 
 }
 
-//----------------------------------------------------------------------
-// ----------------------------------------------------------------------
+func (x *Task) Begin(data ...interface{}) *Task {
+	x.Data.AggregateFrom(data)
+	x.Root.TaskEvent(x, TASK_BEGIN)
+	return x
+}
+
 // Unlike the terminal events, this does not accumulate the given data
 // into the Task.  However, you may replicate that behavior
 // (aggregating & reporting all of the accumulated data so far) by:

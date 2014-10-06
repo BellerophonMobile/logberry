@@ -70,7 +70,7 @@ var TaskEventClassText = [...]string{
 type TaskClass int
 
 const (
-	APPLICATION TaskClass = iota
+	UNCLASSED TaskClass = iota
 	CALCULATION
 	RESOURCE
 	SERVICE
@@ -87,7 +87,7 @@ const (
 )
 
 var TaskClassText = [...]string{
-	"app",
+	"unclassed",
 	"calculation",
 	"resource",
 	"service",
@@ -101,21 +101,10 @@ type Context interface {
 	GetParent() Context
 	GetRoot() *Root
 
-	Component(label string, data ...interface{}) *Component
-
-	Task(activity string, data ...interface{}) *Task
-	LongTask(activity string, data ...interface{}) *Task
-
 	IsHighlighted() bool
 
-	CalculationTask(activity string, calculation interface{}, data ...interface{}) *Task
-	LongCalculationTask(activity string, calculation interface{}, data ...interface{}) *Task
-
-	ResourceTask(activity string, resource interface{}, data ...interface{}) *Task
-	LongResourceTask(activity string, resource interface{}, data ...interface{}) *Task
-
-	ServiceTask(activity string, service interface{}, query interface{}, data ...interface{}) *Task
-	LongServiceTask(activity string, service interface{}, query interface{}, data ...interface{}) *Task
+	Component(label string, data ...interface{}) *Component
+	Task(activity string, data ...interface{}) *Task
 }
 
 type highlightmarker int
