@@ -3,13 +3,12 @@ package logberry
 import (
 	"log"
 
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"syscall"
 	"time"
-	//	"encoding/json"
-	"bytes"
 
 	"reflect"
 
@@ -54,22 +53,22 @@ type TerminalStyle struct {
 }
 
 var ComponentEventTerminalStyles = [...]TerminalStyle{
-	{BLACK,  false, HIGH_INTENSITY},  // start
-	{BLACK,  false, HIGH_INTENSITY},  // finish
-	{BLUE,   false, LOW_INTENSITY},   // configuration
-	{GREEN,  true,  HIGH_INTENSITY},  // ready
-	{WHITE,  false, HIGH_INTENSITY},  // info
-	{YELLOW, false, HIGH_INTENSITY},  // warning
-	{RED,    true,  HIGH_INTENSITY},  // error
-	{RED,    true,  HIGH_INTENSITY},  // fatal
+	{BLACK, false, HIGH_INTENSITY},  // start
+	{BLACK, false, HIGH_INTENSITY},  // finish
+	{BLUE, false, LOW_INTENSITY},    // configuration
+	{GREEN, true, HIGH_INTENSITY},   // ready
+	{WHITE, false, HIGH_INTENSITY},  // info
+	{YELLOW, false, HIGH_INTENSITY}, // warning
+	{RED, true, HIGH_INTENSITY},     // error
+	{RED, true, HIGH_INTENSITY},     // fatal
 }
 
 var TaskEventTerminalStyles = [...]TerminalStyle{
-	{WHITE,  false, HIGH_INTENSITY},  // begin
-	{WHITE,  false, HIGH_INTENSITY},  // end
-	{WHITE,  false, LOW_INTENSITY},   // info
-	{YELLOW, false, HIGH_INTENSITY},  // warning
-	{RED,    true,  HIGH_INTENSITY},  // error
+	{WHITE, false, HIGH_INTENSITY},  // begin
+	{WHITE, false, HIGH_INTENSITY},  // end
+	{WHITE, false, LOW_INTENSITY},   // info
+	{YELLOW, false, HIGH_INTENSITY}, // warning
+	{RED, true, HIGH_INTENSITY},     // error
 }
 
 func init() {
