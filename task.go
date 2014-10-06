@@ -11,7 +11,6 @@ type Task struct {
 	Label  string
 
 	Activity string
-	Class    TaskClass
 
 	Timed bool
 	Start time.Time
@@ -23,14 +22,6 @@ type Task struct {
 
 func newtask(parent Context, activity string, data []interface{}) *Task {
 
-	var class = UNCLASSED
-	if data != nil && len(data) > 0 {
-		if ac, ok := data[0].(TaskClass); ok {
-			class = ac
-			data = data[1:]
-		}
-	}
-
 	t := &Task{
 		UID:    newcontextuid(),
 		Parent: parent,
@@ -38,17 +29,8 @@ func newtask(parent Context, activity string, data []interface{}) *Task {
 		Label:  parent.GetLabel(),
 
 		Activity: activity,
-		Class:    class,
 
 		Data: DAggregate(data),
-	}
-
-	if t.Class != UNCLASSED {
-		if InvalidTaskClass(t.Class) {
-			t.Root.InternalError(NewError("TaskClass out of range", t.UID, t.Class))
-		} else {
-			t.Data.Set(t.Root.FieldPrefix+"Class", TaskClassText[t.Class])
-		}
 	}
 
 	t.Data.Set(t.Root.FieldPrefix+"Parent", t.Parent.GetUID())
@@ -125,34 +107,27 @@ func (x *Task) IsHighlighted() bool {
 	return x.highlight
 }
 
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
 func (x *Task) Calculation(calculation interface{}) *Task {
-	x.Class = CALCULATION
 	x.AddData("Calculation", calculation)
 	return x
 }
 
+func (x *Task) File(file interface{}) *Task {
+	x.AddData("File", file)
+	return x
+}
+
 func (x *Task) Resource(resource interface{}) *Task {
-	x.Class = RESOURCE
 	x.AddData("Resource", resource)
 	return x
 }
 
 func (x *Task) Service(service interface{}) *Task {
-	x.Class = SERVICE
 	x.AddData("Service", service)
 	return x
 }
 
-func (x *Task) Connect(endpoint interface{}) *Task {
-	x.Class = CONNECT
-	x.AddData("Endpoint", endpoint)
-	return x
-}
-
-func (x *Task) Disconnect(endpoint interface{}) *Task {
-	x.Class = DISCONNECT
+func (x *Task) Endpoint(endpoint interface{}) *Task {
 	x.AddData("Endpoint", endpoint)
 	return x
 }

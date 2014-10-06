@@ -67,34 +67,6 @@ var TaskEventClassText = [...]string{
 	"error",
 }
 
-type TaskClass int
-
-const (
-	UNCLASSED TaskClass = iota
-	CALCULATION
-	RESOURCE
-	SERVICE
-	CONNECT
-	DISCONNECT
-	/*
-		SECURE
-		UNSECURE
-		ATTEST
-		VERIFY
-		RENDER
-	*/
-	taskclasssentinel
-)
-
-var TaskClassText = [...]string{
-	"unclassed",
-	"calculation",
-	"resource",
-	"service",
-	"connect",
-	"disconnect",
-}
-
 type Context interface {
 	GetUID() uint64
 	GetLabel() string
@@ -136,11 +108,6 @@ func init() {
 			"len(TaskEventClassText) != |TaskEventClass|")
 	}
 
-	if len(TaskClassText) != int(taskclasssentinel) {
-		log.Fatal("Fatal internal error: " +
-			"len(TaskClassText) != |TaskClass|")
-	}
-
 	//-- Construct the standard default root
 	Std = NewRoot(path.Base(os.Args[0]))
 	Std.AddOutputDriver(NewStdOutput())
@@ -165,8 +132,4 @@ func InvalidComponentClass(class ComponentClass) bool {
 
 func InvalidTaskEventClass(event TaskEventClass) bool {
 	return (event < 0 || event >= taskeventclasssentinel)
-}
-
-func InvalidTaskClass(class TaskClass) bool {
-	return (class < 0 || class >= taskclasssentinel)
 }
