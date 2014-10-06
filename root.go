@@ -47,15 +47,17 @@ func NewRoot(tag string) *Root {
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 func (x *Root) ClearOutputDrivers() {
-	for _, o := range x.outputdrivers {
-		o.Detach()
-	}
 	x.outputdrivers = make([]OutputDriver, 0, 1)
+	for _, o := range x.outputdrivers {
+		o.Detach() // Must be after clearing so the OutputDrivers won't
+		// receive output after being detached.
+	}
 }
 
 func (x *Root) AddOutputDriver(driver OutputDriver) *Root {
+	driver.Attach(x) // Must be first so that the OutputDriver won't
+	// receive output until it knows its root.
 	x.outputdrivers = append(x.outputdrivers, driver)
-	driver.Attach(x)
 	return x
 }
 
