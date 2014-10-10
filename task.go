@@ -162,14 +162,6 @@ func (x *Task) Success(data ...interface{}) error {
 
 }
 
-func (x *Task) Terminated(msg string, data ...interface{}) error {
-	x.Clock()
-	x.Data.AggregateFrom(data)
-	x.Data.Set(x.Root.FieldPrefix+"Warning", msg)
-	x.Root.TaskEvent(x, TASK_WARNING)
-	return nil
-}
-
 func (x *Task) Error(err error, data ...interface{}) error {
 
 	// Note that this can't just throw err into the data blob because
