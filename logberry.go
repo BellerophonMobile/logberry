@@ -88,6 +88,7 @@ type Context interface {
 	GetParent() Context
 	GetRoot() *Root
 
+	IsMute() bool
 	IsHighlighted() bool
 
 	Component(label string, data ...interface{}) *Component

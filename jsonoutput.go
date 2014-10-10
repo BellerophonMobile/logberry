@@ -109,6 +109,10 @@ func (x *JSONOutput) ComponentEvent(component *Component,
 		return
 	}
 
+	if component.mute && event != COMPONENT_ERROR {
+		return
+	}
+
 	x.contextevent("component", component, ComponentEventClassText[event], msg, data)
 
 	// end ComponentEvent
@@ -118,6 +122,10 @@ func (x *JSONOutput) ComponentEvent(component *Component,
 // called by a Root or an OutputDriver chaining outputs.
 func (x *JSONOutput) TaskEvent(task *Task,
 	event TaskEventClass) {
+
+	if task.mute && event != TASK_ERROR {
+		return
+	}
 
 	var msg string = task.Activity
 
@@ -129,6 +137,9 @@ func (x *JSONOutput) TaskEvent(task *Task,
 		if task.Timed {
 			msg += " success"
 		}
+
+	case TASK_WARNING:
+		msg += " warning"
 
 	case TASK_ERROR:
 		msg += " failure"
@@ -155,6 +166,10 @@ func (x *JSONOutput) TaskProgress(task *Task,
 	if InvalidTaskEventClass(event) {
 		x.internalerror(NewError("TaskEventClass out of range for TaskProgress()",
 			task.GetUID(), event))
+		return
+	}
+
+	if task.mute && event != TASK_ERROR {
 		return
 	}
 

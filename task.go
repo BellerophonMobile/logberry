@@ -17,6 +17,7 @@ type Task struct {
 
 	Data *D
 
+	mute bool
 	highlight bool
 }
 
@@ -93,6 +94,19 @@ func (x *Task) AggregateData(data ...interface{}) *D {
 	return x.Data
 }
 
+
+func (x *Task) Mute() *Task {
+	x.mute = true
+	return x
+}
+func (x *Task) Unmute() *Task {
+	x.mute = false
+	return x
+}
+func (x *Task) IsMute() bool {
+	return x.mute
+}
+
 func (x *Task) Highlight() *Task {
 	x.highlight = true
 	return x
@@ -127,6 +141,11 @@ func (x *Task) Service(service interface{}) *Task {
 	return x
 }
 
+func (x *Task) User(user interface{}) *Task {
+	x.AddData("User", user)
+	return x
+}
+
 func (x *Task) Endpoint(endpoint interface{}) *Task {
 	x.AddData("Endpoint", endpoint)
 	return x
@@ -141,6 +160,14 @@ func (x *Task) Success(data ...interface{}) error {
 
 	return nil
 
+}
+
+func (x *Task) Terminated(msg string, data ...interface{}) error {
+	x.Clock()
+	x.Data.AggregateFrom(data)
+	x.Data.Set(x.Root.FieldPrefix+"Warning", msg)
+	x.Root.TaskEvent(x, TASK_WARNING)
+	return nil
 }
 
 func (x *Task) Error(err error, data ...interface{}) error {
@@ -193,7 +220,7 @@ func (x *Task) Info(msg string, data ...interface{}) {
 // into the Task.  However, you may replicate that behavior
 // (aggregating & reporting all of the accumulated data so far) by:
 //
-//   foo.Warning("Status report", foo.AggregateData("mushi"))
+//   foo.Info("Status report", foo.AggregateData("mushi", "sushi"))
 //
 // foo.AddData() may be used similarly.
 func (x *Task) Warning(msg string, data ...interface{}) {

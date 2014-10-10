@@ -16,6 +16,7 @@ type Component struct {
 
 	Class ComponentClass
 
+	mute bool
 	highlight bool
 }
 
@@ -85,6 +86,20 @@ func (x *Component) GetParent() Context {
 func (x *Component) GetRoot() *Root {
 	return x.Root
 }
+
+
+func (x *Component) Mute() *Component {
+	x.mute = true
+	return x
+}
+func (x *Component) Unmute() *Component {
+	x.mute = false
+	return x
+}
+func (x *Component) IsMute() bool {
+	return x.mute
+}
+
 
 func (x *Component) Highlight() *Component {
 	x.highlight = true

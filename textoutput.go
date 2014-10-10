@@ -325,6 +325,10 @@ func (o *TextOutput) ComponentEvent(component *Component,
 		return
 	}
 
+	if component.mute && event != COMPONENT_ERROR {
+		return
+	}
+
 	var style = &componenteventterminalstyles[event]
 
 	o.contextevent("cmpt", component, ComponentEventClassText[event], msg, data, style)
@@ -343,9 +347,14 @@ func (o *TextOutput) TaskEvent(task *Task,
 		return
 	}
 
+	if task.mute && event != TASK_ERROR {
+		return
+	}
+
 	var style = &taskeventterminalstyles[event]
 
 	var msg string = task.Activity
+
 
 	switch event {
 	case TASK_BEGIN:
@@ -356,6 +365,9 @@ func (o *TextOutput) TaskEvent(task *Task,
 		if task.highlight {
 			style = &terminalstyle{green, true, high_intensity}
 		}
+
+	case TASK_WARNING:
+		msg += " warning"
 
 	case TASK_ERROR:
 		msg += " failure"
@@ -382,6 +394,10 @@ func (o *TextOutput) TaskProgress(task *Task,
 	if InvalidTaskEventClass(event) {
 		o.internalerror(NewError("TaskEventClass out of range for TaskProgress()",
 			task.GetUID(), event))
+		return
+	}
+
+	if task.mute && event != TASK_ERROR {
 		return
 	}
 
