@@ -109,7 +109,7 @@ func (x *JSONOutput) ComponentEvent(component *Component,
 		return
 	}
 
-	if component.mute && event != COMPONENT_ERROR {
+	if component.mute {
 		return
 	}
 
@@ -123,7 +123,7 @@ func (x *JSONOutput) ComponentEvent(component *Component,
 func (x *JSONOutput) TaskEvent(task *Task,
 	event TaskEventClass) {
 
-	if task.mute && event != TASK_ERROR {
+	if task.mute {
 		return
 	}
 
@@ -169,7 +169,7 @@ func (x *JSONOutput) TaskProgress(task *Task,
 		return
 	}
 
-	if task.mute && event != TASK_ERROR {
+	if task.mute {
 		return
 	}
 
