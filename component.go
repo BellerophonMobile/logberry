@@ -47,7 +47,7 @@ func newcomponent(parent Context, label string, data ...interface{}) *Component 
 		c.Root = Std
 	}
 
-	if c.Class < 0 || c.Class >= componentclasssentinel {
+	if c.Class < 0 || c.Class >= componentclass_sentinel {
 		c.Root.InternalError(NewError("ComponentClass out of range", c.UID, c.Class))
 		d.Set(c.Root.FieldPrefix+"Class", c.Class)
 	} else {
