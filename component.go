@@ -243,7 +243,13 @@ func (x *Component) Fatal(msg string, err error, data ...interface{}) {
 
 	x.Root.ComponentEvent(x, COMPONENT_FATAL, msg,
 		DAggregate(data).Set(x.Root.FieldPrefix+"Error", err.Error()))
+	os.Exit(1)
 
+}
+
+func (x *Component) Abort(msg string, data ...interface{}) {
+
+	x.Root.ComponentEvent(x, COMPONENT_FATAL, msg, DAggregate(data))
 	os.Exit(1)
 
 }

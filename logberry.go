@@ -21,7 +21,7 @@ const (
 	COMPONENT_WARNING
 	COMPONENT_ERROR
 	COMPONENT_FATAL
-	componenteventclasssentinel
+	componenteventclass_sentinel
 )
 
 // ComponentEventClassText is an array mapping the ComponentEventClass
@@ -46,7 +46,7 @@ type ComponentClass int
 const (
 	COMPONENT ComponentClass = iota
 	INSTANCE
-	componentclasssentinel
+	componentclass_sentinel
 )
 
 // ComponentClassText is an array mapping the ComponentClass
@@ -66,7 +66,7 @@ const (
 	TASK_INFO
 	TASK_WARNING
 	TASK_ERROR
-	taskeventclasssentinel
+	taskeventclass_sentinel
 )
 
 // TaskEventClassText is an array mapping the TaskEventClass
@@ -107,17 +107,17 @@ var numcontexts uint64
 func init() {
 
 	//-- Check that labels are defined for the enumerations
-	if len(ComponentEventClassText) != int(componenteventclasssentinel) {
+	if len(ComponentEventClassText) != int(componenteventclass_sentinel) {
 		log.Fatal("Fatal internal error: " +
 			"len(ComponentEventClassText) != |ComponentEventClass|")
 	}
 
-	if len(ComponentClassText) != int(componentclasssentinel) {
+	if len(ComponentClassText) != int(componentclass_sentinel) {
 		log.Fatal("Fatal internal error: " +
 			"len(ComponentClassText) != |ComponentClass|")
 	}
 
-	if len(TaskEventClassText) != int(taskeventclasssentinel) {
+	if len(TaskEventClassText) != int(taskeventclass_sentinel) {
 		log.Fatal("Fatal internal error: " +
 			"len(TaskEventClassText) != |TaskEventClass|")
 	}
@@ -139,17 +139,17 @@ func newcontextuid() uint64 {
 // InvalidComponentEventClass returns true if event is within the
 // known enumeration of component events.
 func InvalidComponentEventClass(event ComponentEventClass) bool {
-	return (event < 0 || event >= componenteventclasssentinel)
+	return (event < 0 || event >= componenteventclass_sentinel)
 }
 
 // InvalidComponentClass returns true if class is within the known
 // enumeration of component classes.
 func InvalidComponentClass(class ComponentClass) bool {
-	return (class < 0 || class >= componentclasssentinel)
+	return (class < 0 || class >= componentclass_sentinel)
 }
 
 // InvalidTaskEventClass returns true if event is within the known
 // enumeration of task events.
 func InvalidTaskEventClass(event TaskEventClass) bool {
-	return (event < 0 || event >= taskeventclasssentinel)
+	return (event < 0 || event >= taskeventclass_sentinel)
 }

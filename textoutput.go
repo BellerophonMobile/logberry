@@ -98,12 +98,12 @@ var taskeventterminalstyles = [...]terminalstyle{
 func init() {
 
 	//-- Check that labels are defined for the enumerations
-	if len(componenteventterminalstyles) != int(componenteventclasssentinel) {
+	if len(componenteventterminalstyles) != int(componenteventclass_sentinel) {
 		log.Fatal("Fatal internal error: " +
 			"len(componenteventterminalstyles) != |ComponentEventClass|")
 	}
 
-	if len(taskeventterminalstyles) != int(taskeventclasssentinel) {
+	if len(taskeventterminalstyles) != int(taskeventclass_sentinel) {
 		log.Fatal("Fatal internal error: " +
 			"len(taskeventterminalstyles) != |TaskEventClass|")
 	}
