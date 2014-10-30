@@ -122,7 +122,8 @@ func (x *Component) Build(build *BuildMetadata) {
 }
 
 func (x *Component) Configuration(data ...interface{}) {
-	x.Root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Configuration", DBuild(data))
+	x.Root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Configuration",
+		DAggregate(data))
 }
 
 func (x *Component) CommandLine() {
