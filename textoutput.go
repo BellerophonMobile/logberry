@@ -206,19 +206,27 @@ func keyrenderrecurse(bytes *bytes.Buffer, wrap bool, data interface{}) {
 	case reflect.Interface:
 		fallthrough
 	case reflect.Ptr:
-		keyrenderrecurse(bytes, wrap, val.Elem().Interface())
+		if val.IsNil() {
+			fmt.Fprint(bytes, "nil")
+		} else {
+			keyrenderrecurse(bytes, wrap, val.Elem().Interface())
+		}
 
 	case reflect.Map:
-		var vals = val.MapKeys()
-		if wrap {
-			fmt.Fprint(bytes, "{ ")
-		}
-		for _, k := range vals {
-			fmt.Fprintf(bytes, "%s=", k.Interface())
-			keyrenderrecurse(bytes, true, val.MapIndex(k).Interface())
-		}
-		if wrap {
-			fmt.Fprint(bytes, "}")
+		if val.IsNil() {
+			fmt.Fprint(bytes, "nil")
+		} else {
+			var vals = val.MapKeys()
+			if wrap {
+				fmt.Fprint(bytes, "{ ")
+			}
+			for _, k := range vals {
+				fmt.Fprintf(bytes, "%s=", k.Interface())
+				keyrenderrecurse(bytes, true, val.MapIndex(k).Interface())
+			}
+			if wrap {
+				fmt.Fprint(bytes, "}")
+			}
 		}
 
 	case reflect.Struct:
