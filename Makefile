@@ -10,13 +10,14 @@ examples= minimal               \
           blueberry             \
           flightpath
 
+gopath=${subst /src/github.com/BellerophonMobile/logberry,,${shell pwd}}
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 all: test examples
 
 test:
-	go test -v
+	env GOPATH=$(gopath) go test -v
 
 examples: bin $(addprefix bin/, $(examples))
 
@@ -24,7 +25,7 @@ examples: bin $(addprefix bin/, $(examples))
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 bin/%: examples/%/build.go examples/%/main.go $(lib_sources)
-	cd bin; go build github.com/BellerophonMobile/logberry/examples/$(subst bin/,,$@)
+	cd bin; env GOPATH=$(gopath) go build github.com/BellerophonMobile/logberry/examples/$(subst bin/,,$@)
 
 
 #-----------------------------------------------------------------------
