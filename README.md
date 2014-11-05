@@ -46,8 +46,8 @@ A very simple use is then:
 package main
 
 import (
-	"github.com/BellerophonMobile/logberry"
 	"errors"
+	"github.com/BellerophonMobile/logberry"
 	"os"
 )
 
@@ -81,7 +81,7 @@ func main() {
 		tlog.Error(err)
 		os.Exit(1)
 	}
-	tlog.Complete(&logberry.D{"Result": res})
+	tlog.Success(&logberry.D{"Result": res})
 
 	// Shut down the component
 	cmplog.Finalize()
