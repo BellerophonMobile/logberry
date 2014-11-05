@@ -16,12 +16,12 @@ import (
 //
 // In general the Component's functions are safe to call concurrently.
 type Component struct {
-	UID    uint64
-	Parent Context
-	Root   *Root
-	Label  string
+	uid    uint64
+	parent Context
+	root   *Root
+	label  string
 
-	Class ComponentClass
+	class ComponentClass
 
 	mute bool
 	highlight bool
@@ -40,28 +40,28 @@ func newcomponent(parent Context, label string, data ...interface{}) *Component 
 	d := DAggregate(data)
 
 	c := &Component{
-		UID:    newcontextuid(),
-		Parent: parent,
-		Label:  label,
-		Class:  class,
+		uid:    newcontextuid(),
+		parent: parent,
+		label:  label,
+		class:  class,
 	}
 
 	if parent != nil {
-		c.Root = parent.GetRoot()
-		d.Set(c.Root.FieldPrefix+"Parent", parent.GetUID())
+		c.root = parent.GetRoot()
+		d.Set(c.root.FieldPrefix+"Parent", parent.GetUID())
 	} else {
-		c.Root = Std
+		c.root = Std
 	}
 
-	if c.Class < 0 || c.Class >= componentclass_sentinel {
-		c.Root.InternalError(NewError("ComponentClass out of range", c.UID, c.Class))
-		d.Set(c.Root.FieldPrefix+"Class", c.Class)
+	if c.class < 0 || c.class >= componentclass_sentinel {
+		c.root.InternalError(NewError("ComponentClass out of range", c.uid, c.class))
+		d.Set(c.root.FieldPrefix+"Class", c.class)
 	} else {
-		d.Set(c.Root.FieldPrefix+"Class", ComponentClassText[c.Class])
+		d.Set(c.root.FieldPrefix+"Class", ComponentClassText[c.class])
 	}
 
 	if parent != nil {
-		c.Root.ComponentEvent(c, COMPONENT_START, "Instantiate", d)
+		c.root.ComponentEvent(c, COMPONENT_START, "Instantiate", d)
 	}
 
 	return c
@@ -98,27 +98,27 @@ func (x *Component) Task(activity string, data ...interface{}) *Task {
 // Getlabel return the label of this Component, as given at
 // instantiation.
 func (x *Component) GetLabel() string {
-	return x.Label
+	return x.label
 }
 
 // GetUID returns the unique identifier for this Component.
 func (x *Component) GetUID() uint64 {
-	return x.UID
+	return x.uid
 }
 
 // GetParent returns the Context containing this Component.
 func (x *Component) GetParent() Context {
-	return x.Parent
+	return x.parent
 }
 
 // GetRoot returns the Root for this Component.
 func (x *Component) GetRoot() *Root {
-	return x.Root
+	return x.root
 }
 
 // GetClass returns the ComponentClass for this Component.
 func (x *Component) GetClass() ComponentClass {
-	return x.Class
+	return x.class
 }
 
 
@@ -165,13 +165,13 @@ func (x *Component) IsHighlighted() bool {
 // Build generates a configuration log event reporting the source code
 // and build platform configuration for this Component.
 func (x *Component) Build(build *BuildMetadata) {
-	x.Root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Build", DBuild(build))
+	x.root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Build", DBuild(build))
 }
 
 // Configuration generates a configuration log event reporting the
 // parameters and initialization data for this Component.
 func (x *Component) Configuration(data ...interface{}) {
-	x.Root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Configuration",
+	x.root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Configuration",
 		DAggregate(data))
 }
 
@@ -181,19 +181,19 @@ func (x *Component) CommandLine() {
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		x.Root.InternalError(WrapError(err, "Could not retrieve hostname"))
+		x.root.InternalError(WrapError(err, "Could not retrieve hostname"))
 		return
 	}
 
 	u, err := user.Current()
 	if err != nil {
-		x.Root.InternalError(WrapError(err, "Could not retrieve user info"))
+		x.root.InternalError(WrapError(err, "Could not retrieve user info"))
 		return
 	}
 
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		x.Root.InternalError(WrapError(err, "Could not retrieve program path"))
+		x.root.InternalError(WrapError(err, "Could not retrieve program path"))
 		return
 	}
 
@@ -207,7 +207,7 @@ func (x *Component) CommandLine() {
 		"Args":    os.Args[1:],
 	}
 
-	x.Root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Command line", &d)
+	x.root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Command line", &d)
 
 }
 
@@ -221,7 +221,7 @@ func (x *Component) Environment() {
 		pair := strings.Split(e, "=")
 		d[pair[0]] = pair[1]
 	}
-	x.Root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Environment", &d)
+	x.root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Environment", &d)
 
 }
 
@@ -231,19 +231,19 @@ func (x *Component) Process() {
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		x.Root.InternalError(WrapError(err, "Could not retrieve hostname"))
+		x.root.InternalError(WrapError(err, "Could not retrieve hostname"))
 		return
 	}
 
 	wd, err := os.Getwd()
 	if err != nil {
-		x.Root.InternalError(WrapError(err, "Could not retrieve working dir"))
+		x.root.InternalError(WrapError(err, "Could not retrieve working dir"))
 		return
 	}
 
 	u, err := user.Current()
 	if err != nil {
-		x.Root.InternalError(WrapError(err, "Could not retrieve user info"))
+		x.root.InternalError(WrapError(err, "Could not retrieve user info"))
 		return
 	}
 
@@ -255,7 +255,7 @@ func (x *Component) Process() {
 		"PID":  os.Getpid(),
 	}
 
-	x.Root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Process", &d)
+	x.root.ComponentEvent(x, COMPONENT_CONFIGURATION, "Process", &d)
 
 }
 
@@ -263,20 +263,20 @@ func (x *Component) Process() {
 // Info generates an informational log event reporting the given
 // message and data.
 func (x *Component) Info(msg string, data ...interface{}) {
-	x.Root.ComponentEvent(x, COMPONENT_INFO, msg, DAggregate(data))
+	x.root.ComponentEvent(x, COMPONENT_INFO, msg, DAggregate(data))
 }
 
 // Recovered generates a warning log event noting that the given error
 // was encountered but execution has continued acceptably.
 func (x *Component) Recovered(msg string, err error, data ...interface{}) {
-	x.Root.ComponentEvent(x, COMPONENT_WARNING, msg,
-		DAggregate(data).Set(x.Root.FieldPrefix+"Error", err.Error()))
+	x.root.ComponentEvent(x, COMPONENT_WARNING, msg,
+		DAggregate(data).Set(x.root.FieldPrefix+"Error", err.Error()))
 }
 
 // Warning generates a warning log event reporting the given condition
 // and data.
 func (x *Component) Warning(msg string, data ...interface{}) {
-	x.Root.ComponentEvent(x, COMPONENT_WARNING, msg, DAggregate(data))
+	x.root.ComponentEvent(x, COMPONENT_WARNING, msg, DAggregate(data))
 }
 
 // Error generates an error log event reporting a fault.  An error
@@ -288,8 +288,8 @@ func (x *Component) Error(msg string, err error, data ...interface{}) error {
 	// anything, even the message.  So you basically have to reduce to a
 	// string via Error().
 
-	x.Root.ComponentEvent(x, COMPONENT_ERROR, msg,
-		DAggregate(data).Set(x.Root.FieldPrefix+"Error", err.Error()))
+	x.root.ComponentEvent(x, COMPONENT_ERROR, msg,
+		DAggregate(data).Set(x.root.FieldPrefix+"Error", err.Error()))
 	return WrapError(err, msg)
 
 }
@@ -302,7 +302,7 @@ func (x *Component) Error(msg string, err error, data ...interface{}) error {
 // directly by the calling code, rather than one caused by an
 // underlying error returned from another function or component.
 func (x *Component) Failure(msg string, data ...interface{}) error {
-	x.Root.ComponentEvent(x, COMPONENT_ERROR, msg, DAggregate(data))
+	x.root.ComponentEvent(x, COMPONENT_ERROR, msg, DAggregate(data))
 	return NewError(msg)
 }
 
@@ -310,8 +310,8 @@ func (x *Component) Failure(msg string, data ...interface{}) error {
 // then terminates the currently executing process.  In general only
 // top level code should invoke this.
 func (x *Component) Fatal(msg string, err error, data ...interface{}) {
-	x.Root.ComponentEvent(x, COMPONENT_FATAL, msg,
-		DAggregate(data).Set(x.Root.FieldPrefix+"Error", err.Error()))
+	x.root.ComponentEvent(x, COMPONENT_FATAL, msg,
+		DAggregate(data).Set(x.root.FieldPrefix+"Error", err.Error()))
 	os.Exit(1)
 }
 
@@ -324,7 +324,7 @@ func (x *Component) Fatal(msg string, err error, data ...interface{}) {
 // directly by the calling code, rather than one caused by an
 // underlying error returned from another function or component.
 func (x *Component) Abort(msg string, data ...interface{}) {
-	x.Root.ComponentEvent(x, COMPONENT_FATAL, msg, DAggregate(data))
+	x.root.ComponentEvent(x, COMPONENT_FATAL, msg, DAggregate(data))
 	os.Exit(1)
 }
 
@@ -333,7 +333,7 @@ func (x *Component) Abort(msg string, data ...interface{}) {
 // has terminated, been cleaned up, or is otherwise about to cease
 // being operational.  It is not called automatically in any way.
 func (x *Component) Finalize(data ...interface{}) {
-	x.Root.ComponentEvent(x, COMPONENT_FINISH, "Finalize", DAggregate(data))
+	x.root.ComponentEvent(x, COMPONENT_FINISH, "Finalize", DAggregate(data))
 }
 
 // Ready generates a ready log event noting that the component is
@@ -342,5 +342,5 @@ func (x *Component) Finalize(data ...interface{}) {
 // process' output for such a message indicating that it has booted
 // and is ready to be sent data.
 func (x *Component) Ready(msg string, data ...interface{}) {
-	x.Root.ComponentEvent(x, COMPONENT_READY, msg, DAggregate(data))
+	x.root.ComponentEvent(x, COMPONENT_READY, msg, DAggregate(data))
 }

@@ -361,7 +361,7 @@ func (o *TextOutput) TaskEvent(task *Task,
 
 	var style = &taskeventterminalstyles[event]
 
-	var msg string = task.Activity
+	var msg string = task.activity
 
 
 	switch event {
@@ -387,7 +387,7 @@ func (o *TextOutput) TaskEvent(task *Task,
 
 	}
 
-	o.contextevent("task", task, TaskEventClassText[event], msg, task.Data, style)
+	o.contextevent("task", task, TaskEventClassText[event], msg, task.data, style)
 
 	// end TaskEvent
 }

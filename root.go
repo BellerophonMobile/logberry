@@ -93,7 +93,7 @@ func (x *Root) SetErrorListener(listener ErrorListener) *Root {
 //----------------------------------------------------------------------
 func (x *Root) NewComponent(label string, data ...interface{}) *Component {
 	c := newcomponent(nil, label, DAggregate(data))
-	c.Root = x
+	c.root = x
 	return c
 }
 

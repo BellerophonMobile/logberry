@@ -13,17 +13,17 @@ import (
 // execution, and the calling code is responsible for managing any
 // concurrent manipulation.
 type Task struct {
-	UID    uint64
-	Parent Context
-	Root   *Root
-	Label  string
+	uid    uint64
+	parent Context
+	root   *Root
+	label  string
 
-	Activity string
+	activity string
 
-	Timed bool
-	Start time.Time
+	timed bool
+	start time.Time
 
-	Data *D
+	data *D
 
 	mute bool
 	highlight bool
@@ -32,17 +32,17 @@ type Task struct {
 func newtask(parent Context, activity string, data []interface{}) *Task {
 
 	t := &Task{
-		UID:    newcontextuid(),
-		Parent: parent,
-		Root:   parent.GetRoot(),
-		Label:  parent.GetLabel(),
+		uid:    newcontextuid(),
+		parent: parent,
+		root:   parent.GetRoot(),
+		label:  parent.GetLabel(),
 
-		Activity: activity,
+		activity: activity,
 
-		Data: DAggregate(data),
+		data: DAggregate(data),
 	}
 
-	t.Data.Set(t.Root.FieldPrefix+"Parent", t.Parent.GetUID())
+	t.data.Set(t.root.FieldPrefix+"Parent", t.parent.GetUID())
 
 	return t
 
@@ -80,29 +80,46 @@ func (x *Task) Task(activity string, data ...interface{}) *Task {
 // labels have been manually modified at some point, this will be the
 // label of the closest ancestor Component.
 func (x *Task) GetLabel() string {
-	return x.Label
+	return x.label
 }
 
 // GetUID returns the unique identifier for this Task.
 func (x *Task) GetUID() uint64 {
-	return x.UID
+	return x.uid
 }
 
 // GetParent returns the Context containing this Task.
 func (x *Task) GetParent() Context {
-	return x.Parent
+	return x.parent
 }
 
 // GetRoot returns the Root for this Task.
 func (x *Task) GetRoot() *Root {
-	return x.Root
+	return x.root
 }
+
+// GetActivity returns the work description for this Task.
+func (x *Task) GetActivity() string {
+	return x.activity
+}
+
+// GetTimed returns whether or not the Task is being timed.
+func (x *Task) GetTimed() bool {
+	return x.timed
+}
+
+// GetStart returns the timepoint at which this task began, indicated
+// by calling Time().  Zero is returned if it is not being timed.
+func (x *Task) GetStart() time.Time {
+	return x.start
+}
+
 
 // Time indicates that this Task should be timed, starting now.  It
 // does not generate a log event.
 func (x *Task) Time() *Task {
-	x.Timed = true
-	x.Start = time.Now()
+	x.timed = true
+	x.start = time.Now()
 	return x
 }
 
@@ -113,12 +130,12 @@ func (x *Task) Time() *Task {
 // is overridden.
 func (x *Task) Clock() time.Duration {
 
-	if !x.Timed {
+	if !x.timed {
 		return 0
 	}
 
-	d := time.Now().Sub(x.Start)
-	x.Data.Set(x.Root.FieldPrefix+"Duration", d)
+	d := time.Now().Sub(x.start)
+	x.data.Set(x.root.FieldPrefix+"Duration", d)
 	return d
 
 }
@@ -130,7 +147,7 @@ func (x *Task) Clock() time.Duration {
 // accumulate data into the Task as it proceeds, to be reported when
 // it concludes.
 func (x *Task) AddData(k string, v interface{}) *Task {
-	(*x.Data)[k] = v
+	(*x.data)[k] = v
 	return x
 }
 
@@ -141,7 +158,7 @@ func (x *Task) AddData(k string, v interface{}) *Task {
 // things, this function is useful to silently accumulate data into
 // the Task as it proceeds, to be reported when it concludes.
 func (x *Task) AggregateData(data ...interface{}) *Task {
-	x.Data.AggregateFrom(data)
+	x.data.AggregateFrom(data)
 	return x
 }
 
@@ -256,8 +273,8 @@ func (x *Task) Endpoint(endpoint interface{}) *Task {
 func (x *Task) Success(data ...interface{}) error {
 
 	x.Clock()
-	x.Data.AggregateFrom(data)
-	x.Root.TaskEvent(x, TASK_END)
+	x.data.AggregateFrom(data)
+	x.root.TaskEvent(x, TASK_END)
 
 	return nil
 
@@ -279,12 +296,12 @@ func (x *Task) Error(err error, data ...interface{}) error {
 	// common case.  Hence the reduction to a string via Error().
 
 	x.Clock()
-	x.Data.AggregateFrom(data)
-	x.Data.Set(x.Root.FieldPrefix+"Error", err.Error())
+	x.data.AggregateFrom(data)
+	x.data.Set(x.root.FieldPrefix+"Error", err.Error())
 
-	x.Root.TaskEvent(x, TASK_ERROR)
+	x.root.TaskEvent(x, TASK_ERROR)
 
-	return WrapError(err, x.Activity+" failed")
+	return WrapError(err, x.activity+" failed")
 
 }
 
@@ -303,11 +320,11 @@ func (x *Task) Error(err error, data ...interface{}) error {
 func (x *Task) Failure(msg string, data ...interface{}) error {
 
 	x.Clock()
-	x.Data.AggregateFrom(data)
-	x.Data.Set(x.Root.FieldPrefix+"Error", msg)
-	x.Root.TaskEvent(x, TASK_ERROR)
+	x.data.AggregateFrom(data)
+	x.data.Set(x.root.FieldPrefix+"Error", msg)
+	x.root.TaskEvent(x, TASK_ERROR)
 
-	return WrapError(NewError(msg), x.Activity+" failed")
+	return WrapError(NewError(msg), x.activity+" failed")
 
 }
 
@@ -316,8 +333,8 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 // activity.  The given data is accumulated into the task using
 // D.AggregateFrom().  The host Task is passed through as the return.
 func (x *Task) Begin(data ...interface{}) *Task {
-	x.Data.AggregateFrom(data)
-	x.Root.TaskEvent(x, TASK_BEGIN)
+	x.data.AggregateFrom(data)
+	x.root.TaskEvent(x, TASK_BEGIN)
 	return x
 }
 
@@ -327,7 +344,7 @@ func (x *Task) Begin(data ...interface{}) *Task {
 // intermediary, large, or other data that need not be reported with
 // all of the Task's events.
 func (x *Task) Info(msg string, data ...interface{}) {
-	x.Root.TaskProgress(x, TASK_INFO, msg, DAggregate(data))
+	x.root.TaskProgress(x, TASK_INFO, msg, DAggregate(data))
 }
 
 // Warning generates a warning log event reporting that a fault was
@@ -336,5 +353,5 @@ func (x *Task) Info(msg string, data ...interface{}) {
 // Task.
 //
 func (x *Task) Warning(msg string, data ...interface{}) {
-	x.Root.TaskProgress(x, TASK_WARNING, msg, DAggregate(data))
+	x.root.TaskProgress(x, TASK_WARNING, msg, DAggregate(data))
 }

@@ -127,14 +127,14 @@ func (x *JSONOutput) TaskEvent(task *Task,
 		return
 	}
 
-	var msg string = task.Activity
+	var msg string = task.activity
 
 	switch event {
 	case TASK_BEGIN:
 		msg += " start"
 
 	case TASK_END:
-		if task.Timed {
+		if task.timed {
 			msg += " success"
 		}
 
@@ -151,7 +151,7 @@ func (x *JSONOutput) TaskEvent(task *Task,
 
 	}
 
-	x.contextevent("task", task, TaskEventClassText[event], msg, task.Data)
+	x.contextevent("task", task, TaskEventClassText[event], msg, task.data)
 
 	// end TaskEvent
 }
