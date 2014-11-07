@@ -378,7 +378,6 @@ func (o *TextOutput) TaskEvent(task *Task,
 
 	var msg string = task.activity
 
-
 	switch event {
 	case TASK_BEGIN:
 		msg += " start"
