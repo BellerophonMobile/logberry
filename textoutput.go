@@ -246,6 +246,21 @@ func keyrenderrecurse(bytes *bytes.Buffer, wrap bool, data interface{}) {
 			fmt.Fprint(bytes, "}")
 		}
 
+	case reflect.Array:
+		fallthrough
+	case reflect.Slice:
+		fmt.Fprint(bytes, "[ ")
+
+		if val.Len() > 0 {
+			keyrenderrecurse(bytes, true, val.Index(0).Interface())
+		}
+
+		for i := 1; i < val.Len(); i++ {
+			fmt.Fprint(bytes, ", ")
+			keyrenderrecurse(bytes, true, val.Index(i).Interface())
+		}
+		fmt.Fprint(bytes, "]")
+
 	case reflect.String:
 		fmt.Fprintf(bytes, "%q", val.String())
 
