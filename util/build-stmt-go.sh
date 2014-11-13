@@ -59,14 +59,13 @@ package $package
 import "github.com/BellerophonMobile/logberry"
 
 var buildmeta = &logberry.BuildMetadata{
-  RepoRoot: "$root",
-  Branch:   "$branch",
-  Commit:   "$commit$modified",
-  Host:     "$host",
-  User:     "$user",
-  Date:     "$date",
+	RepoRoot: "$root",
+	Branch:   "$branch",
+	Commit:   "$commit$modified",
+	Host:     "$host",
+	User:     "$user",
+	Date:     "$date",
 }
-
 EOF
 
 #-- Done!
