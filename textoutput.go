@@ -218,14 +218,14 @@ func keyrenderrecurse(bytes *bytes.Buffer, wrap bool, data interface{}) {
 		} else {
 			var vals = val.MapKeys()
 			if wrap {
-				fmt.Fprint(bytes, "{ ")
+				fmt.Fprint(bytes, "{")
 			}
 			for _, k := range vals {
-				fmt.Fprintf(bytes, "%s=", k.Interface())
+				fmt.Fprintf(bytes, " %s=", k.Interface())
 				keyrenderrecurse(bytes, true, val.MapIndex(k).Interface())
 			}
 			if wrap {
-				fmt.Fprint(bytes, "}")
+				fmt.Fprint(bytes, " }")
 			}
 		}
 
@@ -233,23 +233,23 @@ func keyrenderrecurse(bytes *bytes.Buffer, wrap bool, data interface{}) {
 		var vtype = val.Type()
 
 		if wrap {
-			fmt.Fprint(bytes, "{ ")
+			fmt.Fprint(bytes, "{")
 		}
 
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
-			fmt.Fprintf(bytes, "%s=", vtype.Field(i).Name)
+			fmt.Fprintf(bytes, " %s=", vtype.Field(i).Name)
 			keyrenderrecurse(bytes, true, f.Interface())
 		}
 
 		if wrap {
-			fmt.Fprint(bytes, "}")
+			fmt.Fprint(bytes, " }")
 		}
 
 	case reflect.Array:
 		fallthrough
 	case reflect.Slice:
-		fmt.Fprint(bytes, "[ ")
+		fmt.Fprint(bytes, "[")
 
 		if val.Len() > 0 {
 			keyrenderrecurse(bytes, true, val.Index(0).Interface())
@@ -259,7 +259,7 @@ func keyrenderrecurse(bytes *bytes.Buffer, wrap bool, data interface{}) {
 			fmt.Fprint(bytes, ", ")
 			keyrenderrecurse(bytes, true, val.Index(i).Interface())
 		}
-		fmt.Fprint(bytes, "]")
+		fmt.Fprint(bytes, " ]")
 
 	case reflect.String:
 		fmt.Fprintf(bytes, "%q", val.String())
@@ -270,7 +270,6 @@ func keyrenderrecurse(bytes *bytes.Buffer, wrap bool, data interface{}) {
 		// end switch type
 	}
 
-	fmt.Fprint(bytes, " ")
 }
 
 func (o *TextOutput) contextevent(cxttype string,
