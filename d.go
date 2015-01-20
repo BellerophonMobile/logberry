@@ -78,7 +78,11 @@ func DBuild(data interface{}) *D {
 		var vtype = val.Type()
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
-			d[vtype.Field(i).Name] = f.Interface()
+			if f.CanInterface() {
+				d[vtype.Field(i).Name] = f.Interface()
+			} else {
+				d[vtype.Field(i).Name] = "unavailable"
+			}
 		}
 
 	case reflect.Map:

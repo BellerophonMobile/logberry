@@ -222,7 +222,13 @@ func keyrenderrecurse(bytes *bytes.Buffer, wrap bool, data interface{}) {
 			}
 			for _, k := range vals {
 				fmt.Fprintf(bytes, " %s=", k.Interface())
-				keyrenderrecurse(bytes, true, val.MapIndex(k).Interface())
+
+				vval := val.MapIndex(k)
+				if vval.CanInterface() {
+					keyrenderrecurse(bytes, true, vval.Interface())
+				} else {
+					keyrenderrecurse(bytes, true, "unavailable")
+				}
 			}
 			if wrap {
 				fmt.Fprint(bytes, " }")
@@ -239,7 +245,11 @@ func keyrenderrecurse(bytes *bytes.Buffer, wrap bool, data interface{}) {
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
 			fmt.Fprintf(bytes, " %s=", vtype.Field(i).Name)
-			keyrenderrecurse(bytes, true, f.Interface())
+			if f.CanInterface() {
+				keyrenderrecurse(bytes, true, f.Interface())
+			} else {
+				keyrenderrecurse(bytes, true, "unavailable")
+			}
 		}
 
 		if wrap {
