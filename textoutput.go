@@ -357,7 +357,7 @@ func (o *TextOutput) ComponentEvent(component *Component,
 		return
 	}
 
-	if component.mute {
+	if component.mute && event != COMPONENT_ERROR && event != COMPONENT_FATAL {
 		return
 	}
 
@@ -379,7 +379,7 @@ func (o *TextOutput) TaskEvent(task *Task,
 		return
 	}
 
-	if task.mute {
+	if task.mute && event != TASK_ERROR {
 		return
 	}
 
