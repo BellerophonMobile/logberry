@@ -1,14 +1,14 @@
 
 lib_sources=$(wildcard *.go)
 
-examples= minimal               \
-          component             \
-          task                  \
-          threaded              \
-          fanout                \
-          toplevel              \
-          blueberry             \
-          flightpath
+examples= minimal               
+#          component             \
+#          task                  \
+3          threaded              \
+#          fanout                \
+#          toplevel              \
+#          blueberry             \
+#          flightpath
 
 gopath=${subst /src/github.com/BellerophonMobile/logberry,,${shell pwd}}
 
@@ -34,7 +34,7 @@ bin:
 	mkdir bin
 
 %build.go: 
-	./util/build-stmt-go.sh > $@
+	./util/build-metadata-go.sh > $@
 
 .PHONY: all test examples
 .SECONDARY:

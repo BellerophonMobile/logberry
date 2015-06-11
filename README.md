@@ -153,7 +153,7 @@ Logberry is provided under the open source
 
 > The MIT License (MIT)
 >
-> Copyright (c) 2014 [Bellerophon Mobile](http://bellerophonmobile.com/)
+> Copyright (c) 2014, 2015 [Bellerophon Mobile](http://bellerophonmobile.com/)
 > 
 >
 > Permission is hereby granted, free of charge, to any person
