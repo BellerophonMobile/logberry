@@ -2,11 +2,11 @@ package logberry
 
 import (
 	"sync/atomic"
-//	"os"
-//	"os/user"
-//	"path/filepath"
-//	"path"
-//	"strings"
+	"os"
+	"os/user"
+	"path/filepath"
+	"path"
+	"strings"
 	"time"
 )
 
@@ -17,7 +17,7 @@ import (
 type Task struct {
 	uid    uint64
 
-	root   *Root
+	root   Root
 
 	parent *Task
 
@@ -87,7 +87,7 @@ func (x *Task) GetUID() uint64 {
 }
 
 // GetRoot returns the Root for this Task.
-func (x *Task) GetRoot() *Root {
+func (x *Task) GetRoot() Root {
 	return x.root
 }
 
@@ -151,19 +151,6 @@ func (x *Task) Clock() time.Duration {
 
 }
 
-
-func (x *Task) BuildMetadata(build *BuildMetadata) {
-	x.root.event(x, CONFIGURATION, "Build metadata", DBuild(build))
-}
-
-func (x *Task) BuildSignature(build string) {
-	x.root.event(x, CONFIGURATION, "Build signature", D{"Signature": build})
-}
-
-
-/*
-
-
 // AddData incorporates the given key/value pair into the data
 // associated and reported with this Task.  This call does not
 // generate a log event.  The host Task is passed through as the
@@ -171,7 +158,7 @@ func (x *Task) BuildSignature(build string) {
 // accumulate data into the Task as it proceeds, to be reported when
 // it concludes.
 func (x *Task) AddData(k string, v interface{}) *Task {
-	(*x.data)[k] = v
+	x.data.Set(k, v)
 	return x
 }
 
@@ -186,8 +173,9 @@ func (x *Task) AggregateData(data ...interface{}) *Task {
 	return x
 }
 
-// Mute indicates that this Task should not generate log events.  This
-// is useful when using the Task merely to organize subtasks.
+// Mute indicates that this Task should not generate log events except
+// errors.  This is useful when using the Task merely to organize subtasks
+// or purely to report failures.
 func (x *Task) Mute() *Task {
 	x.mute = true
 	return x
@@ -267,12 +255,29 @@ func (x *Task) Endpoint(endpoint interface{}) *Task {
 	return x
 }
 
+// BuildMetadata reports on the build configuration, as captured by
+// the passed object.  A utility script to generate such metadata
+// automatically from a git repository is in
+// util/build-metadata-go.sh.
+func (x *Task) BuildMetadata(build *BuildMetadata) {
+	x.root.event(x, CONFIGURATION, "Build metadata", DBuild(build))
+}
 
-// Configuration generates a configuration log event reporting the
-// parameters and initialization data for this Component.
+// BuildSignature reports on the build configuration, as captured by
+// the passed string.  A utility script to generate such metadata
+// automatically from a git repository is in
+// util/build-signature-go.sh.  It can be useful to use this string
+// rather than a BuildMetadata object so that it can be passed in
+// through the standard go tools, i.e., via linker flags.
+func (x *Task) BuildSignature(build string) {
+	x.root.event(x, CONFIGURATION, "Build signature", D{"Signature": build})
+}
+
+// Configuration generates a configuration log event reporting
+// parameters or other initialization data.
 func (x *Task) Configuration(data ...interface{}) {
 	d := DAggregate(append(data, x.data))
-	x.root.Event(x, CONFIGURATION, "Configuration", d)
+	x.root.event(x, CONFIGURATION, "Configuration", d)
 }
 
 // CommandLine generates a configuration log event reporting the
@@ -281,25 +286,25 @@ func (x *Task) CommandLine() {
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		x.root.InternalError(WrapError(err, "Could not retrieve hostname"))
+		x.root.internalerror(WrapError("Could not retrieve hostname", err))
 		return
 	}
 
 	u, err := user.Current()
 	if err != nil {
-		x.root.InternalError(WrapError(err, "Could not retrieve user info"))
+		x.root.internalerror(WrapError("Could not retrieve user info", err))
 		return
 	}
 
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
-		x.root.InternalError(WrapError(err, "Could not retrieve program path"))
+		x.root.internalerror(WrapError("Could not retrieve program path", err))
 		return
 	}
 
 	prog := path.Base(os.Args[0])
 
-	d := &D{
+	d := D{
 		"Host":    hostname,
 		"User":    u.Username,
 		"Path":    dir,
@@ -308,7 +313,7 @@ func (x *Task) CommandLine() {
 	}
 	d.CopyFrom(x.data)
 	
-	x.root.Event(x, CONFIGURATION, "Command line", d)
+	x.root.event(x, CONFIGURATION, "Command line", d)
 
 }
 
@@ -317,14 +322,14 @@ func (x *Task) CommandLine() {
 // currently executing process.
 func (x *Task) Environment() {
 
-	d := &D{}
+	d := D{}
 	for _, e := range os.Environ() {
 		pair := strings.Split(e, "=")
-		(*d)[pair[0]] = pair[1]
+		d.Set(pair[0], pair[1])
 	}
 	d.CopyFrom(x.data)
 
-	x.root.Event(x, CONFIGURATION, "Environment", d)
+	x.root.event(x, CONFIGURATION, "Environment", d)
 
 }
 
@@ -334,23 +339,23 @@ func (x *Task) Process() {
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		x.root.InternalError(WrapError(err, "Could not retrieve hostname"))
+		x.root.internalerror(WrapError("Could not retrieve hostname", err))
 		return
 	}
 
 	wd, err := os.Getwd()
 	if err != nil {
-		x.root.InternalError(WrapError(err, "Could not retrieve working dir"))
+		x.root.internalerror(WrapError("Could not retrieve working dir", err))
 		return
 	}
 
 	u, err := user.Current()
 	if err != nil {
-		x.root.InternalError(WrapError(err, "Could not retrieve user info"))
+		x.root.internalerror(WrapError("Could not retrieve user info", err))
 		return
 	}
 
-	d := &D{
+	d := D{
 		"Host": hostname,
 		"WD":   wd,
 		"UID":  u.Uid,
@@ -359,7 +364,7 @@ func (x *Task) Process() {
 	}
 	d.CopyFrom(x.data)
 	
-	x.root.Event(x, CONFIGURATION, "Process", d)
+	x.root.event(x, CONFIGURATION, "Process", d)
 
 }
 
@@ -371,84 +376,55 @@ func (x *Task) End(data ...interface{}) error {
 	d := DAggregate(data)
 	d.CopyFrom(x.data)
 
-	x.root.Event(x, END, x.activity + " end", d)
+	x.root.event(x, END, x.activity + " end", d)
 
 	return nil
 
 }
-
-
-// WrapError is a termination notifier, generating an error log event
-// reporting that the Task has had an unrecoverable fault.  If the
-// Task is being timed it will be clocked and the duration reported.
-// The given error and data is accumulated into the task using
-// D.AggregateFrom().  An error is returned reporting that the Task's
-// activity has failed with the given message.  Continuing to use the
-// Task will not cause an error but is discouraged.
-//
-// WrapError and Error are essentially the same, the difference being
-// that WrapError is useful to report and generate a fault wrapping an
-// error generated by another component, providing more information.
-func (x *Task) WrapError(msg string, err error, data ...interface{}) error {
-
-	x.Clock()
-	e := WrapError(err, msg)
-
-	d := DAggregate(data)
-	d.CopyFrom(x.data)
-	d.Set("Error", err.Error())
-
-	x.root.Event(x, ERROR, x.activity + " failed", d)
-
-	return WrapError(e, x.activity + " failed")
-
-}
-
-func (x *Task) Fatal(msg string, err error, data ...interface{}) error {
-
-	x.Clock()
-	e := WrapError(err, msg)
-
-	d := DAggregate(data)
-	d.CopyFrom(x.data)
-	d.Set("Error", err.Error())
-
-	x.root.Event(x, ERROR, x.activity + " failed fatally", d)
-	os.Exit(1)
-	
-	return WrapError(e, x.activity + " failed fatally")
-
-}
-
-// Begin generates a begin log event reporting that a task has
-// started.  This is useful to report the start of a long-running
-// activity.  The given data is accumulated into the task using
-// D.AggregateFrom().  The host Task is passed through as the return.
-func (x *Task) Begin(data ...interface{}) *Task {
-	d := DAggregate(data)
-	d.CopyFrom(x.data)
-	x.root.Event(x, BEGIN, x.activity + " begin", d)
-	return x
-}
-
-
-// Warning generates a warning log event reporting that a fault was
-// encountered but the Task is proceeding acceptably.  Unlike most of
-// the Task functions, the given data is NOT accumulated into the
-// Task.
-//
-func (x *Task) Warning(msg string, data ...interface{}) {
-	d := DAggregate(data)
-	d.CopyFrom(x.data)
-	x.root.Event(x, WARNING, msg, d)
-}
-*/
 
 // Info generates an informational log event.
 func (x *Task) Info(msg string, data ...interface{}) {
 	x.root.event(x, INFO, msg, DAggregate(data).CopyFrom(x.data))
 }
 
+
+// Begin generates a begin log event reporting that a task has
+// started.  This is useful to report the start of a long-running
+// activity.  The given data is accumulated into the task using
+// D.AggregateFrom().  The host Task is passed through as the return.
+func (x *Task) Begin(data ...interface{}) *Task {
+	x.Time()
+	d := DAggregate(data)
+	d.CopyFrom(x.data)
+	x.root.event(x, BEGIN, x.activity + " begin", d)
+	return x
+}
+
+
+// Warning generates a warning log event reporting that a fault was
+// encountered but the Task is proceeding acceptably.
+func (x *Task) Warning(msg string, data ...interface{}) {
+	d := DAggregate(data)
+	d.CopyFrom(x.data)
+	x.root.event(x, WARNING, msg, d)
+}
+
+// Success reports that the Task has concluded successfully.  If the
+// task is being timed it will be clocked and the duration reported.
+// It always returns nil.  Continuing to use the Task will not cause
+// an error but is discouraged.
+func (x *Task) Success(data ...interface{}) error {
+
+	x.Clock()
+
+	d := DAggregate(data)
+	d.CopyFrom(x.data)
+
+	x.root.event(x, END, x.activity + " success", d)
+
+	return nil
+
+}
 
 // Error reports an unrecoverable fault.  If the Task is being timed
 // it will be clocked and the duration reported.  An error is returned
@@ -488,22 +464,4 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 	e := newerror(msg, data)
 	e.Locate(1)
 	return x.Error(e)
-}
-
-// Success is a termination notifier, generating an end log event
-// reporting that the Task has concluded successfully.  If the task is
-// being timed it will be clocked and the duration reported.  It
-// always returns nil.  Continuing to use the Task will not cause an
-// error but is discouraged.
-func (x *Task) Success(data ...interface{}) error {
-
-	x.Clock()
-
-	d := DAggregate(data)
-	d.CopyFrom(x.data)
-
-	x.root.event(x, END, x.activity + " success", d)
-
-	return nil
-
 }

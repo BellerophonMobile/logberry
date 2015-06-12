@@ -34,7 +34,7 @@ import (
 // or very wide terminals, generally putting each event on 1 or 2
 // lines respectively.
 type TextOutput struct {
-	root   *Root
+	root   Root
 	writer io.Writer
 
 	Program string
@@ -107,7 +107,7 @@ func NewTextOutput(w io.Writer, program string) *TextOutput {
 
 // Attach notifies the OutputDriver of its Root.  It should only be
 // called by a Root.
-func (o *TextOutput) Attach(root *Root) {
+func (o *TextOutput) Attach(root Root) {
 	o.root = root
 }
 

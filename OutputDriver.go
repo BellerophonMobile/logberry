@@ -8,7 +8,7 @@ package logberry
 // OutputDriver to more than one Root simultaneously.
 type OutputDriver interface {
 
-	Attach(root *Root)
+	Attach(root Root)
 	Detach()
 
 	Event(event *Event)

@@ -17,7 +17,7 @@ func main() {
 
 	// Uncomment for JSON output
 	// logberry.Std.SetOutputDriver(logberry.NewJSONOutput(os.Stdout))
-
+	
 	logberry.Main.BuildMetadata(buildmeta)
 
 	logberry.Main.Info("Demo is functional")
@@ -30,7 +30,7 @@ func main() {
 	}{"alpha", 9}
 
 	// Do some activity on that data, which may fail, within the component
-	task := logberry.Main.SubTask("Some computation", &data)
+	task := logberry.Main.SubTask("Compute numbers", &data)
 	res, err := somecomputation(data)
 	if err != nil {
 		task.Error(err)
@@ -40,8 +40,9 @@ func main() {
 
 	// An error has occurred out of nowhere!
 	if e := efunc(); e != nil {
-
+		return
 	}
 
-	logberry.Main.Info("HI")
+	logberry.Main.Info("Done")
+
 }
