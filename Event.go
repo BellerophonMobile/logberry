@@ -12,6 +12,7 @@ const (
 	READY         string = "ready"
 	STOPPED       string = "stopped"
 	INFO          string = "info"
+	SUCCESS       string = "success"
 	WARNING       string = "warning"
 	ERROR         string = "error"
 )

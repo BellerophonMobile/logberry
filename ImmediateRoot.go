@@ -90,7 +90,7 @@ func (x *ImmediateRoot) Task(activity string, data ...interface{}) *Task {
 
 // NewTask creates a new top level Task under this ImmediateRoot.
 func (x *ImmediateRoot) Component(component string, data ...interface{}) *Task {
-	t := newtask(nil, component, data)
+	t := newtask(nil, "Component " + component, data)
 	t.SetComponent(component)
 	t.root = x
 	return t

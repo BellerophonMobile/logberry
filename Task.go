@@ -55,7 +55,6 @@ func newtask(parent *Task, activity string, data []interface{}) *Task {
 	if parent != nil {
 		t.root = parent.root
 		t.component = parent.component
-		t.data.Set("Parent", t.parent.uid)
 	} else {
 		t.root = Std
 	}
@@ -78,7 +77,7 @@ func (x *Task) SubTask(activity string, data ...interface{}) *Task {
 }
 
 func (x *Task) SubComponent(component string, data ...interface{}) *Task {
-	return newtask(x, component, data).SetComponent(component)
+	return newtask(x, "Component " + component, data).SetComponent(component).Begin()
 }
 
 // GetUID returns the unique identifier for this Task.
@@ -369,22 +368,27 @@ func (x *Task) Process() {
 }
 
 
-func (x *Task) End(data ...interface{}) error {
 
-	x.Clock()
-
-	d := DAggregate(data)
-	d.CopyFrom(x.data)
-
-	x.root.event(x, END, x.activity + " end", d)
-
-	return nil
-
+// Event generates a user-specified log event.
+func (x *Task) Event(event string, msg string, data ...interface{}) {
+	x.root.event(x, event, msg, DAggregate(data).CopyFrom(x.data))
 }
 
 // Info generates an informational log event.
 func (x *Task) Info(msg string, data ...interface{}) {
 	x.root.event(x, INFO, msg, DAggregate(data).CopyFrom(x.data))
+}
+
+// Ready reports that the task is initialized and prepared to begin.
+func (x *Task) Ready(data ...interface{}) {
+	x.root.event(x, READY, x.activity + " ready",
+		DAggregate(data).CopyFrom(x.data))
+}
+
+// Stopped reports that the task has paused or shutdown.
+func (x *Task) Stopped(data ...interface{}) {
+	x.root.event(x, STOPPED, x.activity + " stopped",
+		DAggregate(data).CopyFrom(x.data))
 }
 
 
@@ -420,9 +424,21 @@ func (x *Task) Success(data ...interface{}) error {
 	d := DAggregate(data)
 	d.CopyFrom(x.data)
 
-	x.root.event(x, END, x.activity + " success", d)
+	x.root.event(x, SUCCESS, x.activity + " success", d)
 
 	return nil
+
+}
+
+// End reports that a component has concluded.  If the task is being
+// timed it will be clocked and the duration reported.  Continuing to
+// use the Task will not cause an error but is discouraged.
+func (x *Task) End(data ...interface{}) {
+
+	x.Clock()
+	d := DAggregate(data)
+	d.CopyFrom(x.data)
+	x.root.event(x, END, x.activity + " end", d)
 
 }
 

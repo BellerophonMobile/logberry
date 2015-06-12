@@ -1,7 +1,8 @@
 
 lib_sources=$(wildcard *.go)
 
-examples= minimal               
+examples= minimal                \
+          small
 #          component             \
 #          task                  \
 3          threaded              \

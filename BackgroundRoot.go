@@ -128,7 +128,7 @@ func (x *BackgroundRoot) Task(activity string, data ...interface{}) *Task {
 
 // NewTask creates a new top level Task under this BackgroundRoot.
 func (x *BackgroundRoot) Component(component string, data ...interface{}) *Task {
-	t := newtask(nil, component, data)
+	t := newtask(nil, "Component " + component, data)
 	t.SetComponent(component)
 	t.root = x
 	return t
