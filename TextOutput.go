@@ -71,15 +71,15 @@ type terminalstyle struct {
 var defaultstyle = terminalstyle{cyan,  false, high_intensity}  // default
 
 var eventstyles = map[string]terminalstyle{
-  BEGIN:         {black,  false, high_intensity},  // begin
-  END:           {black,  false, high_intensity},  // end
-  CONFIGURATION: {blue,   false, low_intensity},   // configuration
-  READY:         {green,  true,  high_intensity},  // ready
-  STOPPED:       {magenta,  false, high_intensity},  // stopped
-  INFO:          {white,  false, high_intensity},  // info
-	SUCCESS:       {white,  false, high_intensity},  // end
-  WARNING:       {yellow, false, high_intensity},  // warning
-  ERROR:         {red,    true,  high_intensity},  // error
+  BEGIN:         {black,   false, high_intensity},  // begin
+  END:           {black,   false, high_intensity},  // end
+  CONFIGURATION: {blue,    false, low_intensity},   // configuration
+  READY:         {green,   true,  high_intensity},  // ready
+  STOPPED:       {magenta, false, high_intensity},  // stopped
+  INFO:          {white,   false, high_intensity},  // info
+	SUCCESS:       {white,   false, high_intensity},  // end
+  WARNING:       {yellow,  false, high_intensity},  // warning
+  ERROR:         {red,     true,  high_intensity},  // error
 }
 
 // NewStdOutput creates a new TextOutput attached to stdout.
