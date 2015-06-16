@@ -72,11 +72,11 @@ func newtask(parent *Task, activity string, data []interface{}) *Task {
 // to indicate the start of a long running task.
 //
 // This is safe to call concurrently.
-func (x *Task) SubTask(activity string, data ...interface{}) *Task {
+func (x *Task) Task(activity string, data ...interface{}) *Task {
 	return newtask(x, activity, data)
 }
 
-func (x *Task) SubComponent(component string, data ...interface{}) *Task {
+func (x *Task) Component(component string, data ...interface{}) *Task {
 	return newtask(x, "Component " + component, data).SetComponent(component).Begin()
 }
 
@@ -466,6 +466,28 @@ func (x *Task) Error(err error, data ...interface{}) error {
 
 }
 
+// Fatal is the same as Error except it terminates the program.
+func (x *Task) Fatal(err error, data ...interface{}) error {
+
+	// This is all copied in so that the Locate() call is correct...
+	x.Clock()
+
+	m := x.activity + " failed"
+
+	e := wraperror(m, err, data)
+	e.Locate(1)
+
+	var d = D{}
+	d.CopyFromD(x.data)
+	d.Set("Error", err)
+	
+	x.root.event(x, ERROR, m, d)
+
+	os.Exit(-1)
+	return e
+}
+
+
 // Failure reports an unrecoverable fault.  If the Task is being timed
 // it will be clocked and the duration reported.  An error is returned
 // reporting that the Task's activity has failed due to the underlying
@@ -480,4 +502,13 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 	e := newerror(msg, data)
 	e.Locate(1)
 	return x.Error(e)
+}
+
+// Die is the same as Failure except it terminates the program.
+func (x *Task) Die(msg string, data ...interface{}) error {
+	// This is all copied in so that the Locate() call is correct...
+	e := newerror(msg, data)
+	e.Locate(1)
+	os.Exit(-1)
+	return nil
 }

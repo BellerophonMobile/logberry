@@ -29,11 +29,11 @@ func main() {
 
 
 	// Create a program component---a long-running, multi-use entity.
-	computerlog := logberry.Main.SubComponent("computer")
+	computerlog := logberry.Main.Component("computer")
 
 	
 	// Execute a task within that component, which may fail
-	task := computerlog.SubTask("Compute numbers", &data)
+	task := computerlog.Task("Compute numbers", &data)
 	res, err := somecomputation()
 	if err != nil {
 		task.Error(err)
@@ -73,7 +73,7 @@ func somecomputation() (int, error) {
 func arbitraryfunc(component *logberry.Task) error {
 
 	// Start a long-running task, using Begin() to log start & begin timer
-	task := component.SubTask("Arbitrary computation")
+	task := component.Task("Arbitrary computation")
 
 	// Report some intermediate progress
 	task.Info("Intermediate progress", logberry.D{"Best": 9})
