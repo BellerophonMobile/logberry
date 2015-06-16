@@ -30,7 +30,7 @@ type Task struct {
 
 	data D
 
-	mute      bool
+	mute bool
 }
 
 var numtasks uint64
@@ -172,9 +172,9 @@ func (x *Task) AggregateData(data ...interface{}) *Task {
 	return x
 }
 
-// Mute indicates that this Task should not generate log events except
-// errors.  This is useful when using the Task merely to organize subtasks
-// or purely to report failures.
+// Mute indicates that this Task should not generate log events.  This
+// is useful when using the Task merely to organize subtasks or
+// generate informative error objects.
 func (x *Task) Mute() *Task {
 	x.mute = true
 	return x
@@ -241,6 +241,21 @@ func (x *Task) Service(service interface{}) *Task {
 // through as the return.
 func (x *Task) User(user interface{}) *Task {
 	x.AddData("User", user)
+	return x
+}
+
+func (x *Task) URL(url interface{}) *Task {
+	x.AddData("URL", url)
+	return x
+}
+
+func (x *Task) Bytes(bytes interface{}) *Task {
+	x.AddData("Bytes", bytes)
+	return x
+}
+
+func (x *Task) ID(id interface{}) *Task {
+	x.AddData("ID", id)
 	return x
 }
 
@@ -400,7 +415,11 @@ func (x *Task) Begin(data ...interface{}) *Task {
 	x.Time()
 	d := DAggregate(data)
 	d.CopyFrom(x.data)
-	x.root.event(x, BEGIN, x.activity + " begin", d)
+
+	if !x.mute {
+		x.root.event(x, BEGIN, x.activity + " begin", d)
+	}
+	
 	return x
 }
 
@@ -410,7 +429,10 @@ func (x *Task) Begin(data ...interface{}) *Task {
 func (x *Task) Warning(msg string, data ...interface{}) {
 	d := DAggregate(data)
 	d.CopyFrom(x.data)
-	x.root.event(x, WARNING, msg, d)
+
+	if !x.mute {
+		x.root.event(x, WARNING, msg, d)
+	}
 }
 
 // Success reports that the Task has concluded successfully.  If the
@@ -424,8 +446,10 @@ func (x *Task) Success(data ...interface{}) error {
 	d := DAggregate(data)
 	d.CopyFrom(x.data)
 
-	x.root.event(x, SUCCESS, x.activity + " success", d)
-
+	if !x.mute {
+		x.root.event(x, SUCCESS, x.activity + " success", d)
+	}
+	
 	return nil
 
 }
@@ -438,8 +462,11 @@ func (x *Task) End(data ...interface{}) {
 	x.Clock()
 	d := DAggregate(data)
 	d.CopyFrom(x.data)
-	x.root.event(x, END, x.activity + " end", d)
 
+	if !x.mute {
+		x.root.event(x, END, x.activity + " end", d)
+	}
+	
 }
 
 // Error reports an unrecoverable fault.  If the Task is being timed
@@ -459,9 +486,39 @@ func (x *Task) Error(err error, data ...interface{}) error {
 	var d = D{}
 	d.CopyFromD(x.data)
 	d.Set("Error", err)
-	
-	x.root.event(x, ERROR, m, d)
 
+	if !x.mute {
+		x.root.event(x, ERROR, m, d)
+	}
+	
+	return e
+
+}
+
+// WrapError reports an unrecoverable fault.  If the Task is being timed
+// it will be clocked and the duration reported.  An error is returned
+// wrapping the original error with a message reporting that the
+// Task's activity has failed.  Continuing to use the Task will not
+// cause an error but is discouraged.
+func (x *Task) WrapError(msg string, err error, data ...interface{}) error {
+
+	x.Clock()
+
+	m := x.activity + " failed"
+
+	suberr := wraperror(msg, err, nil)
+	
+	e := wraperror(m, suberr, data)
+	e.Locate(1)
+
+	var d = D{}
+	d.CopyFromD(x.data)
+	d.Set("Error", err)
+	
+	if !x.mute {
+		x.root.event(x, ERROR, m, d)
+	}
+	
 	return e
 
 }
@@ -480,7 +537,7 @@ func (x *Task) Fatal(err error, data ...interface{}) error {
 	var d = D{}
 	d.CopyFromD(x.data)
 	d.Set("Error", err)
-	
+
 	x.root.event(x, ERROR, m, d)
 
 	os.Exit(-1)
@@ -499,16 +556,48 @@ func (x *Task) Fatal(err error, data ...interface{}) error {
 // directly by the calling code, rather than one caused by an
 // underlying error returned from another function or component.
 func (x *Task) Failure(msg string, data ...interface{}) error {
-	e := newerror(msg, data)
+
+	err := newerror(msg, data)
+	err.Locate(1)
+
+	x.Clock()
+
+	m := x.activity + " failed"
+
+	e := wraperror(m, err, nil)
 	e.Locate(1)
-	return x.Error(e)
+
+	var d = D{}
+	d.CopyFromD(x.data)
+	d.Set("Error", err)
+	
+	if !x.mute {
+		x.root.event(x, ERROR, m, d)
+	}
+	
+	return e
+
 }
 
 // Die is the same as Failure except it terminates the program.
 func (x *Task) Die(msg string, data ...interface{}) error {
 	// This is all copied in so that the Locate() call is correct...
-	e := newerror(msg, data)
+	err := newerror(msg, data)
+	err.Locate(1)
+
+	x.Clock()
+
+	m := x.activity + " failed"
+
+	e := wraperror(m, err, nil)
 	e.Locate(1)
+
+	var d = D{}
+	d.CopyFromD(x.data)
+	d.Set("Error", err)
+	
+	x.root.event(x, ERROR, m, d)
+
 	os.Exit(-1)
 	return nil
 }

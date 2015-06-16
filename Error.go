@@ -28,7 +28,13 @@ func newerror(msg string, data []interface{}) *Error {
 
 func wraperror(msg string, err error, data []interface{}) *Error {
 	e := newerror(msg, data)
-	e.Cause = err
+
+	if _,ok := err.(*Error); ok {
+		e.Cause = err
+	} else {
+		e.Cause = newerror(err.Error(), nil)
+	}
+	
 	return e
 }
 
