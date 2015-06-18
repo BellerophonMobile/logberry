@@ -95,3 +95,7 @@ More obvious or smaller points include:
    compiling out verbose log statements is not critical.  That said,
    report parameters that are expensive to generate should still be
    able to be skipped entirely.
+
+Logberry certainly doesn't address all these points, and of course is
+imperfect in many ways, but these are the goals, design rationale, and
+ideas we're working to incorporate.
