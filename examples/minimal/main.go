@@ -5,11 +5,10 @@ import (
 )
 
 func main() {
-	
+
 	logberry.Main.Info("Demo is functional")
 
-	logberry.Main.Event("computation", "Computed data",
-		logberry.D{"X": -234, "Label": "priority"})
+	logberry.Main.Info("Computed data", logberry.D{"X": 23, "Label": "priority"})
 
 	logberry.Main.Failure("Arbritrary failure")
 
