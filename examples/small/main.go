@@ -13,7 +13,7 @@ func main() {
 
 	
 	// Report build information; a script generates buildmeta
-	logberry.Main.BuildMetadata(buildmeta)
+	logberry.Main.BuildMetadata(buildmetadata)
 
 	// Report that the program is initialized & running
 	logberry.Main.Ready()

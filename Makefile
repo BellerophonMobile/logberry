@@ -1,4 +1,6 @@
 
+root=`pwd`
+
 lib_sources=$(wildcard *.go)
 
 examples= minimal                \
@@ -35,7 +37,7 @@ bin:
 	mkdir bin
 
 %build.go: 
-	./util/build-metadata-go.sh > $@
+	go run util/build-metadata.go > $@
 
 .PHONY: all test examples
 .SECONDARY:
