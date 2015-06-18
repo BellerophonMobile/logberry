@@ -101,7 +101,7 @@ func NewTextOutput(w io.Writer, program string) *TextOutput {
 	return &TextOutput{
 		writer:     w,
 		Program:    program,
-		IDOffset:   84,
+		IDOffset:   80,
 		DataOffset: 100,
 	}
 }
@@ -154,7 +154,7 @@ func (o *TextOutput) Event(event *Event) {
 		}
 	}
 
-	n,e := fmt.Fprintf(o.writer, "%v %v %v ",
+	n,e := fmt.Fprintf(o.writer, "%v %v %-12v ",
 		event.Timestamp.Format(time.RFC3339), o.Program, event.Component)
 	if e != nil {
 		o.root.internalerror(WrapError("Could write entry", e))
