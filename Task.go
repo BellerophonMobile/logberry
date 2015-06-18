@@ -394,6 +394,17 @@ func (x *Task) Info(msg string, data ...interface{}) {
 	x.root.event(x, INFO, msg, DAggregate(data).CopyFrom(x.data))
 }
 
+// Warning generates a warning log event reporting that a fault was
+// encountered but the Task is proceeding acceptably.
+func (x *Task) Warning(msg string, data ...interface{}) {
+	d := DAggregate(data)
+	d.CopyFrom(x.data)
+
+	if !x.mute {
+		x.root.event(x, WARNING, msg, d)
+	}
+}
+
 // Ready reports that the task is initialized and prepared to begin.
 func (x *Task) Ready(data ...interface{}) {
 	x.root.event(x, READY, x.activity + " ready",
@@ -423,16 +434,19 @@ func (x *Task) Begin(data ...interface{}) *Task {
 	return x
 }
 
+// End reports that a component has concluded.  If the task is being
+// timed it will be clocked and the duration reported.  Continuing to
+// use the Task will not cause an error but is discouraged.
+func (x *Task) End(data ...interface{}) {
 
-// Warning generates a warning log event reporting that a fault was
-// encountered but the Task is proceeding acceptably.
-func (x *Task) Warning(msg string, data ...interface{}) {
+	x.Clock()
 	d := DAggregate(data)
 	d.CopyFrom(x.data)
 
 	if !x.mute {
-		x.root.event(x, WARNING, msg, d)
+		x.root.event(x, END, x.activity + " end", d)
 	}
+	
 }
 
 // Success reports that the Task has concluded successfully.  If the
@@ -452,21 +466,6 @@ func (x *Task) Success(data ...interface{}) error {
 	
 	return nil
 
-}
-
-// End reports that a component has concluded.  If the task is being
-// timed it will be clocked and the duration reported.  Continuing to
-// use the Task will not cause an error but is discouraged.
-func (x *Task) End(data ...interface{}) {
-
-	x.Clock()
-	d := DAggregate(data)
-	d.CopyFrom(x.data)
-
-	if !x.mute {
-		x.root.event(x, END, x.activity + " end", d)
-	}
-	
 }
 
 // Error reports an unrecoverable fault.  If the Task is being timed

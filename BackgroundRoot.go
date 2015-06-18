@@ -34,8 +34,10 @@ func NewBackgroundRoot(buffer int) Root {
 	return r
 }
 
-// Stop shuts down the BackgroundRoot.  Its internal channel is closed, and
-// generated log events no longer forwarded to output drivers.
+// Stop shuts down the BackgroundRoot.  Its internal channel is
+// closed, and newly generated log events no longer forwarded to
+// output drivers.  Any previously buffered events are processed
+// before Stop() exits.
 func (x *BackgroundRoot) Stop() {
 	close(x.events)
 	x.wg.Wait()

@@ -2,6 +2,7 @@ package logberry
 
 import (
 	"time"
+	"sync"
 )
 
 // ImmediateRoots execute logging immediately upon event generation,
@@ -9,6 +10,8 @@ import (
 type ImmediateRoot struct {
 	outputdrivers  []OutputDriver
 	errorlisteners []ErrorListener
+
+	outputmx sync.Mutex
 }
 
 // NewImmediateRoot creates a new ImmediateRoot.
@@ -100,6 +103,10 @@ func (x *ImmediateRoot) Component(component string, data ...interface{}) *Task {
 // internalerror reports an internal logging error.  It is generally
 // to be used only by OutputDrivers.
 func (x *ImmediateRoot) internalerror(err error) {
+
+	x.outputmx.Lock()
+	defer x.outputmx.Unlock()
+
 	for _, listener := range x.errorlisteners {
 		listener.Error(err)
 	}
@@ -109,6 +116,9 @@ func (x *ImmediateRoot) internalerror(err error) {
 // event indicates something to report, a log entry to make.  It is
 // generally to be used by Tasks.
 func (x *ImmediateRoot ) event(task *Task, event string, message string, data D) *Event {
+
+	x.outputmx.Lock()
+	defer x.outputmx.Unlock()
 
 	e := &Event{
 		TaskID: task.uid,
