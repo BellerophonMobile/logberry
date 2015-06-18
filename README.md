@@ -33,12 +33,14 @@ in at this layer.  Although it stands alone just fine, there's a good
 chance Logberry is complementary to, rather than competing with, your
 preferred log output engine.
 
+## Installation
 
-## Minimal Example
-
-Logberry can be installed directly through Go:
+Logberry can be installed directly through Go, like most Go libraries:
 
     go get github.com/BellerophonMobile/logberry
+
+
+## Minimal Example
 
 At its most minimal, it can be used much like most logging interfaces,
 except with structured data:
@@ -64,6 +66,11 @@ func main() {
 In a terminal this produces the output:
 
 ![Colored Logberry terminal output.](https://raw.githubusercontent.com/BellerophonMobile/logberry/master/docs/figures/minimal-colors.png)
+
+Note that the output has been spaced by default to work reasonably on
+both wide and standard terminals, in the latter case implicitly
+placing the identifiers and structured data on the line following the
+primary human text.
 
 A simple switch to JSON output produces:
 
@@ -171,17 +178,21 @@ func arbitraryfunc(component *logberry.Task) error {
 }
 ```
 
+Note that the `buildmetadata` object is in a separate file, generated
+by a Logberry utility script.
+
 In a terminal this produces the output:
 
 ![Colored Logberry terminal output.](https://raw.githubusercontent.com/BellerophonMobile/logberry/master/docs/figures/small-colors.png)
 
-Note that the `buildmetadata` object is in a separate file, generated
-by a Logberry utility script.
+In the JSON output this looks as follows:
+
+![JSON Logberry terminal output.](https://raw.githubusercontent.com/BellerophonMobile/logberry/master/docs/figures/small-json.png)
 
 Of note in this log:
 
  * The verbose, automatically generated build information, identifying
-   all (Git) repositories found in the project folder.
+   all (Git) repositories found in the host project folder.
  * Every event is situated within a uniquely identified Task.  The
    hierarchical relationship between Tasks is also logged.  Together
    these enable the ready decoupling of interleaved events generated
@@ -190,6 +201,7 @@ Of note in this log:
  * Tasks are logged in a systematized fashion that promotes outputting
    all relevant data for both errors and success, without messy and
    duplicative marshaling code.
+ * Long running tasks are automatically timed.
  * Common program events such as configuration, start, and errors are
    all identified, as well as application specific event types.
    Associated data is captured and provided in structured form.
@@ -200,6 +212,7 @@ Links to documentation:
 
  * [Related Work](https://github.com/BellerophonMobile/logberry/blob/master/docs/related.md) --- Links to and notes on some other logging packages.
  * [Motivations](https://github.com/BellerophonMobile/logberry/blob/master/docs/motivations.md) --- Lengthy discussion on the design rationale behind Logberry.
+ * [Concepts](https://github.com/BellerophonMobile/logberry/blob/master/docs/concepts.md) --- Top level concepts and use of Logberry.
  * [GoDocs](https://godoc.org/github.com/BellerophonMobile/logberry) --- Automatically generated API docs.
 
 ## Changelog
