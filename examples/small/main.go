@@ -12,7 +12,7 @@ func main() {
 	// logberry.Std.SetOutputDriver(logberry.NewJSONOutput(os.Stdout))
 
 	
-	// Report build information; a script generates buildmeta
+	// Report build information; a script generates buildmetadata
 	logberry.Main.BuildMetadata(buildmetadata)
 
 	// Report that the program is initialized & running
