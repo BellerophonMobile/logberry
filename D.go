@@ -9,7 +9,7 @@ import (
 
 
 // These strings are common data keys, to be used in literal D objects
-// or calls to D::AddData() to assert data.
+// or calls to AddData on Tasks to assert data.
 const (
 	CALCULATION string = "Calculation"
 	FILE string = "File"
