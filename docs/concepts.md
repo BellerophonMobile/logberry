@@ -250,12 +250,191 @@ duration may be fetched using `Task::Clock()`.
 
 ## D
 
+Data associated with Tasks and events are captured by D, a simple Go
+map from string keys to values of arbitrary type.  Most of the
+Logberry functions have a variadic `...interface{}` parameter to pass
+data to the call, which depending on the function is either associated
+to a Task or reported along with a specific event, e.g.:
+
+```go
+// Task creates a new sub-task of the host task.  Parameter activity
+// should be a short natural language description of the work that the
+// Task represents, without any terminating punctuation.  Any data
+// given will be associated with the Task and reported with its
+// events.  This call does not produce a log event.  Use Begin to
+// indicate the start of a long running task.
+func (x *Task) Task(activity string, data ...interface{}) *Task
+
+// Error generates an error log event reporting an unrecoverable fault
+// in an activity or component.  If the Task is being timed it will be
+// clocked and the duration reported.  An error is returned wrapping
+// the original error with a message reporting that the Task's
+// activity has failed.  Continuing to use the Task will not cause an
+// error but is discouraged.  The variadic data parameter is
+// aggregated as a D and reported as data embedded in the generated
+// Task Error.  The data permanently associated with the Task is
+// reported with the event.
+func (x *Task) Error(err error, data ...interface{}) error
+```
+
+D is just a standard Go map, with its real functionality is several
+functions for constructing instances from arbitrarily typed and
+variadic parameters.  In particular, it will automatically incorporate
+exposed fields of structs and keys of maps as keys of the constructed
+D.  In this way it is very easy to incorporate objects into a log
+event and have the data reported in a structured fashion.  E.g., the
+following log event will have `DataLabel` and `DataInt` fields:
+
+```go
+	// Create some structured application data and log it
+	var data = struct {
+		DataLabel string
+		DataInt    int
+	}{"alpha", 9}
+
+	logberry.Main.Info("Reporting some data", data)
+```
+
+The D constructors also apply several conventions to simply reuse an
+existing D object if it is passed in as the data, and to absorb
+subsequent data into an existing D object passed at the head of a
+variadic parameter.  This supports several use cases for throwing D
+objects around without unduly cloning new objects.  Full details on
+this and the other construction rules are in the [GoDocs for the
+type](https://godoc.org/github.com/BellerophonMobile/logberry#D).
+
+Several functions to produce properly delimited but human-readable
+`key=value` text printouts of D objects are also provided.  However,
+note that as they're simply Go maps, they're trivial to throw into
+JSON marshaling or other serialization.
+
+
 ## BuildMetadata
+
+Logberry also has a built in reporting functions and simple
+representation of a program's build environment, along with script
+tools to automatically construct those representations.
+
+First of these is `Task::BuildSignature()`, which takes and reports a
+string as some arbitrary stamp of the binary's build profile.  The
+script `util/build-signature.sh` will automatically generate such from
+basic host device parameters and the Git repository assumed to be the
+working directory, e.g.:
+
+```sh
+joe@scully ../github.com/BellerophonMobile/logberry (git)-[master] % ./util/build-signature.sh
+logberry master 8aff1c9174c6b23309bb64d094419b90a2687a5d* scully joe 2015-06-19 10:51:08-04:00
+```
+
+This string is then easy to pass in to be compiled with a program via
+Go's linker flags, e.g.:
+
+```sh
+go install -ldflags "-X main.buildsignature '`./util/build-signature.sh
+```
+
+More expressively, `Task::BuildMetadata()` takes and reports a more
+in-depth, structured representation of the build environment.  The
+program `util/build-metadata.go` constructs a BuildMetadata object,
+and is intended to be executed using `go run` or `go generate` to
+create a Go source code file to be included into the application,
+e.g.:
+
+```sh
+joe@scully ~/chimerakb/code/workspace (git)-[master] % go run src/github.com/BellerophonMobile/logberry/util/build-metadata.go
+
+/**
+ * This file generated automatically.  Do not modify.
+ * Generated from workspace: .
+ */
+
+package main
+
+import "github.com/BellerophonMobile/logberry"
+
+var buildmetadata = &logberry.BuildMetadata{
+  Host:     "scully",
+  User:     "joe",
+  Date:     "2015-06-19T10:56:27-04:00",
+
+  Repositories: []logberry.RepositoryMetadata {
+
+    logberry.RepositoryMetadata{
+      Repository: "workspace",
+      Branch:     "master",
+      Commit:     "c8cda1e7eeab3486691a207865d51c3f0782d3d8",
+      Dirty:      false,
+      Path:       ".",
+    },
+
+    logberry.RepositoryMetadata{
+      Repository: "core",
+      Branch:     "master",
+      Commit:     "6847dda91a7f940780f446f17a7c6c48f2d8dd10",
+      Dirty:      false,
+      Path:       "src/chimerakb.com/pkg/core",
+    },
+
+    logberry.RepositoryMetadata{
+      Repository: "public",
+      Branch:     "master",
+      Commit:     "cbc639561e957a0c13882478b7d47775c21d93ce",
+      Dirty:      true,
+      Path:       "src/chimerakb.com/pkg/public",
+    },
+
+    logberry.RepositoryMetadata{
+      Repository: "logberry",
+      Branch:     "master",
+      Commit:     "8aff1c9174c6b23309bb64d094419b90a2687a5d",
+      Dirty:      true,
+      Path:       "src/github.com/BellerophonMobile/logberry",
+    },
+
+  },
+}
+joe@scully ~/chimerakb/code/workspace (git)-[master] % 
+```
+
+That example shows the intended use case: A large project made up of
+several elements organized in their own repositories is organized and
+compiled inside a larger workspace repository.  The script records a
+timestamp as well as the user and host for the build, and scans for
+all git repositories of and under the build directory.  This is logged
+using `Task:BuildMetadata()` to more or less unambiguously identify
+the exact build composition of a binary, a critical piece of data for
+complex and especially multi-team software.
+
+Due to some of the specifics of `go generate`, local scripts can be a
+little tricky to invoke with that tool.  One way to do that is to set
+an environment variable identifying the root workspace directory and
+execute as such:
+
+```go
+//go:generate go run $WORKSPACE/src/github.com/BellerophonMobile/logberry/util/build-metadata.go -workspace=$WORKSPACE -out=build
+```
+
+This will generate a file `build.go` in the invoking file's directory
+containing a BuildMetadata object capturing the entire workspace.
+
 
 ## Error
 
+Finally, Logberry includes a simple generic Error object.  It includes
+a human-oriented short message, structured data captured as a D, the
+source code location from which the event originates, and optionally
+an underlying preceding error that caused this higher level fault.
+The linked error may be a generic error, not necessarily a Logberry
+Error.  In this way the errors can capture a stacktrace of failures,
+each reporting structured data and source code location.
 
-Utilizing the task instance hierarchy, event types, and the structured
-data output, the lifecycle of a program, its components, and its
-activities in a may be captured in a human readable or machine
-parseable semantic log.
+
+## Summary
+
+At the core, Logberry provides very flexible logging for reporting
+events with structured data.  Above that though is built a lightweight
+and simple but useful interface for capturing program structure and
+event semantics.  Utilizing the task instance hierarchy, event types,
+and the structured data output, the lifecycle of a program, its
+components, and its activities may be readily captured in a human
+readable or machine parseable trace.
