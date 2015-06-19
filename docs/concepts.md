@@ -25,7 +25,7 @@ In particular, there are two kinds of Roots:
 
  * ImmediateRoot: Simply dispatches each event to registered outputs.
  * BackgroundRoot: Throws each event into a channel, which may or may
-   be buffered.  A separate goroutine then continually processes
+   not be buffered.  A separate goroutine then continually processes
    events from the channel, dispatching them to registered outputs.
 
 Both serialize incoming events such that only one is report at a time,
@@ -154,7 +154,7 @@ might terminate by additionally reporting the number of bytes
 transmitted.
 
 The core mechanism for this is the `Task::AddData(key, value)`
-function.  `Task::Aggregatedata`` does similarly, following the
+function.  `Task::AggregateData` does similarly, following the
 behavior of D objects as described below.  A number of commonly used
 data functions are also incorporated, to standardize when helpful on
 some generic keys, e.g.:
