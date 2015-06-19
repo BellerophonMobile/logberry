@@ -414,9 +414,14 @@ execute as such:
 //go:generate go run $WORKSPACE/src/github.com/BellerophonMobile/logberry/util/build-metadata.go -workspace=$WORKSPACE -out=build
 ```
 
-This will generate a file `build.go` in the invoking file's directory
+This generates a file `build.go` in the invoking file's directory
 containing a BuildMetadata object capturing the entire workspace.
-
+Note that the `-out` flag takes the given target as the prefix of a Go
+source file and adds ".go" to the filename.  This is done as `go run`
+otherwise interprets arguments ending in ".go" as files to execute.
+To specify a different target without this suffix being added, use the
+`-target` option.  The package in which the generated object is placed
+may be set using the `-package` flag; the default is `main`.
 
 ## Error
 

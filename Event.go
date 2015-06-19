@@ -5,7 +5,7 @@ import (
 )
 
 // These strings are common classes of events, used in the Task event
-// generation functions to mark specific types of reports.
+// generation functions to identify types of occurrences.
 const (	
 	BEGIN         string = "begin"
 	END           string = "end"
