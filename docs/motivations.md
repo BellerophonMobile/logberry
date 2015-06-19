@@ -1,9 +1,9 @@
 # Motivations
 
-Logberry was directly motivated by experiences developing a reasonably
-complex component used within software created by a large team spread
-across multiple corporations and several years of development.  The
-most important observations include:
+Logberry was directly motivated by experiences developing a complex
+component used within software created by a large team spread across
+multiple corporations and several years of development.  The most
+important observations include:
 
  * Logs should include unambiguous indication of the executing code.
    Build timestamps are useful, but the source control commit ID is
@@ -12,7 +12,7 @@ most important observations include:
    least the machine/user.
 
  * Concurrent execution paths need to be cleanly differentiated within
-   log reports.  Essentially all loggers protect concurrent event
+   log reports.  Essentially all loggers synchronize concurrent event
    output.  But in a typical unstructured log API it's all too easy to
    have an error or informational statement that doesn't properly
    indicate which of multiple simultaneous tasks generated the report.
@@ -33,7 +33,7 @@ most important observations include:
    simple scripts and tools to summarize or visualize logs.
 
  * Like all libraries, logging should be simple to use and quick to
-   get started.  However, The logging needs of a small, one-off, fun
+   get started.  However, the logging needs of a small, one-off, fun
    project are not the same as a large, multi-aspect component built
    by a changing pool of developers.  Some additional complexity and
    effort is well worthwhile if it reduces the overall work.  In
@@ -54,9 +54,8 @@ most important observations include:
    decipher what happened.  Strongly counterbalancing this though is
    the verbosity entailed.  Beyond human readability problems,
    somewhat manageable with tools, there are environments and
-   deployments where log size is an important concern, e.g.  e.g.,
-   live reporting or even post-run harvesting over a network with
-   limited bandwidth or frequent reporting.
+   deployments where log size is an important concern, e.g., remote
+   reporting or post-run harvesting over a limited bandwidth network.
 
  * Services and applications do have some differences when it comes to
    logging.  For example, [Logrus](https://github.com/sirupsen/logrus)
@@ -64,8 +63,8 @@ most important observations include:
    "should not be a feature of the application-level logger."  That's
    largely true for both services and applications, but a long-lived
    service does need to take management into account to some extent.
-   An example includes incorporating some mechanism to ensure output
-   streams don't break when a daily log file is rotated out.
+   An example includes ensuring output streams don't break when a
+   daily log file is rotated out.
 
 More obvious or smaller points include:
 
@@ -91,11 +90,11 @@ More obvious or smaller points include:
  * On any modern platform with reasonable resources, you essentially
    always want to log at least some things.  In many settings you may
    also want to move from production to debug levels of output without
-   recompiling.  The focus many C/C++ libraries place(d) on entirely
-   compiling out verbose log statements is not critical.  That said,
-   report parameters that are expensive to generate should still be
-   able to be skipped entirely.
+   recompiling.  The focus that many C/C++ libraries place on entirely
+   compiling out verbose log statements is largely misguided.  That
+   said, event data that is expensive to generate should still be able
+   to be skipped entirely.
 
 Logberry certainly doesn't address all these points, and of course is
-imperfect in many ways, but these are the goals, design rationale, and
-ideas we're working to incorporate.
+imperfect in many other ways as well, but these are the goals, design
+rationales, and ideas we're working to incorporate.

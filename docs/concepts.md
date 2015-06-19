@@ -3,7 +3,7 @@
 Logberry has four top level concepts/objects:
 
  * `Root`: An interface between Tasks and OutputDrivers.
- * `OutputDriver`: Serializer for publishing events.
+ * `OutputDriver`: Serializers for publishing events.
  * `Task`: A component, function, or logic that generates events.
  * `D`: Data to be published with an event.
 
@@ -18,26 +18,24 @@ Also important are two less fundamental but included concepts/objects:
 All logging is coordinated by a Root.  Tasks under a Root generate
 events, which are given to OutputDrivers to actually publish.
 
-There is a default Root logberry.Std coupled by default to text output
-on stdout.  However, applications may make and utilize their own Roots.
-
-In particular, there are two kinds of Roots:
+There are two kinds of Roots:
 
  * ImmediateRoot: Simply dispatches each event to registered outputs.
  * BackgroundRoot: Throws each event into a channel, which may or may
-   not be buffered.  A separate goroutine then continually processes
-   events from the channel, dispatching them to registered outputs.
+   not be buffered.  A separate goroutine continually processes events
+   from the channel, dispatching them to registered outputs.
 
-Both serialize incoming events such that only one is report at a time,
-in order of first processing.  From the user's perspective, the big
-difference is that the host program needs to call Stop() on the Root
-to ensure that all generated events are output.  Otherwise it's
-possible for the background goroutine to not activate before the
-program terminates, leaving events still in the buffer.  However, that
-buffering can be useful for long lived programs using OutputDrivers
-which may take some time, e.g., publishing to a remote log service.
+Both serialize incoming events such that only one event is reported at
+a time, in order of first receipt.  From the user's perspective, the
+big difference is that the host program needs to call `Root::Stop()`
+on a BackgroundRoot to ensure that all generated events are output.
+Otherwise it is possible for the background goroutine to not activate
+before the program terminates, leaving events in the buffer.  However,
+that buffering and execution on a separate goroutine can be useful for
+long lived programs using OutputDrivers which may take some time,
+e.g., publishing to a remote log service.
 
-There is a default Root logberry.Std, which is an ImmediateRoot so
+There is a default Root `logberry.Std`, which is an ImmediateRoot so
 that it intuitively outputs all events without any additional calls.
 However, programs need not make any use of this Root, instead
 generating Tasks under custom Roots as described below.
@@ -46,15 +44,16 @@ generating Tasks under custom Roots as described below.
 ## OutputDriver
 
 Events are actually recorded, aggregated, or otherwise processed by
-OutputDrivers.  There are two built-in:
+OutputDrivers.  Applications may implement its interface and provide
+their own, but there are two included in Logberry:
 
  * TextOutput: Arguably human readable output, colorized if outputting
    to a terminal.
  * JSONOutput: Machine readable JSON formatted output.
 
 TextOutputs include a program label on each line.  By default
-logberry.Std has a registered TextOutput with a program label derived
-from the executing process' filename.
+`logberry.Std` has a registered TextOutput with a program label
+derived from the executing process' filename that writes to stdout.
 
 OutputDrivers are registered using `Root::AddOutputDriver()` or
 `Root::SetOutputDriver()`.  E.g., to switch the default to JSON
@@ -65,7 +64,10 @@ formatting:
 ```
 
 Roots may have multiple OutputDrivers, all of which receive each event
-for that Root, and a program may of course utilize multiple Roots.
+for that Root.  A program may also utilize multiple Roots at once.  A
+single OutputDriver instance should not be registered to more than one
+Root simultaneously unless its specific documentation notes otherwise.
+
 
 ## Tasks
 
@@ -73,12 +75,12 @@ Log events are generated via Task objects.  These represent a
 particular component, function, or related block of logic, ranging
 anywhere in scope from an entire program to a single library call.
 
-For example, by default logberry.Main is a Task under the logberry.Std
-Root.  Using it, programs can output log events much like any other
-flat logging interface, e.g.:
+For example, by default `logberry.Main` is a Task under the
+`logberry.Std` Root.  Using it, programs can output events much like
+any other flat logging interface, except with structured data, e.g.:
 
 ```go
-	logberry.Main.Info("Demo is functional")
+	logberry.Main.Info("Computed data", logberry.D{"X": 23, "Label": "priority"})
 
 	logberry.Main.Failure("Arbritrary failure")
 ```
@@ -107,34 +109,49 @@ associated data, eliminating the marshaling redundancy or suboptimal
 reporting of more typical logging.  In addition, a successful outcome
 reports additional data particular to that outcome.
 
+### Hierarchy
+
+Tasks are created using the `Task` or `Component` functions of either
+Roots or Tasks:
+
+```go
+	// Create a program component---a long-running, multi-use entity.
+	computerlog := logberry.Main.Component("computer")
+
+	
+	// Execute a task within that component, which may fail
+	task := computerlog.Task("Compute numbers", &data)
+```
+
+They thus have a hierachical structure originating in a Root.  This
+structure may be reported by the OutputDrivers, as it is by the
+built-in drivers, to enable easily reconstructing program execution
+structure even across interleaved goroutines.  Each Task has a numeric
+identifier unique to that program instance, and the identifiers for
+both a Task and its parent are included in the standard outputs.
+
 
 ### Components
 
-Tasks are created using the `Task` or `Component` functions of either
-Roots or Tasks.  They thus have a hierachical structure originating in
-a Root.  This structure may be reported by the OutputDrivers, as it is
-for the built-in drivers, to enable easily reconstructing program
-execution structure even across interleaved goroutines.  Each Task has
-a numeric identifier unique to that program instance, and the
-identifiers for both a Task and its parent are included in the output
-of the standard drivers.
+Both the Task and Component creation functions return a Task.  The
+only difference is one of human semantics.
 
-The Task and Component creation functions both return a Task.  The
-only difference is one of human semantics.  All Tasks have a component
-tag to be included in event reports to indicate which component area
-the task is part of.  E.g., the default for logberry.Main is 'main'
-while a sub-task might be tagged 'websocket', 'mapper', or any other
-program specific label.  They also have a human-oriented activity
-text, e.g., 'Save configuration' or 'Connect to database'.
+All Tasks have a component tag included in event reports to indicate
+of which functional area the task is part.  E.g., the default for
+`logberry.Main` is 'main' while a sub-task might be tagged
+'websocket', 'mapper', or any other program specific label.  Tasks
+also have a human-oriented activity text, e.g., 'Save configuration'
+or 'Connect to database'.
 
 By default Tasks inherit the component tag of their parent and are
 given a text label specifying some focused activity.  They also do not
 log their instantiation, though the `Task::Begin()` function may be
 used to do so.  Tasks created using the Component creator though are
-given a new component label.  Their activity text is also generated to
-identify that component, and their instantiation logged.  Termination
-of the component may then be logged using `Task::End()` in addition to
-the error reports.
+assigned the given component label, presumably different from that of
+their parent Task.  Their activity text is also generated to identify
+that component, and their instantiation logged.  Termination of the
+component may then be logged using `Task::End()` in addition to the
+error reports.
 
 Note, however, that these component Tasks are just regular Task
 objects that apply a few conventions when created.  Component tags and
@@ -145,34 +162,27 @@ activity texts may also be manually set or changed for all Tasks.
 
 Tasks have data associated with them, captured by a D object as
 described below.  This data may be aggregated into the object over
-time and is reported with all log events, alongside any data given
-specific to that event.  For example, a task for accessing an HTTP
-endpoint might start with only the resource known.  After the user is
-authenticated, their identifier might be added to the task.  Each of
-these will be included in subsequent log events.  Finally, the task
-might terminate by additionally reporting the number of bytes
-transmitted.
+time and is reported with all its generated events, alongside any data
+given specific to each event.  For example, a task for accessing an
+HTTP endpoint might start with only the resource known and associated
+with the task.  After the user is authenticated, their identifier
+might be added to the task.  Each of these will be included in
+subsequent log events.  The task might then terminate on success by
+additionally reporting the number of bytes transmitted.
 
-The core mechanism for this is the `Task::AddData(key, value)`
-function.  `Task::AggregateData` does similarly, following the
-behavior of D objects as described below.  A number of commonly used
-data functions are also incorporated, to standardize when helpful on
-some generic keys, e.g.:
+Data to be associated with a Task may be passed to creation functions.
+The `Task::AddData(key, value)` function may also be used to assert
+data as the Task continues.  `Task::AggregateData(key, ...value)` does
+similarly in a slightly more general fashion, following the behavior
+of D objects as described below and in the [API
+GoDocs](https://godoc.org/github.com/BellerophonMobile/logberry).
 
- * `Calculation`
- * `File`
- * `Resource`
- * `Service`
- * `User`
- * `URL`
- * `Bytes`
- * `ID`
- * `Endpoint`
-
-Associated data may also be passed in to the Task creation functions.
 Event specific data may be included in all of the reporting functions
-outlined in the following.  This does not aggregate into the Task for
-output in subsequent calls.
+outlined in the following.  This data does not aggregate into the Task
+for output in subsequent calls.
+
+Several constants are defined to be used as data keys in order to
+promote common terms, but their use is completely optional.
 
 
 ### Reporting
@@ -194,9 +204,8 @@ A simple example is:
 	computerlog.Event("request", "Received request", req)
 ```
 
-Built on top of this basic function a variety of common event
-reporting functions.  Details on these and a full up-to-date list may
-be found in the [API godocs](https://godoc.org/github.com/BellerophonMobile/logberry).
+Built on top of this basic function are a variety of common event
+functions:
 
  * Configuration: Report on program or module initialization.
    * `BuildMetadata`
@@ -222,6 +231,10 @@ be found in the [API godocs](https://godoc.org/github.com/BellerophonMobile/logb
    * `Failure`
    * `Die`
 
+Details on these and a full up-to-date list may be found in the [API
+GoDocs](https://godoc.org/github.com/BellerophonMobile/logberry).
+
+
 ### Utilities
 
 Task may additionally be muted (and unmuted).  In this state they will
@@ -240,3 +253,9 @@ duration may be fetched using `Task::Clock()`.
 ## BuildMetadata
 
 ## Error
+
+
+Utilizing the task instance hierarchy, event types, and the structured
+data output, the lifecycle of a program, its components, and its
+activities in a may be captured in a human readable or machine
+parseable semantic log.

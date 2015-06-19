@@ -191,16 +191,17 @@ In the JSON output this looks as follows:
 
 Of note in this log:
 
- * The verbose, automatically generated build information, identifying
-   all (Git) repositories found in the host project folder.
- * Every event is situated within a uniquely identified Task.  The
-   hierarchical relationship between Tasks is also logged.  Together
+ * Verbose, automatically generated build information identifies all
+   (Git) repositories found in the host project folder as well as
+   when, where, and by who the binary was built.
+ * Every event is situated within a uniquely identified Task, and the
+   hierarchical relationship between Tasks is recorded.  Together
    these enable the ready decoupling of interleaved events generated
    by parallel goroutines and the reconstruction of a causal chain of
    computation.   
- * Tasks are logged in a systematized fashion that promotes outputting
-   all relevant data for both errors and success, without messy and
-   duplicative marshaling code.
+ * Events are generated in a systematized fashion that promotes
+   outputting all relevant data for either errors or success at its
+   conclusion, without messy and duplicative marshaling code.   
  * Long running tasks are automatically timed.
  * Common program events such as configuration, start, and errors are
    all identified, as well as application specific event types.
