@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-// These strings are common classes of events, used by the Task
-// function to mark specific types of reports.
+// These strings are common classes of events, used in the Task event
+// generation functions to mark specific types of reports.
 const (	
 	BEGIN         string = "begin"
 	END           string = "end"

@@ -8,8 +8,8 @@ import (
 )
 
 
-// These strings are common data keys, to be used in literal D objects
-// or calls to AddData on Tasks to assert data.
+// These strings are common data keys, to be optionally used in
+// literal D objects or calls to AddData on Tasks.
 const (
 	CALCULATION string = "Calculation"
 	FILE string = "File"
