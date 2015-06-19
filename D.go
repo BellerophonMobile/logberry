@@ -7,11 +7,28 @@ import (
 	"io"
 )
 
-// D captures data to be logged as key/value pairs.
+
+// These strings are common data keys, to be used in literal D objects
+// or calls to D::AddData() to assert data.
+const (
+	CALCULATION string = "Calculation"
+	FILE string = "File"
+	RESOURCE string = "Resource"
+	SERVICE string = "Service"
+	USER string = "User"
+	URL string = "URL"
+	BYTES string = "Bytes"
+	ID string = "ID"
+	ENDPOINT string = "Endpoint"
+)
+
+
+// D maps capture data to be logged as key/value pairs associated with
+// Tasks or particular events.
 type D map[string]interface{}
 
-// Set sets field k of the data object to v, overriding any existing
-// value.  Its return is the host D itself.
+// Set assigns field k of the data object to value v, overriding any
+// existing value.  Its return is the host D itself.
 func (x D) Set(k string, v interface{}) D {
 	x[k] = v
 	return x
@@ -189,21 +206,29 @@ func DAggregate(data []interface{}) D {
 	// end DAggregate
 }
 
-// String return a text representation of the D.  This is presented as
-// a sequence of key=value pairs for arguably human-readable
-// presentation.  To produce a JSON serialization, simply marshal on
-// the D as usual.  It is equivalent to casting output from Text().
+// String returns a text representation of the host D.  This is
+// presented as a sequence of key=value pairs for arguably
+// human-readable presentation.  To produce a JSON serialization,
+// simply marshal on the D as usual.  It is equivalent to casting
+// output from Text().
 func (x D) String() string {
   return string(x.Text())
 }
 
-// Text return a byte slice textual representation of the D.
+// Text returns a byte slice textual representation of the host D.
+// This is presented as a sequence of key=value pairs for arguably
+// human-readable presentation.  To produce a JSON serialization,
+// simply marshal on the D as usual.
 func (x D) Text() []byte {
 	var buffer bytes.Buffer
 	x.WriteTo(&buffer)
 	return buffer.Bytes()
 }
 
+// WriteTo serializes the host D to the given io.Writer.  This is
+// presented as a sequence of key=value pairs for arguably
+// human-readable presentation.  To produce a JSON serialization,
+// simply marshal on the D as usual.
 func (x D) WriteTo(w io.Writer) error {
 	return textrecurse(w, false, x)	
 }

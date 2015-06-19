@@ -4,7 +4,7 @@ focused on generating logs, rather than managing them, and tries to be
 lightweight while capturing more semantics and structure than is
 typical, in readable and easily parsed forms.
 
-There are fourcentral concepts/objects:
+There are four central concepts/objects/interfaces:
 
  D              - Data to be published with an event.
  Task           - A component, function, or logic that generates events.
@@ -16,7 +16,7 @@ Also important are two less fundamental but included concepts/objects:
  Error          - A generic structured error report.
  BuildMetadata  - A simple representation of the build environment.
 
-More documentation is available from the repository and README:
+Higher level documentation is available from the repository and README:
   https://github.com/BellerophonMobile/logberry
 
 */

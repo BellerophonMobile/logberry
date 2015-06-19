@@ -8,7 +8,9 @@ import (
 // BackgroundRoots push events to OutputDrivers in a thread safe and
 // receipt ordered fashion but in a separate, dedicated goroutine.
 // This may be useful for logging outputs that may take some time,
-// e.g., pushing to a logging server.
+// e.g., pushing to a logging server.  At the conclusion of the
+// program Stop should be called on the root to ensure that all of its
+// events are flushed before terminating.
 type BackgroundRoot struct {
 	outputdrivers  []OutputDriver
 	errorlisteners []ErrorListener
@@ -37,7 +39,7 @@ func NewBackgroundRoot(buffer int) Root {
 // Stop shuts down the BackgroundRoot.  Its internal channel is
 // closed, and newly generated log events no longer forwarded to
 // output drivers.  Any previously buffered events are processed
-// before Stop() exits.
+// before Stop exits.
 func (x *BackgroundRoot) Stop() {
 	close(x.events)
 	x.wg.Wait()
@@ -77,8 +79,9 @@ func (x *BackgroundRoot) ClearOutputDrivers() Root {
 }
 
 // AddOutputDrivers includes the given additional output in those to
-// which this BackgroundRoot forwards events.  This is not thread safe with
-// event generation, drivers are assumed to be attached at startup.
+// which this BackgroundRoot forwards events.  This is not thread safe
+// with event generation, drivers are assumed to be attached in serial
+// at startup.
 func (x *BackgroundRoot) AddOutputDriver(driver OutputDriver) Root {
 
 	// Must attach first so that the OutputDriver won't receive output
@@ -98,7 +101,7 @@ func (x *BackgroundRoot) SetOutputDriver(driver OutputDriver) Root {
 	return x
 }
 
-// ClearErrorListeners removes all of the registered elisteners.
+// ClearErrorListeners removes all of the registered listeners.
 func (x *BackgroundRoot) ClearErrorListeners() Root {
 	x.errorlisteners = make([]ErrorListener, 0)
 	return x
@@ -112,8 +115,8 @@ func (x *BackgroundRoot) AddErrorListener(listener ErrorListener) Root {
 }
 
 // SetErrorListener makes the given listener the only one for this
-// BackgroundRoot.  It is identical to calling x.ClearErrorListeners() and then
-// x.AddErrorListener(listener).
+// BackgroundRoot.  It is identical to calling x.ClearErrorListeners()
+// and then x.AddErrorListener(listener).
 func (x *BackgroundRoot) SetErrorListener(listener ErrorListener) Root {
 	x.ClearErrorListeners()
 	x.AddErrorListener(listener)
@@ -121,14 +124,16 @@ func (x *BackgroundRoot) SetErrorListener(listener ErrorListener) Root {
 }
 
 
-// NewTask creates a new top level Task under this BackgroundRoot.
+// NewTask creates a new top level Task under this BackgroundRoot,
+// representing a particular line of activity.
 func (x *BackgroundRoot) Task(activity string, data ...interface{}) *Task {
 	t := newtask(nil, activity, data)
 	t.root = x
 	return t
 }
 
-// NewTask creates a new top level Task under this BackgroundRoot.
+// Component creates a new top level Task under this BackgroundRoot,
+// representing a grouping of related functionality.
 func (x *BackgroundRoot) Component(component string, data ...interface{}) *Task {
 	t := newtask(nil, "Component " + component, data)
 	t.SetComponent(component)

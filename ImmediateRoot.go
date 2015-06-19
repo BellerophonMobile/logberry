@@ -61,7 +61,7 @@ func (x *ImmediateRoot) SetOutputDriver(driver OutputDriver) Root {
 	return x
 }
 
-// ClearErrorListeners removes all of the registered elisteners.
+// ClearErrorListeners removes all of the registered listeners.
 func (x *ImmediateRoot) ClearErrorListeners() Root {
 	x.errorlisteners = make([]ErrorListener, 0)
 	return x

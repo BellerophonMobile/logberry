@@ -31,7 +31,7 @@ import (
 //                              event data.
 //
 // The default offsets are designed to wrap well on either 80 column
-// or very wide terminals, generally putting each event on 1 or 2
+// or very wide terminals, generally putting each event on one or two
 // lines respectively.
 type TextOutput struct {
 	root   Root
