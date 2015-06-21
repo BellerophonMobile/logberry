@@ -220,7 +220,7 @@ Links to documentation:
 
 ## Changelog
 
- * **2015/06/18: Release 2.0!** The API has been conceptually
+ * **2015/06/22: Release 2.0!** The API has been conceptually
    simplified, errors structured, and underlying code improved.
  * **2014/10/30: Release 1.0!** Though definitely not mature at all,
    we consider Logberry to be usable.
