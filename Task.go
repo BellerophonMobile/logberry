@@ -464,7 +464,7 @@ func (x *Task) Error(err error, data ...interface{}) error {
 	e.Locate(1)
 
 	x.data.Set("Error", err)
-
+	
 	if !x.mute {
 		x.root.event(x, ERROR, m, x.data)
 	}

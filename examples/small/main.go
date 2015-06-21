@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/BellerophonMobile/logberry"
-//	"os"
+	//	"os"
 )
 
 
@@ -66,7 +66,8 @@ func main() {
 
 
 func somecomputation() (int, error) {
-	return 7, nil
+	return 7, nil // errors.New("Could not compute")
+	// return 7, errors.New("Could not compute")
 }
 
 

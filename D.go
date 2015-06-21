@@ -123,13 +123,21 @@ func (x D) CopyFrom(data interface{}) D {
 
 	case reflect.Struct:
 		var vtype = val.Type()
+		var haspublic bool
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
 			if f.CanInterface() {
 				x[vtype.Field(i).Name] = f.Interface()
+				haspublic = true
 			}
 		}
 
+		if !haspublic {
+			if err,ok := data.(error); ok {
+				x["Error"] = err.Error()
+			}
+		}
+		
 	case reflect.Map:
 		var vals = val.MapKeys()
 		for _, k := range vals {
@@ -234,11 +242,31 @@ func (x D) WriteTo(w io.Writer) error {
 }
 
 func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
-
-	var val = reflect.ValueOf(data)
 	
+	var val = reflect.ValueOf(data)
+
+	// Chain through any pointers or interfaces
+	done := false
+	for !done {
+		switch val.Kind() {
+		case reflect.Interface:
+			fallthrough
+		case reflect.Ptr:
+
+			if val.IsNil() {
+				return nil
+			}
+			
+			val = val.Elem()
+
+		default:
+			done = true
+		}
+	}
+
 	switch val.Kind() {
 
+		/*
 	case reflect.Interface: fallthrough
 	case reflect.Ptr:
 
@@ -248,7 +276,7 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 		}
 
 		return textrecurse(buffer, wrap, val.Elem().Interface())
-
+*/
 
 	case reflect.Map:
 		if wrap {
@@ -281,6 +309,7 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 		}
 
 		var vtype = val.Type()
+		var haspublic bool
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
 			if f.IsValid() && f.CanInterface() {
@@ -288,10 +317,18 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 				if e != nil { return e}
 				
 				e = textrecurse(buffer, true, f.Interface())
+				haspublic = true
 				if e != nil { return e}
 			}
 		}
 
+		if !haspublic {
+				if err,ok := data.(error); ok {
+					_,e := fmt.Fprintf(buffer, " Message=%q", err.Error())
+				  if e != nil { return e}
+			}
+		}
+		
 		if wrap {
 			_, e := fmt.Fprint(buffer, " }")
 			if e != nil { return e}
