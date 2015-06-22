@@ -212,6 +212,7 @@ Of note in this log:
 
 Links to documentation:
 
+ * [Introduction Blog Post](http://bellerophonmobile.com/blog/20150619-logberry-semantic-logging/) --- Quick explanation; use comments here for questions
  * [Concepts](https://github.com/BellerophonMobile/logberry/blob/master/docs/concepts.md) --- Top level concepts and use of Logberry.
  * [GoDocs](https://godoc.org/github.com/BellerophonMobile/logberry) --- Automatically generated API docs.
  * [Motivations](https://github.com/BellerophonMobile/logberry/blob/master/docs/motivations.md) --- Lengthy discussion on the design rationale behind Logberry.
