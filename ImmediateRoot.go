@@ -1,8 +1,8 @@
 package logberry
 
 import (
-	"time"
 	"sync"
+	"time"
 )
 
 // An ImmediateRoot executes logging immediately upon event
@@ -21,7 +21,6 @@ func NewImmediateRoot() *ImmediateRoot {
 		errorlisteners: make([]ErrorListener, 0),
 	}
 }
-
 
 // ClearOutputDrivers removes all of the currently registered outputs.
 func (x *ImmediateRoot) ClearOutputDrivers() Root {
@@ -46,7 +45,7 @@ func (x *ImmediateRoot) AddOutputDriver(driver OutputDriver) Root {
 
 	// Must attach first so that the OutputDriver won't receive output
 	// until it knows its root.
-	driver.Attach(x) 
+	driver.Attach(x)
 	x.outputdrivers = append(x.outputdrivers, driver)
 	return x
 
@@ -83,7 +82,6 @@ func (x *ImmediateRoot) SetErrorListener(listener ErrorListener) Root {
 	return x
 }
 
-
 // Task creates a new top level Task under this ImmediateRoot.
 func (x *ImmediateRoot) Task(activity string, data ...interface{}) *Task {
 	t := newtask(nil, activity, data)
@@ -93,12 +91,11 @@ func (x *ImmediateRoot) Task(activity string, data ...interface{}) *Task {
 
 // Component creates a new top level Task under this ImmediateRoot.
 func (x *ImmediateRoot) Component(component string, data ...interface{}) *Task {
-	t := newtask(nil, "Component " + component, data)
+	t := newtask(nil, "Component "+component, data)
 	t.SetComponent(component)
 	t.root = x
 	return t
 }
-
 
 // internalerror reports an internal logging error.  It is generally
 // to be used only by OutputDrivers.
@@ -115,18 +112,18 @@ func (x *ImmediateRoot) internalerror(err error) {
 
 // event indicates something to report, a log entry to make.  It is
 // generally to be used by Tasks.
-func (x *ImmediateRoot ) event(task *Task, event string, message string, data D) *Event {
+func (x *ImmediateRoot) event(task *Task, event string, message string, data D) *Event {
 
 	x.outputmx.Lock()
 	defer x.outputmx.Unlock()
 
 	e := &Event{
-		TaskID: task.uid,
+		TaskID:    task.uid,
 		Component: task.component,
-		Event: event,
-		Message: message,
-		Data: data,
-		
+		Event:     event,
+		Message:   message,
+		Data:      data,
+
 		Timestamp: time.Now(),
 	}
 
@@ -137,7 +134,7 @@ func (x *ImmediateRoot ) event(task *Task, event string, message string, data D)
 	for _, output := range x.outputdrivers {
 		output.Event(e)
 	}
-		
+
 	return e
 
 	// end event

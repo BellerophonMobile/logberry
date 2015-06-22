@@ -37,13 +37,13 @@ type test struct {
 
 type test2 struct {
 	privatefield string
-	PublicField int
+	PublicField  int
 }
 
 func TestDBuild(t *testing.T) {
 
 	var mushi1 *test
-	
+
 	var tests = []expectation{
 
 		{
@@ -52,10 +52,10 @@ func TestDBuild(t *testing.T) {
 		},
 
 		{
-			v: DBuild(mushi1),
+			v:  DBuild(mushi1),
 			ex: "{}",
 		},
-		
+
 		{
 			v:  DBuild(8),
 			ex: "{\"value\":8}",
@@ -92,7 +92,7 @@ func TestDBuild(t *testing.T) {
 		},
 
 		{
-			v: DBuild(&test2{"mushi", 4}),
+			v:  DBuild(&test2{"mushi", 4}),
 			ex: "{\"PublicField\":4}",
 		},
 	}

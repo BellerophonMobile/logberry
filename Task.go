@@ -1,12 +1,12 @@
 package logberry
 
 import (
-	"sync/atomic"
 	"os"
 	"os/user"
-	"path/filepath"
 	"path"
+	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -15,13 +15,13 @@ import (
 // execution, and the calling code is responsible for managing any
 // concurrent manipulation.
 type Task struct {
-	uid    uint64
+	uid uint64
 
-	root   Root
+	root Root
 
 	parent *Task
 
-	component  string
+	component string
 
 	activity string
 
@@ -39,7 +39,6 @@ func newtaskuid() uint64 {
 	// We have seen this atomic call cause problems on ARM...
 	return atomic.AddUint64(&numtasks, 1) - 1
 }
-
 
 func newtask(parent *Task, activity string, data []interface{}) *Task {
 
@@ -63,7 +62,6 @@ func newtask(parent *Task, activity string, data []interface{}) *Task {
 
 }
 
-
 // Task creates a new sub-task of the host task.  Parameter activity
 // should be a short natural language description of the work that the
 // Task represents, without any terminating punctuation.  Any data
@@ -83,7 +81,7 @@ func (x *Task) Task(activity string, data ...interface{}) *Task {
 // associated with the Task and reported with its events.  This call
 // does produce a log event marking the instantiation.
 func (x *Task) Component(component string, data ...interface{}) *Task {
-	return newtask(x, "Component " + component, data).SetComponent(component).Begin()
+	return newtask(x, "Component "+component, data).SetComponent(component).Begin()
 }
 
 // GetUID returns the unique identifier for this Task.
@@ -107,7 +105,7 @@ func (x *Task) GetComponent() string {
 }
 
 // SetComponent assigns the component label of this Task.
-func (x *Task) SetComponent(c string) *Task{
+func (x *Task) SetComponent(c string) *Task {
 	x.component = c
 	return x
 }
@@ -180,7 +178,6 @@ func (x *Task) AggregateData(data ...interface{}) *Task {
 	return x
 }
 
-
 // Mute indicates that this Task must not generate log events.  This
 // is useful when using the Task merely to organize subtasks or
 // generate informative error objects.
@@ -199,7 +196,6 @@ func (x *Task) Unmute() *Task {
 func (x *Task) IsMute() bool {
 	return x.mute
 }
-
 
 // BuildMetadata generates a configuration log event reporting the
 // build configuration, as captured by the passed object.  A utility
@@ -261,7 +257,7 @@ func (x *Task) CommandLine() {
 		"Args":    os.Args[1:],
 	}
 	d.CopyFrom(x.data)
-	
+
 	x.root.event(x, CONFIGURATION, "Command line", d)
 
 }
@@ -312,11 +308,10 @@ func (x *Task) Process() {
 		"PID":  os.Getpid(),
 	}
 	d.CopyFrom(x.data)
-	
+
 	x.root.event(x, CONFIGURATION, "Process", d)
 
 }
-
 
 // Event generates a user-specified log event.  Parameter event tags
 // the class of the event, generally a short lowercase whitespace-free
@@ -330,7 +325,6 @@ func (x *Task) Process() {
 func (x *Task) Event(event string, msg string, data ...interface{}) {
 	x.root.event(x, event, msg, DAggregate(data).CopyFrom(x.data))
 }
-
 
 // Info generates an informational log event.  A human-oriented text
 // message is given as the msg parameter.  This should generally be
@@ -361,14 +355,13 @@ func (x *Task) Warning(msg string, data ...interface{}) {
 	}
 }
 
-
 // Ready generates a ready log event reporting that the activity or
 // component the Task represents is initialized and prepared to begin.
 // The variadic data parameter is aggregated as a D and reporting with
 // the event, as is the data permanently associated with the Task.
 // The given data is not associated to the Task permanently.
 func (x *Task) Ready(data ...interface{}) {
-	x.root.event(x, READY, x.activity + " ready",
+	x.root.event(x, READY, x.activity+" ready",
 		DAggregate(data).CopyFrom(x.data))
 }
 
@@ -378,10 +371,9 @@ func (x *Task) Ready(data ...interface{}) {
 // event, as is the data permanently associated with the Task.  The
 // given data is not associated to the Task permanently.
 func (x *Task) Stopped(data ...interface{}) {
-	x.root.event(x, STOPPED, x.activity + " stopped",
+	x.root.event(x, STOPPED, x.activity+" stopped",
 		DAggregate(data).CopyFrom(x.data))
 }
-
 
 // Begin generates a begin log event reporting that the Task has been
 // instantiated.  This is useful to report the start of a long-running
@@ -396,9 +388,9 @@ func (x *Task) Begin(data ...interface{}) *Task {
 	d.CopyFrom(x.data)
 
 	if !x.mute {
-		x.root.event(x, BEGIN, x.activity + " begin", d)
+		x.root.event(x, BEGIN, x.activity+" begin", d)
 	}
-	
+
 	return x
 }
 
@@ -416,9 +408,9 @@ func (x *Task) End(data ...interface{}) {
 	d.CopyFrom(x.data)
 
 	if !x.mute {
-		x.root.event(x, END, x.activity + " end", d)
+		x.root.event(x, END, x.activity+" end", d)
 	}
-	
+
 }
 
 // Success generates a success log event reporting that the activity
@@ -437,9 +429,9 @@ func (x *Task) Success(data ...interface{}) error {
 	d.CopyFrom(x.data)
 
 	if !x.mute {
-		x.root.event(x, SUCCESS, x.activity + " success", d)
+		x.root.event(x, SUCCESS, x.activity+" success", d)
 	}
-	
+
 	return nil
 
 }
@@ -464,11 +456,11 @@ func (x *Task) Error(err error, data ...interface{}) error {
 	e.Locate(1)
 
 	x.data.Set("Error", err)
-	
+
 	if !x.mute {
 		x.root.event(x, ERROR, m, x.data)
 	}
-	
+
 	return e
 
 }
@@ -494,16 +486,16 @@ func (x *Task) WrapError(msg string, err error, data ...interface{}) error {
 	m := x.activity + " failed"
 
 	suberr := wraperror(msg, err, nil)
-	
+
 	e := wraperror(m, suberr, data)
 	e.Locate(1)
 
 	x.data.Set("Error", err)
-	
+
 	if !x.mute {
 		x.root.event(x, ERROR, m, x.data)
 	}
-	
+
 	return e
 
 }
@@ -535,7 +527,6 @@ func (x *Task) Fatal(err error, data ...interface{}) error {
 	return e
 }
 
-
 // Failure generates an error log event reporting an unrecoverable
 // fault.  Failure and Error are essentially the same, the difference
 // being that Failure is useful to both report and generate a fault
@@ -563,11 +554,11 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 	e.Locate(1)
 
 	x.data.Set("Error", err)
-	
+
 	if !x.mute {
 		x.root.event(x, ERROR, m, x.data)
 	}
-	
+
 	return e
 
 }
@@ -595,7 +586,7 @@ func (x *Task) Die(msg string, data ...interface{}) error {
 	e.Locate(1)
 
 	x.data.Set("Error", err)
-	
+
 	x.root.event(x, ERROR, m, x.data)
 
 	os.Exit(-1)

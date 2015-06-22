@@ -2,11 +2,11 @@ package logberry
 
 import (
 	"fmt"
+	"github.com/BellerophonMobile/logberry/terminal"
 	"io"
 	"os"
 	"syscall"
 	"time"
-	"github.com/BellerophonMobile/logberry/terminal"
 )
 
 // TextOutput is an OutputDriver that writes out log events in a
@@ -45,7 +45,6 @@ type TextOutput struct {
 	DataOffset int
 }
 
-
 const (
 	black int = iota
 	red
@@ -68,18 +67,18 @@ type terminalstyle struct {
 	intensity int
 }
 
-var defaultstyle = terminalstyle{cyan,  false, highintensity}  // default
+var defaultstyle = terminalstyle{cyan, false, highintensity} // default
 
 var eventstyles = map[string]terminalstyle{
-  BEGIN:         {black,   false, highintensity},  // begin
-  END:           {black,   false, highintensity},  // end
-  CONFIGURATION: {blue,    false, lowintensity},   // configuration
-  READY:         {green,   true,  highintensity},  // ready
-  STOPPED:       {magenta, false, highintensity},  // stopped
-  INFO:          {white,   false, highintensity},  // info
-	SUCCESS:       {white,   false, highintensity},  // end
-  WARNING:       {yellow,  false, highintensity},  // warning
-  ERROR:         {red,     true,  highintensity},  // error
+	BEGIN:         {black, false, highintensity},   // begin
+	END:           {black, false, highintensity},   // end
+	CONFIGURATION: {blue, false, lowintensity},     // configuration
+	READY:         {green, true, highintensity},    // ready
+	STOPPED:       {magenta, false, highintensity}, // stopped
+	INFO:          {white, false, highintensity},   // info
+	SUCCESS:       {white, false, highintensity},   // end
+	WARNING:       {yellow, false, highintensity},  // warning
+	ERROR:         {red, true, highintensity},      // error
 }
 
 // NewStdOutput creates a new TextOutput attached to stdout.
@@ -118,24 +117,22 @@ func (o *TextOutput) Detach() {
 	o.root = nil
 }
 
-
 // Event outputs a generated log entry, as called by a Root or a
 // chaining OutputDriver.
 func (o *TextOutput) Event(event *Event) {
 
-	style,ok := eventstyles[event.Event]
+	style, ok := eventstyles[event.Event]
 	if !ok {
 		style = defaultstyle
 	}
-//	if event.highlight {
-//		style.bold = true
-//	}
+	//	if event.highlight {
+	//		style.bold = true
+	//	}
 
-	var writsofar int  // Track characters writen so far, to space;
-										 // terminal commands produce no text, so don't
-										 // include in writsofar
+	var writsofar int // Track characters writen so far, to space;
+	// terminal commands produce no text, so don't
+	// include in writsofar
 
-	
 	// Set the color
 	var color = style.color
 
@@ -146,7 +143,7 @@ func (o *TextOutput) Event(event *Event) {
 		if color != black {
 			c = lowintensity
 		}
-		
+
 		_, e := fmt.Fprintf(o.writer, "\x1b[%dm", c+color)
 		if e != nil {
 			o.root.internalerror(WrapError("Could write entry", e))
@@ -154,7 +151,7 @@ func (o *TextOutput) Event(event *Event) {
 		}
 	}
 
-	n,e := fmt.Fprintf(o.writer, "%v %v %-12v ",
+	n, e := fmt.Fprintf(o.writer, "%v %v %-12v ",
 		event.Timestamp.Format(time.RFC3339), o.Program, event.Component)
 	if e != nil {
 		o.root.internalerror(WrapError("Could write entry", e))
@@ -162,17 +159,16 @@ func (o *TextOutput) Event(event *Event) {
 	}
 	writsofar += n
 
-	
 	// Write the message
 	if o.Color {
-		_,e := fmt.Fprintf(o.writer, "\x1b[%dm", style.intensity+color)
+		_, e := fmt.Fprintf(o.writer, "\x1b[%dm", style.intensity+color)
 		if e != nil {
 			o.root.internalerror(WrapError("Could write entry", e))
 			return
 		}
-		
+
 		if style.bold {
-			_,e := fmt.Fprintf(o.writer, "\x1b[1m")
+			_, e := fmt.Fprintf(o.writer, "\x1b[1m")
 			if e != nil {
 				o.root.internalerror(WrapError("Could write entry", e))
 				return
@@ -181,17 +177,16 @@ func (o *TextOutput) Event(event *Event) {
 		}
 	}
 
-	n,e = fmt.Fprintf(o.writer, "%v ", event.Message)
+	n, e = fmt.Fprintf(o.writer, "%v ", event.Message)
 	if e != nil {
 		o.root.internalerror(WrapError("Could write entry", e))
 		return
 	}
 	writsofar += n
 
-
 	// Space out and then write the data fields
 	for writsofar < o.IDOffset {
-		n,_ = fmt.Fprintf(o.writer, " ")
+		n, _ = fmt.Fprintf(o.writer, " ")
 		writsofar += n
 	}
 
@@ -204,7 +199,7 @@ func (o *TextOutput) Event(event *Event) {
 			}
 
 		} else {
-			_,e := fmt.Fprintf(o.writer, "\x1b[0;%dm", highintensity+color)
+			_, e := fmt.Fprintf(o.writer, "\x1b[0;%dm", highintensity+color)
 			if e != nil {
 				o.root.internalerror(WrapError("Could write entry", e))
 				return
@@ -213,16 +208,16 @@ func (o *TextOutput) Event(event *Event) {
 		}
 	}
 
-	n,e = fmt.Fprintf(o.writer, "%16v %2v:%-2v",
+	n, e = fmt.Fprintf(o.writer, "%16v %2v:%-2v",
 		event.Event, event.TaskID, event.ParentID)
 	if e != nil {
 		o.root.internalerror(WrapError("Could write entry", e))
 		return
 	}
 	writsofar += n
-	
+
 	for writsofar < o.DataOffset {
-		n,e = fmt.Fprintf(o.writer, " ")
+		n, e = fmt.Fprintf(o.writer, " ")
 		if e != nil {
 			o.root.internalerror(WrapError("Could write entry", e))
 			return
@@ -233,13 +228,13 @@ func (o *TextOutput) Event(event *Event) {
 	event.Data.WriteTo(o.writer)
 
 	if o.Color {
-		_,e := fmt.Fprintf(o.writer, "\x1b[0m")
+		_, e := fmt.Fprintf(o.writer, "\x1b[0m")
 		if e != nil {
 			o.root.internalerror(WrapError("Could write entry", e))
 			return
 		}
 	}
-	_,e = fmt.Fprintf(o.writer, "\n")
+	_, e = fmt.Fprintf(o.writer, "\n")
 	if e != nil {
 		o.root.internalerror(WrapError("Could write entry", e))
 		return

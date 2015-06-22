@@ -1,27 +1,25 @@
 package logberry
 
 import (
-	"fmt"
-	"reflect"
 	"bytes"
+	"fmt"
 	"io"
+	"reflect"
 )
-
 
 // These strings are common data keys, to be optionally used in
 // literal D objects or calls to AddData on Tasks.
 const (
 	CALCULATION string = "Calculation"
-	FILE string = "File"
-	RESOURCE string = "Resource"
-	SERVICE string = "Service"
-	USER string = "User"
-	URL string = "URL"
-	BYTES string = "Bytes"
-	ID string = "ID"
-	ENDPOINT string = "Endpoint"
+	FILE        string = "File"
+	RESOURCE    string = "Resource"
+	SERVICE     string = "Service"
+	USER        string = "User"
+	URL         string = "URL"
+	BYTES       string = "Bytes"
+	ID          string = "ID"
+	ENDPOINT    string = "Endpoint"
 )
-
 
 // D maps capture data to be logged as key/value pairs associated with
 // Tasks or particular events.
@@ -56,7 +54,7 @@ func DBuild(data interface{}) D {
 // itself returned.
 func (x D) CopyFromD(data D) D {
 
-	for k, v := range(data) {
+	for k, v := range data {
 		x[k] = v
 	}
 
@@ -99,7 +97,7 @@ func (x D) CopyFrom(data interface{}) D {
 	}
 
 	var val = reflect.ValueOf(data)
-	
+
 	// Chain through any pointers or interfaces
 	done := false
 	for !done {
@@ -111,7 +109,7 @@ func (x D) CopyFrom(data interface{}) D {
 			if val.IsNil() {
 				return x
 			}
-			
+
 			val = val.Elem()
 
 		default:
@@ -133,11 +131,11 @@ func (x D) CopyFrom(data interface{}) D {
 		}
 
 		if !haspublic {
-			if err,ok := data.(error); ok {
+			if err, ok := data.(error); ok {
 				x["Error"] = err.Error()
 			}
 		}
-		
+
 	case reflect.Map:
 		var vals = val.MapKeys()
 		for _, k := range vals {
@@ -166,13 +164,12 @@ func (x D) CopyFrom(data interface{}) D {
 	// end CopyFrom
 }
 
-
 // AggregateFrom populates x from the given data array.  It does this
 // by calling x.CopyFrom() on each element in the array.  It returns
 // the modified host x.
 func (x D) AggregateFrom(data []interface{}) D {
 
-	for _,e := range(data) {
+	for _, e := range data {
 		x.CopyFrom(e)
 	}
 
@@ -220,7 +217,7 @@ func DAggregate(data []interface{}) D {
 // simply marshal on the D as usual.  It is equivalent to casting
 // output from Text().
 func (x D) String() string {
-  return string(x.Text())
+	return string(x.Text())
 }
 
 // Text returns a byte slice textual representation of the host D.
@@ -238,11 +235,11 @@ func (x D) Text() []byte {
 // human-readable presentation.  To produce a JSON serialization,
 // simply marshal on the D as usual.
 func (x D) WriteTo(w io.Writer) error {
-	return textrecurse(w, false, x)	
+	return textrecurse(w, false, x)
 }
 
 func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
-	
+
 	var val = reflect.ValueOf(data)
 
 	// Chain through any pointers or interfaces
@@ -256,7 +253,7 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 			if val.IsNil() {
 				return nil
 			}
-			
+
 			val = val.Elem()
 
 		default:
@@ -266,46 +263,55 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 
 	switch val.Kind() {
 
-		/*
-	case reflect.Interface: fallthrough
-	case reflect.Ptr:
+	/*
+		case reflect.Interface: fallthrough
+		case reflect.Ptr:
 
-		if val.IsNil() {
-			_,e := fmt.Fprint(buffer, "nil")
-			return e
-		}
+			if val.IsNil() {
+				_,e := fmt.Fprint(buffer, "nil")
+				return e
+			}
 
-		return textrecurse(buffer, wrap, val.Elem().Interface())
-*/
+			return textrecurse(buffer, wrap, val.Elem().Interface())
+	*/
 
 	case reflect.Map:
 		if wrap {
-			_,e := fmt.Fprint(buffer, "{")
-			if e != nil { return e}
+			_, e := fmt.Fprint(buffer, "{")
+			if e != nil {
+				return e
+			}
 		}
-		
+
 		var vals = val.MapKeys()
 		for _, k := range vals {
 			vval := val.MapIndex(k)
 			if vval.IsValid() && vval.CanInterface() {
-				_,e := fmt.Fprintf(buffer, " %s=", k.Interface())
-				if e != nil { return e}
-			
+				_, e := fmt.Fprintf(buffer, " %s=", k.Interface())
+				if e != nil {
+					return e
+				}
+
 				e = textrecurse(buffer, true, vval.Interface())
-				if e != nil { return e}
+				if e != nil {
+					return e
+				}
 			}
 		}
-		
+
 		if wrap {
-			_,e := fmt.Fprint(buffer, " }")
-			if e != nil { return e}
+			_, e := fmt.Fprint(buffer, " }")
+			if e != nil {
+				return e
+			}
 		}
 
-		
 	case reflect.Struct:
 		if wrap {
-			_,e := fmt.Fprint(buffer, "{")
-			if e != nil { return e}
+			_, e := fmt.Fprint(buffer, "{")
+			if e != nil {
+				return e
+			}
 		}
 
 		var vtype = val.Type()
@@ -313,63 +319,86 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
 			if f.IsValid() && f.CanInterface() && vtype.Field(i).Tag.Get("quiet") == "" {
-				_,e := fmt.Fprintf(buffer, " %s=", vtype.Field(i).Name)
-				if e != nil { return e}
-				
+				_, e := fmt.Fprintf(buffer, " %s=", vtype.Field(i).Name)
+				if e != nil {
+					return e
+				}
+
 				e = textrecurse(buffer, true, f.Interface())
 				haspublic = true
-				if e != nil { return e}
+				if e != nil {
+					return e
+				}
 			}
 		}
 
 		if !haspublic {
-				if err,ok := data.(error); ok {
-					_,e := fmt.Fprintf(buffer, " Message=%q", err.Error())
-				  if e != nil { return e}
+			if err, ok := data.(error); ok {
+				_, e := fmt.Fprintf(buffer, " Message=%q", err.Error())
+				if e != nil {
+					return e
+				}
 			}
 		}
-		
+
 		if wrap {
 			_, e := fmt.Fprint(buffer, " }")
-			if e != nil { return e}
+			if e != nil {
+				return e
+			}
 		}
 
-
-	case reflect.Array: fallthrough
+	case reflect.Array:
+		fallthrough
 	case reflect.Slice:
-		_,e := fmt.Fprint(buffer, "[")
-		if e != nil { return e}
+		_, e := fmt.Fprint(buffer, "[")
+		if e != nil {
+			return e
+		}
 
 		if val.Len() > 0 {
 			e := textrecurse(buffer, true, val.Index(0).Interface())
-			if e != nil { return e}
+			if e != nil {
+				return e
+			}
 		}
 
 		for i := 1; i < val.Len(); i++ {
-			_,e := fmt.Fprint(buffer, ", ")
-			if e != nil { return e}
-			
-			e = textrecurse(buffer, true, val.Index(i).Interface())
-			if e != nil { return e}
-		}
-		
-		_, e = fmt.Fprint(buffer, " ]")
-		if e != nil { return e}
+			_, e := fmt.Fprint(buffer, ", ")
+			if e != nil {
+				return e
+			}
 
+			e = textrecurse(buffer, true, val.Index(i).Interface())
+			if e != nil {
+				return e
+			}
+		}
+
+		_, e = fmt.Fprint(buffer, " ]")
+		if e != nil {
+			return e
+		}
 
 	case reflect.String:
-		_,e := fmt.Fprintf(buffer, "%q", val.String())
-		if e != nil { return e}
+		_, e := fmt.Fprintf(buffer, "%q", val.String())
+		if e != nil {
+			return e
+		}
 
 	default:
 		if val.IsValid() && val.CanInterface() {
-			_,e := fmt.Fprintf(buffer, "%v", val.Interface())
-			if e != nil { return e}
+			_, e := fmt.Fprintf(buffer, "%v", val.Interface())
+			if e != nil {
+				return e
+			}
 		} else {
-			_,e := fmt.Fprintf(buffer, "nil")
-			if e != nil { return e}
+			_, e := fmt.Fprintf(buffer, "nil")
+			if e != nil {
+				return e
+			}
 		}
-		
+
 		// end switch type
 	}
 

@@ -39,7 +39,7 @@ func init() {
 	//-- Construct the standard default root
 	Std = NewImmediateRoot()
 	Std.AddOutputDriver(NewStdOutput(path.Base(os.Args[0])))
-	
+
 	//-- Construct the standard default task
 	Main = Std.Component("main")
 

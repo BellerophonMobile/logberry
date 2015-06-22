@@ -1,9 +1,9 @@
 package logberry
 
 import (
-	"runtime"
 	"bytes"
 	"fmt"
+	"runtime"
 )
 
 // Error is used to report a fault, capturing a human-oriented message
@@ -13,7 +13,7 @@ import (
 // error that caused this higher level fault.
 type Error struct {
 	Message string
-	Data D
+	Data    D
 
 	File string
 	Line int
@@ -21,18 +21,17 @@ type Error struct {
 	Cause error
 }
 
-
-func newerror(msg string, data []interface{}) *Error {	
+func newerror(msg string, data []interface{}) *Error {
 	e := &Error{
-		Message:msg,
-		Data: DAggregate(data),
+		Message: msg,
+		Data:    DAggregate(data),
 	}
 	return e
 }
 
 func wraperror(msg string, err error, data []interface{}) *Error {
 	e := newerror(msg, data)
-	e.Cause = err	
+	e.Cause = err
 	return e
 }
 
@@ -57,12 +56,11 @@ func WrapError(msg string, err error, data ...interface{}) *Error {
 	return e
 }
 
-
 // Locate sets the source code position to be reported with this error
 // as that point where the Locate call is made.  In general it should
 // not be necessary to invoke this manually.
 func (e *Error) Locate(skip int) {
-	_,file,line,ok := runtime.Caller(skip+1)
+	_, file, line, ok := runtime.Caller(skip + 1)
 	if ok {
 		e.File = file
 		e.Line = line
@@ -80,7 +78,7 @@ func (e *Error) Error() string {
 	if e.File != "" {
 		fmt.Fprintf(buffer, " [%v:%v]", e.File, e.Line)
 	}
-	
+
 	if len(e.Data) > 0 {
 		fmt.Fprintf(buffer, " %v", e.Data.String())
 	}

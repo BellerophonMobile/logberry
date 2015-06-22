@@ -5,7 +5,6 @@ import (
 	"io"
 )
 
-
 // JSONOutput is an OutputDriver that writes log events in JSON.
 type JSONOutput struct {
 	root   Root
@@ -16,7 +15,7 @@ type JSONOutput struct {
 // Writer.  DifferentialTime defaults to false.
 func NewJSONOutput(w io.Writer) *JSONOutput {
 	return &JSONOutput{
-		writer:           w,
+		writer: w,
 	}
 }
 
@@ -32,7 +31,6 @@ func (x *JSONOutput) Detach() {
 	x.root = nil
 }
 
-
 // Event outputs a generated log entry, as called by a Root or a
 // chaining OutputDriver.
 func (x *JSONOutput) Event(event *Event) {
@@ -45,13 +43,13 @@ func (x *JSONOutput) Event(event *Event) {
 		return
 	}
 
-	_,e := x.writer.Write(bytes)
+	_, e := x.writer.Write(bytes)
 	if e != nil {
 		x.root.internalerror(WrapError("Could not write entry", e))
 		return
 	}
-	
-	_,e = x.writer.Write([]byte("\n"))
+
+	_, e = x.writer.Write([]byte("\n"))
 	if e != nil {
 		x.root.internalerror(WrapError("Could not write entry", e))
 		return

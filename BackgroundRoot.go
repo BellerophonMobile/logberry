@@ -1,8 +1,8 @@
 package logberry
 
 import (
-	"time"
 	"sync"
+	"time"
 )
 
 // A BackgroundRoot pushes events to OutputDrivers in a thread safe
@@ -14,8 +14,8 @@ import (
 type BackgroundRoot struct {
 	outputdrivers  []OutputDriver
 	errorlisteners []ErrorListener
-	events chan *Event
-	wg sync.WaitGroup
+	events         chan *Event
+	wg             sync.WaitGroup
 }
 
 // NewBackgroundRoot creates a new BackgroundRoot.  The buffer
@@ -27,7 +27,7 @@ func NewBackgroundRoot(buffer int) Root {
 	r := &BackgroundRoot{
 		outputdrivers:  make([]OutputDriver, 0, 1),
 		errorlisteners: make([]ErrorListener, 0),
-		events: make(chan *Event, buffer),
+		events:         make(chan *Event, buffer),
 	}
 
 	r.wg.Add(1)
@@ -48,9 +48,11 @@ func (x *BackgroundRoot) Stop() {
 func (x *BackgroundRoot) run() {
 
 	for {
-		e, more := <- x.events
-		if !more { break }
-		
+		e, more := <-x.events
+		if !more {
+			break
+		}
+
 		for _, driver := range x.outputdrivers {
 			driver.Event(e)
 		}
@@ -86,7 +88,7 @@ func (x *BackgroundRoot) AddOutputDriver(driver OutputDriver) Root {
 
 	// Must attach first so that the OutputDriver won't receive output
 	// until it knows its root.
-	driver.Attach(x) 
+	driver.Attach(x)
 	x.outputdrivers = append(x.outputdrivers, driver)
 	return x
 
@@ -123,7 +125,6 @@ func (x *BackgroundRoot) SetErrorListener(listener ErrorListener) Root {
 	return x
 }
 
-
 // Task creates a new top level Task under this BackgroundRoot,
 // representing a particular line of activity.
 func (x *BackgroundRoot) Task(activity string, data ...interface{}) *Task {
@@ -135,12 +136,11 @@ func (x *BackgroundRoot) Task(activity string, data ...interface{}) *Task {
 // Component creates a new top level Task under this BackgroundRoot,
 // representing a grouping of related functionality.
 func (x *BackgroundRoot) Component(component string, data ...interface{}) *Task {
-	t := newtask(nil, "Component " + component, data)
+	t := newtask(nil, "Component "+component, data)
 	t.SetComponent(component)
 	t.root = x
 	return t
 }
-
 
 // internalerror reports an internal logging error.  It is generally
 // to be used only by OutputDrivers.
@@ -153,23 +153,23 @@ func (x *BackgroundRoot) internalerror(err error) {
 
 // event indicates something to report, a log entry to make.  It is
 // generally to be used by Tasks.
-func (x *BackgroundRoot ) event(task *Task, event string, message string, data D) *Event {
+func (x *BackgroundRoot) event(task *Task, event string, message string, data D) *Event {
 
 	e := &Event{
-		TaskID: task.uid,
+		TaskID:    task.uid,
 		Component: task.component,
-		Event: event,
-		Message: message,
-		Data: data,
-		
+		Event:     event,
+		Message:   message,
+		Data:      data,
+
 		Timestamp: time.Now(),
 	}
 
 	if task.parent != nil {
 		e.ParentID = task.parent.uid
 	}
-	
-  x.events <- e
+
+	x.events <- e
 	return e
 
 	// end event
