@@ -61,7 +61,7 @@ func (x *BackgroundRoot) run() {
 
 }
 
-// CleaOutputDriver removes all of the currently registered outputs.
+// ClearOutputDrivers removes all of the currently registered outputs.
 func (x *BackgroundRoot) ClearOutputDrivers() Root {
 
 	old := x.outputdrivers

@@ -23,7 +23,7 @@ func NewImmediateRoot() *ImmediateRoot {
 }
 
 
-// CleaOutputDriver removes all of the currently registered outputs.
+// ClearOutputDrivers removes all of the currently registered outputs.
 func (x *ImmediateRoot) ClearOutputDrivers() Root {
 
 	old := x.outputdrivers
