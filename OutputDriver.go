@@ -1,6 +1,6 @@
 package logberry
 
-// An OutputDriver are registered to Roots and receive log events to
+// An OutputDriver is registered to Roots and receives log events to
 // export, e.g., writing to disk, screen, or sending to a server.  To
 // do so, an OutputDriver is created and then passed to the
 // AddOutputDriver function of a Root.  That Root will then call the
