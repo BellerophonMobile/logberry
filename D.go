@@ -312,7 +312,7 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 		var haspublic bool
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
-			if f.IsValid() && f.CanInterface() {
+			if f.IsValid() && f.CanInterface() && vtype.Field(i).Tag.Get("quiet") == "" {
 				_,e := fmt.Fprintf(buffer, " %s=", vtype.Field(i).Name)
 				if e != nil { return e}
 				
