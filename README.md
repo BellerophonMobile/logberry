@@ -217,8 +217,11 @@ Links to documentation:
  * [GoDocs](https://godoc.org/github.com/BellerophonMobile/logberry) --- Automatically generated API docs.
  * [Motivations](https://github.com/BellerophonMobile/logberry/blob/master/docs/motivations.md) --- Lengthy discussion on the design rationale behind Logberry.
  * [Related Work](https://github.com/BellerophonMobile/logberry/blob/master/docs/related.md) --- Links to and notes on some other logging packages.
-
-
+ * [Examples](https://github.com/BellerophonMobile/logberry/tree/master/examples)
+   * [Minimal](https://github.com/BellerophonMobile/logberry/tree/master/examples/minimal/main.go) --- Standard flat Info(), etc. calls
+   * [Small](https://github.com/BellerophonMobile/logberry/blob/master/examples/small/main.go) --- Basic use of Tasks, D, JSON output
+   * [Lumberjack](https://github.com/BellerophonMobile/logberry/blob/master/examples/lumberjack/main.go) --- Directing output to other destinations, in this case a rolling log managed by [Lumberjack](https://github.com/natefinch/lumberjack)
+   
 ## Changelog
 
  * **2015/06/22: Release 2.0!** The API has been conceptually
