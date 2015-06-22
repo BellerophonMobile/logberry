@@ -220,7 +220,7 @@ Links to documentation:
  * [Examples](https://github.com/BellerophonMobile/logberry/tree/master/examples)
    * [Minimal](https://github.com/BellerophonMobile/logberry/tree/master/examples/minimal/main.go) --- Standard flat Info(), etc. calls
    * [Small](https://github.com/BellerophonMobile/logberry/blob/master/examples/small/main.go) --- Basic use of Tasks, D, JSON output
-   * [Lumberjack](https://github.com/BellerophonMobile/logberry/blob/master/examples/lumberjack/main.go) --- Directing output to other destinations, in this case a rolling log managed by [Lumberjack](https://github.com/natefinch/lumberjack)
+   * [Lumberjack](https://github.com/BellerophonMobile/logberry/blob/master/examples/lumberjack/main.go) --- Directing output to other destinations, in this case a [rolling log](https://github.com/natefinch/lumberjack)
    
 ## Changelog
 
