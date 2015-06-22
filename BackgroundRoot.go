@@ -5,8 +5,8 @@ import (
 	"sync"
 )
 
-// BackgroundRoots push events to OutputDrivers in a thread safe and
-// receipt ordered fashion but in a separate, dedicated goroutine.
+// A BackgroundRoot pushes events to OutputDrivers in a thread safe
+// and receipt ordered fashion but in a separate, dedicated goroutine.
 // This may be useful for logging outputs that may take some time,
 // e.g., pushing to a logging server.  At the conclusion of the
 // program Stop should be called on the root to ensure that all of its
@@ -61,7 +61,7 @@ func (x *BackgroundRoot) run() {
 
 }
 
-// CleaOutputDrivers removes all of the currently registered outputs.
+// CleaOutputDriver removes all of the currently registered outputs.
 func (x *BackgroundRoot) ClearOutputDrivers() Root {
 
 	old := x.outputdrivers
@@ -78,7 +78,7 @@ func (x *BackgroundRoot) ClearOutputDrivers() Root {
 
 }
 
-// AddOutputDrivers includes the given additional output in those to
+// AddOutputDriver includes the given additional output in those to
 // which this BackgroundRoot forwards events.  This is not thread safe
 // with event generation, drivers are assumed to be attached in serial
 // at startup.
@@ -124,7 +124,7 @@ func (x *BackgroundRoot) SetErrorListener(listener ErrorListener) Root {
 }
 
 
-// NewTask creates a new top level Task under this BackgroundRoot,
+// Task creates a new top level Task under this BackgroundRoot,
 // representing a particular line of activity.
 func (x *BackgroundRoot) Task(activity string, data ...interface{}) *Task {
 	t := newtask(nil, activity, data)

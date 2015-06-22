@@ -1,6 +1,6 @@
 package logberry
 
-// ErrorListeners are registered to Roots and notified of internal
+// An ErrorListener is registered to Roots and notified of internal
 // logging errors.  Examples include an inability to write to disk, or
 // contact a logging server.  That notification could be utilized to
 // prompt the administrator in some way or take other action.  It is

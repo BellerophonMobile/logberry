@@ -1,6 +1,6 @@
 package logberry
 
-// Roots interface between event generation and output.  Tasks are
+// A Root interfaces between event generation and output.  Tasks are
 // created under a root for generating log events.  OutputDrivers are
 // attached to Roots for receiving those events.  All attached
 // OutputDrivers receive each event, in a thread safe and receipt

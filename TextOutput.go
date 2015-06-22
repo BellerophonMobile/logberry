@@ -58,8 +58,8 @@ const (
 )
 
 const (
-	high_intensity int = 90
-	low_intensity  int = 30
+	highintensity int = 90
+	lowintensity  int = 30
 )
 
 type terminalstyle struct {
@@ -68,18 +68,18 @@ type terminalstyle struct {
 	intensity int
 }
 
-var defaultstyle = terminalstyle{cyan,  false, high_intensity}  // default
+var defaultstyle = terminalstyle{cyan,  false, highintensity}  // default
 
 var eventstyles = map[string]terminalstyle{
-  BEGIN:         {black,   false, high_intensity},  // begin
-  END:           {black,   false, high_intensity},  // end
-  CONFIGURATION: {blue,    false, low_intensity},   // configuration
-  READY:         {green,   true,  high_intensity},  // ready
-  STOPPED:       {magenta, false, high_intensity},  // stopped
-  INFO:          {white,   false, high_intensity},  // info
-	SUCCESS:       {white,   false, high_intensity},  // end
-  WARNING:       {yellow,  false, high_intensity},  // warning
-  ERROR:         {red,     true,  high_intensity},  // error
+  BEGIN:         {black,   false, highintensity},  // begin
+  END:           {black,   false, highintensity},  // end
+  CONFIGURATION: {blue,    false, lowintensity},   // configuration
+  READY:         {green,   true,  highintensity},  // ready
+  STOPPED:       {magenta, false, highintensity},  // stopped
+  INFO:          {white,   false, highintensity},  // info
+	SUCCESS:       {white,   false, highintensity},  // end
+  WARNING:       {yellow,  false, highintensity},  // warning
+  ERROR:         {red,     true,  highintensity},  // error
 }
 
 // NewStdOutput creates a new TextOutput attached to stdout.
@@ -137,14 +137,14 @@ func (o *TextOutput) Event(event *Event) {
 
 	
 	// Set the color
-	var color int = style.color
+	var color = style.color
 
 	// Write the timestamp, program tag, and component
 
 	if o.Color {
-		var c = high_intensity
+		var c = highintensity
 		if color != black {
-			c = low_intensity
+			c = lowintensity
 		}
 		
 		_, e := fmt.Fprintf(o.writer, "\x1b[%dm", c+color)
@@ -197,14 +197,14 @@ func (o *TextOutput) Event(event *Event) {
 
 	if o.Color {
 		if color != black {
-			_, e := fmt.Fprintf(o.writer, "\x1b[0;%dm", low_intensity+color)
+			_, e := fmt.Fprintf(o.writer, "\x1b[0;%dm", lowintensity+color)
 			if e != nil {
 				o.root.internalerror(WrapError("Could write entry", e))
 				return
 			}
 
 		} else {
-			_,e := fmt.Fprintf(o.writer, "\x1b[0;%dm", high_intensity+color)
+			_,e := fmt.Fprintf(o.writer, "\x1b[0;%dm", highintensity+color)
 			if e != nil {
 				o.root.internalerror(WrapError("Could write entry", e))
 				return

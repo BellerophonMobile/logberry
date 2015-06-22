@@ -5,8 +5,8 @@ import (
 	"sync"
 )
 
-// ImmediateRoots execute logging immediately upon event generation,
-// in the same goroutine.
+// An ImmediateRoot executes logging immediately upon event
+// generation, in the same goroutine.
 type ImmediateRoot struct {
 	outputdrivers  []OutputDriver
 	errorlisteners []ErrorListener
@@ -23,7 +23,7 @@ func NewImmediateRoot() *ImmediateRoot {
 }
 
 
-// CleaOutputDrivers removes all of the currently registered outputs.
+// CleaOutputDriver removes all of the currently registered outputs.
 func (x *ImmediateRoot) ClearOutputDrivers() Root {
 
 	old := x.outputdrivers
@@ -39,7 +39,7 @@ func (x *ImmediateRoot) ClearOutputDrivers() Root {
 	return x
 }
 
-// AddOutputDrivers includes the given additional output in those to
+// AddOutputDriver includes the given additional output in those to
 // which this ImmediateRoot forwards events.  This is not thread safe with
 // event generation, drivers are assumed to be attached at startup.
 func (x *ImmediateRoot) AddOutputDriver(driver OutputDriver) Root {
@@ -84,14 +84,14 @@ func (x *ImmediateRoot) SetErrorListener(listener ErrorListener) Root {
 }
 
 
-// NewTask creates a new top level Task under this ImmediateRoot.
+// Task creates a new top level Task under this ImmediateRoot.
 func (x *ImmediateRoot) Task(activity string, data ...interface{}) *Task {
 	t := newtask(nil, activity, data)
 	t.root = x
 	return t
 }
 
-// NewTask creates a new top level Task under this ImmediateRoot.
+// Component creates a new top level Task under this ImmediateRoot.
 func (x *ImmediateRoot) Component(component string, data ...interface{}) *Task {
 	t := newtask(nil, "Component " + component, data)
 	t.SetComponent(component)
