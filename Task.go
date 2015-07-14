@@ -543,10 +543,10 @@ func (x *Task) Fatal(err error, data ...interface{}) error {
 // of the generated task error is adjusted to be the event invocation.
 func (x *Task) Failure(msg string, data ...interface{}) error {
 
+	x.Clock()
+
 	err := newerror(msg, data)
 	err.Locate(1)
-
-	x.Clock()
 
 	m := x.activity + " failed"
 
@@ -574,15 +574,14 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 // adjusted to be the event invocation.
 func (x *Task) Die(msg string, data ...interface{}) error {
 
+	x.Clock()
+
 	// This is all copied in so that the Locate() call is correct...
 	err := newerror(msg, data)
 	err.Locate(1)
 
-	x.Clock()
-
 	m := x.activity + " failed"
-
-	e := wraperror(m, err, nil)
+	e := wraperror(m, err, data)
 	e.Locate(1)
 
 	x.data.Set("Error", err)
@@ -590,6 +589,37 @@ func (x *Task) Die(msg string, data ...interface{}) error {
 	x.root.event(x, ERROR, m, x.data)
 
 	os.Exit(-1)
-	return nil
+	return e
+}
 
+
+// DieFatal is a combination of Die and Fatal, it reports the message,
+// the given error, and then terminates the program.  In general its
+// use is discouraged outside of trivial programs.  For example, when
+// using a BackgroundRoot the event may not be output because of the
+// immediate cessation.  The variadic data parameter is aggregated as
+// a D and reported as data embedded in the generated task error.  The
+// data permanently associated with the Task is reported with the
+// event.  DieFatal does not respect Task muting.  The reported source
+// code position of the generated task error is adjusted to be the
+// event invocation.
+func (x *Task) DieFatal(msg string, err error, data ...interface{}) error {
+
+	x.Clock()
+
+	// This is all copied in so that the Locate call is correct...
+
+	e1 := wraperror(msg, err, data)
+	e1.Locate(1)
+	
+	m := x.activity + " failed"
+	e2 := wraperror(m, e1, data)
+	e2.Locate(1)
+	
+	x.data.Set("Error", e1)
+
+	x.root.event(x, ERROR, m, x.data)
+
+	os.Exit(-1)
+	return e2
 }
