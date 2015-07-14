@@ -19,6 +19,7 @@ const (
 	BYTES       string = "Bytes"
 	ID          string = "ID"
 	ENDPOINT    string = "Endpoint"
+	SIZE        string = "Size"
 )
 
 // D maps capture data to be logged as key/value pairs associated with
