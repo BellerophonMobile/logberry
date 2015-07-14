@@ -125,7 +125,7 @@ func (x D) CopyFrom(data interface{}) D {
 		var haspublic bool
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
-			if f.CanInterface() {
+			if f.IsValid() && f.CanInterface() && vtype.Field(i).Tag.Get("quiet") == "" {
 				x[vtype.Field(i).Name] = f.Interface()
 				haspublic = true
 			}
