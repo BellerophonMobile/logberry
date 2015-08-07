@@ -131,9 +131,11 @@ func (x D) CopyFrom(data interface{}) D {
 			}
 		}
 
-		if !haspublic {
-			if err, ok := data.(error); ok {
+		if err, ok := data.(error); ok {
+			if !haspublic {
 				x["Error"] = err.Error()
+//			} else {
+//				x["Type"] = fmt.Sprintf("%T", err)
 			}
 		}
 
@@ -333,9 +335,14 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 			}
 		}
 
-		if !haspublic {
-			if err, ok := data.(error); ok {
+		if err, ok := data.(error); ok {
+			if !haspublic {
 				_, e := fmt.Fprintf(buffer, " Message=%q", err.Error())
+				if e != nil {
+					return e
+				}
+			} else if _,ok := err.(*Error); !ok {
+				_, e := fmt.Fprintf(buffer, " Type=%T", err)
 				if e != nil {
 					return e
 				}
