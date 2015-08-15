@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"strings"
 )
 
 // These strings are common data keys, to be optionally used in
@@ -125,7 +126,7 @@ func (x D) CopyFrom(data interface{}) D {
 		var haspublic bool
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
-			if f.IsValid() && f.CanInterface() && vtype.Field(i).Tag.Get("quiet") == "" {
+			if f.IsValid() && f.CanInterface() && !strings.Contains(vtype.Field(i).Tag.Get("logberry"), "quiet") {
 				x[vtype.Field(i).Name] = f.Interface()
 				haspublic = true
 			}
@@ -321,7 +322,7 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 		var haspublic bool
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
-			if f.IsValid() && f.CanInterface() && vtype.Field(i).Tag.Get("quiet") == "" {
+			if f.IsValid() && f.CanInterface() && !strings.Contains(vtype.Field(i).Tag.Get("logberry"), "quiet") {
 				_, e := fmt.Fprintf(buffer, " %s=", vtype.Field(i).Name)
 				if e != nil {
 					return e
