@@ -84,7 +84,7 @@ func (e *Error) Error() string {
 	}
 
 	if e.Cause != nil {
-		fmt.Fprintf(buffer, ":%v", e.Error())
+		fmt.Fprintf(buffer, ":%v", e.Cause.Error())
 	}
 
 	return buffer.String()
