@@ -465,6 +465,30 @@ func (x *Task) Error(err error, data ...interface{}) error {
 
 }
 
+func (x *Task) ErrorIf(err error, data ...interface{}) error {
+
+	if err == nil {
+		return x.Success(data...)
+	}
+
+	// Code copied from Errro() to deal with source positioning
+	x.Clock()
+
+	m := x.activity + " failed"
+
+	e := wraperror(m, err, data)
+	e.Locate(1)
+
+	x.data.Set("Error", err)
+
+	if !x.mute {
+		x.root.event(x, ERROR, m, x.data)
+	}
+
+	return e
+	
+}
+
 // WrapError generates an error log event reporting an unrecoverable
 // fault in an activity or component.  It is similar to Error but
 // useful for taking a causal error, wrapping it in an additional
