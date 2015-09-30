@@ -9,6 +9,9 @@ import (
 	"time"
 	"path/filepath"
 	"flag"
+	"go/format"
+	"bytes"
+	"io/ioutil"
 )
 
 
@@ -65,12 +68,6 @@ func main() {
 	if gofile != "" {
 		target = gofile + ".go"
 	}
-	
-	outf,err := os.Create(target)
-	if err != nil {
-		log.Panic(err)
-	}
-	defer outf.Close()
 
 	build := map[string]string{
 		"workspace": workspace,
@@ -83,10 +80,12 @@ func main() {
 	h := template.Must(template.New("header").Parse(header))
 	r := template.Must(template.New("repo").Parse(repo))
 	f := template.Must(template.New("footer").Parse(footer))
-	
-	h.Execute(outf, build)
 
-	err = filepath.Walk(workspace,
+	var outb bytes.Buffer
+	
+	h.Execute(&outb, build)
+
+	err := filepath.Walk(workspace,
 		func(path string, info os.FileInfo, err error) error {
 
 		if filepath.Base(path) == ".git" {
@@ -104,7 +103,7 @@ func main() {
 				repo["dirty"] = true
 			}
 		
-			r.Execute(outf, repo)
+			r.Execute(&outb, repo)
 
 			return filepath.SkipDir
 		}
@@ -115,7 +114,16 @@ func main() {
 		log.Panic(err)
 	}
 	
-	f.Execute(outf, build)	
+	f.Execute(&outb, build)	
+
+	gofmt, err := format.Source(outb.Bytes())
+	if err != nil {
+		log.Panic(err)
+	}
+
+	if err := ioutil.WriteFile(target, gofmt, 0644); err != nil {
+		log.Panic(err)
+	}
 }
 
 
