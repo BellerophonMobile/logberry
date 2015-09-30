@@ -1,8 +1,8 @@
 package main
 
 import (
-	"gopkg.in/natefinch/lumberjack.v2"
 	"github.com/BellerophonMobile/logberry"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 // To direct output, e.g., to a file, simply attach an OutputDriver
