@@ -135,8 +135,6 @@ func (x D) CopyFrom(data interface{}) D {
 		if err, ok := data.(error); ok {
 			if !haspublic {
 				x["Error"] = err.Error()
-//			} else {
-//				x["Type"] = fmt.Sprintf("%T", err)
 			}
 		}
 
@@ -342,7 +340,7 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 				if e != nil {
 					return e
 				}
-			} else if _,ok := err.(*Error); !ok {
+			} else if _, ok := err.(*Error); !ok {
 				_, e := fmt.Fprintf(buffer, " Type=%T", err)
 				if e != nil {
 					return e

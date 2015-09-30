@@ -486,7 +486,7 @@ func (x *Task) ErrorIf(err error, data ...interface{}) error {
 	}
 
 	return e
-	
+
 }
 
 // WrapError generates an error log event reporting an unrecoverable
@@ -616,7 +616,6 @@ func (x *Task) Die(msg string, data ...interface{}) error {
 	return e
 }
 
-
 // DieFatal is a combination of Die and Fatal, it reports the message,
 // the given error, and then terminates the program.  In general its
 // use is discouraged outside of trivial programs.  For example, when
@@ -635,11 +634,11 @@ func (x *Task) DieFatal(msg string, err error, data ...interface{}) error {
 
 	e1 := wraperror(msg, err, data)
 	e1.Locate(1)
-	
+
 	m := x.activity + " failed"
 	e2 := wraperror(m, e1, data)
 	e2.Locate(1)
-	
+
 	x.data.Set("Error", e1)
 
 	x.root.event(x, ERROR, m, x.data)
