@@ -19,7 +19,7 @@ var (
 )
 
 // IsTerminal returns true if the given file descriptor is a terminal.
-func IsTerminal(fd int) bool {
+func IsTerminal(fd syscall.Handle) bool {
 	var st uint32
 	r, _, e := syscall.Syscall(procGetConsoleMode.Addr(), 2, uintptr(fd), uintptr(unsafe.Pointer(&st)), 0)
 	return r != 0 && e == 0
