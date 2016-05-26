@@ -452,10 +452,11 @@ func (x *Task) Error(err error, data ...interface{}) error {
 
 	m := x.activity + " failed"
 
+	x.data.Set("Error", err)
+
 	e := wraperror(m, err, data)
 	e.Locate(1)
-
-	x.data.Set("Error", err)
+	e.Data.CopyFrom(x.data)
 
 	if !x.mute {
 		x.root.event(x, ERROR, m, x.data)
@@ -475,11 +476,12 @@ func (x *Task) ErrorIf(err error, data ...interface{}) error {
 	x.Clock()
 
 	m := x.activity + " failed"
+	x.data.Set("Error", err)
 
 	e := wraperror(m, err, data)
 	e.Locate(1)
-
-	x.data.Set("Error", err)
+	e.Data.CopyFrom(x.data)
+	
 
 	if !x.mute {
 		x.root.event(x, ERROR, m, x.data)
@@ -510,11 +512,11 @@ func (x *Task) WrapError(msg string, err error, data ...interface{}) error {
 	m := x.activity + " failed"
 
 	suberr := wraperror(msg, err, nil)
-
+	x.data.Set("Error", err)
+	
 	e := wraperror(m, suberr, data)
 	e.Locate(1)
-
-	x.data.Set("Error", err)
+	e.Data.CopyFrom(x.data)
 
 	if !x.mute {
 		x.root.event(x, ERROR, m, x.data)
@@ -540,10 +542,11 @@ func (x *Task) Fatal(err error, data ...interface{}) error {
 
 	m := x.activity + " failed"
 
+	x.data.Set("Error", err)
+
 	e := wraperror(m, err, data)
 	e.Locate(1)
-
-	x.data.Set("Error", err)
+	e.Data.CopyFrom(x.data)
 
 	x.root.event(x, ERROR, m, x.data)
 
@@ -574,10 +577,11 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 
 	m := x.activity + " failed"
 
+	x.data.Set("Error", err)
+	
 	e := wraperror(m, err, nil)
 	e.Locate(1)
-
-	x.data.Set("Error", err)
+	e.Data.CopyFrom(x.data)
 
 	if !x.mute {
 		x.root.event(x, ERROR, m, x.data)
@@ -605,11 +609,13 @@ func (x *Task) Die(msg string, data ...interface{}) error {
 	err.Locate(1)
 
 	m := x.activity + " failed"
-	e := wraperror(m, err, data)
-	e.Locate(1)
 
 	x.data.Set("Error", err)
-
+	
+	e := wraperror(m, err, data)
+	e.Locate(1)
+	e.Data.CopyFrom(x.data)
+	
 	x.root.event(x, ERROR, m, x.data)
 
 	os.Exit(-1)
@@ -636,10 +642,12 @@ func (x *Task) DieFatal(msg string, err error, data ...interface{}) error {
 	e1.Locate(1)
 
 	m := x.activity + " failed"
-	e2 := wraperror(m, e1, data)
-	e2.Locate(1)
 
 	x.data.Set("Error", e1)
+	
+	e2 := wraperror(m, e1, data)
+	e2.Locate(1)
+	e2.Data.CopyFrom(x.data)
 
 	x.root.event(x, ERROR, m, x.data)
 
