@@ -481,7 +481,6 @@ func (x *Task) ErrorIf(err error, data ...interface{}) error {
 	e := wraperror(m, err, data)
 	e.Locate(1)
 	e.Data.CopyFrom(x.data)
-	
 
 	if !x.mute {
 		x.root.event(x, ERROR, m, x.data)
@@ -513,7 +512,7 @@ func (x *Task) WrapError(msg string, err error, data ...interface{}) error {
 
 	suberr := wraperror(msg, err, nil)
 	x.data.Set("Error", err)
-	
+
 	e := wraperror(m, suberr, data)
 	e.Locate(1)
 	e.Data.CopyFrom(x.data)
@@ -578,7 +577,7 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 	m := x.activity + " failed"
 
 	x.data.Set("Error", err)
-	
+
 	e := wraperror(m, err, nil)
 	e.Locate(1)
 	e.Data.CopyFrom(x.data)
@@ -611,11 +610,11 @@ func (x *Task) Die(msg string, data ...interface{}) error {
 	m := x.activity + " failed"
 
 	x.data.Set("Error", err)
-	
+
 	e := wraperror(m, err, data)
 	e.Locate(1)
 	e.Data.CopyFrom(x.data)
-	
+
 	x.root.event(x, ERROR, m, x.data)
 
 	os.Exit(-1)
@@ -644,7 +643,7 @@ func (x *Task) DieFatal(msg string, err error, data ...interface{}) error {
 	m := x.activity + " failed"
 
 	x.data.Set("Error", e1)
-	
+
 	e2 := wraperror(m, e1, data)
 	e2.Locate(1)
 	e2.Data.CopyFrom(x.data)
