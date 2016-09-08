@@ -511,17 +511,14 @@ func (x *Task) WrapError(msg string, err error, data ...interface{}) error {
 	m := x.activity + " failed"
 
 	suberr := wraperror(msg, err, nil)
-	x.data.Set("Error", err)
-
-	e := wraperror(m, suberr, data)
-	e.Locate(1)
-	e.Data.CopyFrom(x.data)
+	suberr.Locate(1)
+	x.data.Set("Error", suberr)
 
 	if !x.mute {
 		x.root.event(x, ERROR, m, x.data)
 	}
 
-	return e
+	return suberr
 
 }
 
