@@ -8,72 +8,17 @@ import (
 	"strings"
 )
 
-// These strings are common data keys, to be optionally used in
-// literal D objects or calls to AddData on Tasks.
-const (
-	CALCULATION string = "Calculation"
-	FILE        string = "File"
-	RESOURCE    string = "Resource"
-	SERVICE     string = "Service"
-	USER        string = "User"
-	URL         string = "URL"
-	BYTES       string = "Bytes"
-	ID          string = "ID"
-	ENDPOINT    string = "Endpoint"
-	SIZE        string = "Size"
-)
-
 // D maps capture data to be logged as key/value pairs associated with
 // Tasks or particular events.
 type D map[string]interface{}
 
-// Set assigns field k of the data object to value v, overriding any
-// existing value.  Its return is the host D itself.
-func (x D) Set(k string, v interface{}) D {
-	x[k] = v
-	return x
-}
-
-// DBuild populates a D object from another arbitrary object.  If that
-// object is a D, it is returned.  Otherwise, DBuild is the same as
-// instantiating a blank D and invoking CopyFrom on it and the data.
-func DBuild(data interface{}) D {
-
-	d, ok := data.(D)
-	if ok {
-		return d
-	}
-
-	d = D{}
-	d.CopyFrom(data)
-	return d
-
-	// end DBuild
-}
-
-// CopyFromD takes each key/value from the given data and sets it
-// within the host.  Values are not copied.  The modified host D is
-// itself returned.
-func (x D) CopyFromD(data D) D {
-
-	for k, v := range data {
-		x[k] = v
-	}
-
-	return x
-
-	// end CopyFromD
-}
-
-// CopyFrom populates the host x from the given data object.  This
-// applies the following rules:
+// CopyFrom populates a D from the given data object.  The following
+// rules are applied:
 //
 //   data is nil                Nothing happens.
 //
-//   data is a D                Calls x.CopyFromD(data)
-//
 //   data is a struct           Each exposed field in data is set as a
-//                              key/value in x, maintaining the value.
+//                              key/value in x, copying the value.
 //
 //   data is a map              Each key/value in data is set as a
 //                              key/value in x.  fmt.Sprint is used to
@@ -119,11 +64,14 @@ func (x D) CopyFrom(data interface{}) D {
 		}
 	}
 
+	// Apply the rules listed above
 	switch val.Kind() {
 
 	case reflect.Struct:
+
 		var vtype = val.Type()
 		var haspublic bool
+		
 		for i := 0; i < val.NumField(); i++ {
 			var f = val.Field(i)
 			if f.IsValid() && f.CanInterface() && !strings.Contains(vtype.Field(i).Tag.Get("logberry"), "quiet") {
@@ -132,6 +80,8 @@ func (x D) CopyFrom(data interface{}) D {
 			}
 		}
 
+		// Special case: If the value is an error but has no accessible
+		// fields, call its Error() function to get a text representation.
 		if err, ok := data.(error); ok {
 			if !haspublic {
 				x["Error"] = err.Error()
@@ -141,7 +91,10 @@ func (x D) CopyFrom(data interface{}) D {
 	case reflect.Map:
 		var vals = val.MapKeys()
 		for _, k := range vals {
-			x[fmt.Sprint(k.Interface())] = val.MapIndex(k).Interface()
+			v := val.MapIndex(k)
+			if k.CanInterface() && v.CanInterface() {
+				x[fmt.Sprint(k.Interface())] = v.Interface()
+			}
 		}
 
 	default:
@@ -162,50 +115,25 @@ func (x D) CopyFrom(data interface{}) D {
 	}
 
 	return x
-
-	// end CopyFrom
+	
 }
 
-// AggregateFrom populates x from the given data array.  It does this
-// by calling x.CopyFrom() on each element in the array.  It returns
-// the modified host x.
-func (x D) AggregateFrom(data []interface{}) D {
 
-	for _, e := range data {
-		x.CopyFrom(e)
-	}
-
-	return x
-
-	// and AggregateFrom
-}
-
-// DAggregate returns a new D object populated from the given array.
-// The following rules are applied.  DBuild is run on the first
-// element, and then CopyFrom is run from the resultant D on each
-// other element of the array.  Note that an effect of this is that if
-// the first element of the array is a D, it is reused, and will be
-// modified if there are other elements in the array.
-//
-// It is up to the caller to threadsafe and otherwise correctly share
-// the object.  This may happen because the caller is using the same D
-// object in another goroutine, or if a Root or OutputDriver buffers
-// the event and logs it asynchronously.
+// DAggregate returns a new D object populated from the given array
+// using CopyFrom().  It is up to the caller to threadsafe and
+// otherwise correctly share the D.  This may matter because the
+// caller is using the same D object in another goroutine, or if a
+// Root or OutputDriver buffers the event and logs it asynchronously.
 func DAggregate(data []interface{}) D {
-
-	// This is done this way rather than creating a blank and calling
-	// AggregateFrom() on it in order to not create D objects
-	// unnecessarily, i.e., if the user passes a single one in, it will
-	// be used directly.
 
 	if data == nil || len(data) == 0 {
 		return D{}
 	}
+	
+	var accum = D{}
 
-	var accum = DBuild(data[0])
-
-	for i := 1; i < len(data); i++ {
-		accum.CopyFrom(data[i])
+	for _,d := range(data) {
+		accum.CopyFrom(d)
 	}
 
 	return accum
@@ -263,19 +191,8 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 		}
 	}
 
+	// Handle the possibilities
 	switch val.Kind() {
-
-	/*
-		case reflect.Interface: fallthrough
-		case reflect.Ptr:
-
-			if val.IsNil() {
-				_,e := fmt.Fprint(buffer, "nil")
-				return e
-			}
-
-			return textrecurse(buffer, wrap, val.Elem().Interface())
-	*/
 
 	case reflect.Map:
 		if wrap {
@@ -288,7 +205,7 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 		var vals = val.MapKeys()
 		for _, k := range vals {
 			vval := val.MapIndex(k)
-			if vval.IsValid() && vval.CanInterface() {
+			if k.CanInterface() && vval.IsValid() && vval.CanInterface() {
 				_, e := fmt.Fprintf(buffer, " %s=", k.Interface())
 				if e != nil {
 					return e
@@ -364,9 +281,17 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 		}
 
 		if val.Len() > 0 {
-			e := textrecurse(buffer, true, val.Index(0).Interface())
-			if e != nil {
-				return e
+			v := val.Index(0)
+			if v.CanInterface() {
+				e := textrecurse(buffer, true, v.Interface())
+				if e != nil {
+					return e
+				}
+			} else {
+				_, e := fmt.Fprint(buffer, "--")
+				if e != nil {
+					return e
+				}
 			}
 		}
 
@@ -376,9 +301,17 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 				return e
 			}
 
-			e = textrecurse(buffer, true, val.Index(i).Interface())
-			if e != nil {
-				return e
+			v := val.Index(i)			
+			if v.CanInterface() {
+				e = textrecurse(buffer, true, val.Index(i).Interface())
+				if e != nil {
+					return e
+				}
+			} else {
+				_, e := fmt.Fprint(buffer, "--")
+				if e != nil {
+					return e
+				}
 			}
 		}
 
@@ -400,7 +333,7 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 				return e
 			}
 		} else {
-			_, e := fmt.Fprintf(buffer, "nil")
+			_, e := fmt.Fprintf(buffer, "--")
 			if e != nil {
 				return e
 			}
