@@ -6,19 +6,25 @@ import (
 	"runtime"
 )
 
-// Error is used to report a fault, capturing a human-oriented message
-// describing the problem, structured data providing identifying
-// details, the source code file name and line number location at
-// which this Error was generated, and if appropriate a preceding
-// error that caused this higher level fault.
+// Error captures structured information about a fault.
 type Error struct {
+
+	// An optional identifier for differentiating classes of errors
+	Code string
+
+	// Human-oriented description of the fault
 	Message string
+
+	// Inputs, parameters, and other data associated with the fault
 	Data    D
 
+	// The source code file and line number where the error occurred
 	File string
 	Line int
 
+	// Optional link to a preceding error underlying the fault
 	Cause error
+
 }
 
 func newerror(msg string, data []interface{}) *Error {
@@ -57,8 +63,8 @@ func WrapError(msg string, err error, data ...interface{}) *Error {
 }
 
 // Locate sets the source code position to be reported with this error
-// as that point where the Locate call is made.  In general it should
-// not be necessary to invoke this manually.
+// as that point where the Locate call is made.  It should not
+// generally be necessary to invoke this manually when using Logberry.
 func (e *Error) Locate(skip int) {
 	_, file, line, ok := runtime.Caller(skip + 1)
 	if ok {
@@ -67,8 +73,26 @@ func (e *Error) Locate(skip int) {
 	}
 }
 
-// Error implements the standard Go error interface, returning a
-// human-oriented text string serialization of the Error.
+// SetCode associates the error with a particular error class string.
+func (e *Error) SetCode(code string) {
+	e.Code = code
+}
+
+// IsCode checks if the error is tagged with any of the given codes.
+func (e *Error) IsCode(code ...string) bool {
+
+	for _,c := range(code) {
+		if e.Code == c {
+			return true
+		}
+	}
+
+	return false
+	
+}
+
+
+// Error returns a human-oriented serialization of the error.
 func (e *Error) Error() string {
 
 	var buffer = new(bytes.Buffer)
@@ -83,15 +107,16 @@ func (e *Error) Error() string {
 		fmt.Fprintf(buffer, " %v", e.Data.String())
 	}
 
+	/*
 	if e.Cause != nil {
 		fmt.Fprintf(buffer, ": %v", e.Cause.Error())
 	}
-
+	 */
+	
 	return buffer.String()
 }
 
-// String returns a human-oriented text string serialization of the
-// Error.
+// String returns a human-oriented serialization of the error.
 func (e *Error) String() string {
 	return e.Error()
 }
