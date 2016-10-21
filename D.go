@@ -8,9 +8,42 @@ import (
 	"strings"
 )
 
-// D maps capture data to be logged as key/value pairs associated with
-// Tasks or particular events.
+// D is a convenience type to be used for quickly structuring simple
+// data to be logged.
 type D map[string]interface{}
+
+
+func rolldown(data interface{}) (reflect.Value,bool) {
+
+	if data == nil {
+		return reflect.Value{},true
+	}
+	
+	val := reflect.ValueOf(data)
+	
+	// Chain through any pointers or interfaces
+	done := false
+	for !done {
+		switch val.Kind() {
+		case reflect.Interface:
+			fallthrough
+		case reflect.Ptr:
+
+			if val.IsNil() {
+				return reflect.Value{},true
+			}
+
+			val = val.Elem()
+
+		default:
+			done = true
+		}
+	}
+
+	return val, false
+
+}
+
 
 // CopyFrom populates a D from the given data object.  The following
 // rules are applied:
@@ -36,82 +69,129 @@ type D map[string]interface{}
 // If data is a pointer or interface, the construction descends to the
 // object it references.
 //
-// The modified host x is itself returned.
-func (x D) CopyFrom(data interface{}) D {
+	// The modified host x is itself returned.
 
-	if data == nil {
-		return x
-	}
+func recursecopy(data interface{}) interface{} {
 
-	var val = reflect.ValueOf(data)
-
-	// Chain through any pointers or interfaces
-	done := false
-	for !done {
-		switch val.Kind() {
-		case reflect.Interface:
-			fallthrough
-		case reflect.Ptr:
-
-			if val.IsNil() {
-				return x
-			}
-
-			val = val.Elem()
-
-		default:
-			done = true
-		}
+	val,n := rolldown(data)
+	if n {
+		return nil
 	}
 
 	// Apply the rules listed above
 	switch val.Kind() {
 
 	case reflect.Struct:
-
-		var vtype = val.Type()
-		var haspublic bool
-		
-		for i := 0; i < val.NumField(); i++ {
-			var f = val.Field(i)
-			if f.IsValid() && f.CanInterface() && !strings.Contains(vtype.Field(i).Tag.Get("logberry"), "quiet") {
-				x[vtype.Field(i).Name] = f.Interface()
-				haspublic = true
-			}
-		}
-
-		// Special case: If the value is an error but has no accessible
-		// fields, call its Error() function to get a text representation.
-		if err, ok := data.(error); ok {
-			if !haspublic {
-				x["Error"] = err.Error()
-			}
-		}
+		return (D{}).copystruct(val)
 
 	case reflect.Map:
-		var vals = val.MapKeys()
-		for _, k := range vals {
-			v := val.MapIndex(k)
-			if k.CanInterface() && v.CanInterface() {
-				x[fmt.Sprint(k.Interface())] = v.Interface()
-			}
-		}
-
+		return (D{}).copymap(val)
+		
 	default:
-		var prev, find = x["value"]
-		if find {
-			switch prev.(type) {
-			case []interface{}:
-				x["value"] = append(prev.([]interface{}), data)
-
-			default:
-				x["value"] = []interface{}{prev, data}
-			}
-		} else {
-			x["value"] = data
-		}
+		return copydata(val)
 
 		// end switch type
+	}
+
+	return nil
+
+}
+
+func (x D) copystruct(val reflect.Value) D {
+
+	var vtype = val.Type()
+	var haspublic bool
+		
+	for i := 0; i < val.NumField(); i++ {
+		var f = val.Field(i)
+		if f.IsValid() && f.CanInterface() && !strings.Contains(vtype.Field(i).Tag.Get("logberry"), "quiet") {
+			x[vtype.Field(i).Name] = recursecopy(f.Interface())
+			haspublic = true
+		}
+	}
+
+	// Special case: If the value is an error but has no accessible
+	// fields, call its Error() function to get a text representation.
+	if !haspublic && val.CanInterface() {
+		if err, ok := val.Interface().(error); ok {
+			x["Error"] = err.Error()
+		}
+	}
+
+	return x
+	
+}
+
+func (x D) copymap(val reflect.Value) D {
+
+	var vals = val.MapKeys()
+	for _, k := range vals {
+		v := val.MapIndex(k)
+		if k.CanInterface() && v.CanInterface() {
+			x[fmt.Sprint(k.Interface())] = recursecopy(v.Interface())
+		}
+	}
+
+	return x
+
+}
+
+func copydata(val reflect.Value) interface{} {
+
+	switch val.Kind() {
+	case reflect.Array: fallthrough
+	case reflect.Slice:
+		arr := make([]interface{}, val.Len())
+		
+		for i := 0; i < val.Len(); i++ {
+			arr[i] = val.Index(i)	
+		}
+
+		return arr
+		
+	default:
+		if val.CanInterface() {
+			return val.Interface()
+		}
+
+	}
+
+	return "--"
+
+}
+
+
+func (x D) CopyFrom(data interface{}) D {
+	
+	val,n := rolldown(data)
+	if n {
+		return x
+	}
+
+	switch val.Kind() {
+
+	case reflect.Struct:
+		x.copystruct(val)
+
+	case reflect.Map:
+		x.copymap(val)
+		
+	default:
+		newval := copydata(val)
+		prev, find := x["value"]
+
+		if find {
+			switch p := prev.(type) {
+			case []interface{}:
+				x["value"] = append(p, newval)
+
+			default:
+				x["value"] = []interface{}{p, newval}
+			}
+		} else {
+			x["value"] = newval
+		}
+
 	}
 
 	return x
