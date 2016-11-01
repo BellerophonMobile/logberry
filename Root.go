@@ -135,7 +135,7 @@ func (x *Root) Task(activity string, data ...interface{}) *Task {
 // representing a grouping of related functionality.
 func (x *Root) Component(component string, data ...interface{}) *Task {
 	t := newtask(nil, "Component "+component, data)
-	t.SetComponent(component)
+	t.component = component
 	t.root = x
 	return t
 }
