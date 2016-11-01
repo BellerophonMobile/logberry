@@ -20,4 +20,7 @@ func main() {
 
 	// Log where we're writing this log...
 	logberry.Main.Info("Wrote output", &logberry.D{"Log": logger.Filename})
+
+	logberry.Std.Stop()
+
 }

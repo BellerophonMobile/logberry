@@ -12,4 +12,6 @@ func main() {
 
 	logberry.Main.Failure("Arbitrary failure")
 
+	logberry.Std.Stop()
+
 }
