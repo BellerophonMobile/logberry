@@ -7,7 +7,7 @@ import (
 
 // JSONOutput is an OutputDriver that writes log events in JSON.
 type JSONOutput struct {
-	root   Root
+	root   *Root
 	writer io.Writer
 }
 
@@ -21,7 +21,7 @@ func NewJSONOutput(w io.Writer) *JSONOutput {
 
 // Attach notifies the OutputDriver of its Root.  It should only be
 // called by a Root.
-func (x *JSONOutput) Attach(root Root) {
+func (x *JSONOutput) Attach(root *Root) {
 	x.root = root
 }
 

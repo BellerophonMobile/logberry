@@ -11,7 +11,7 @@ import (
 type Task struct {
 	uid uint64
 
-	root Root
+	root *Root
 
 	parent *Task
 
@@ -29,14 +29,12 @@ func newtaskuid() uint64 {
 	return atomic.AddUint64(&numtasks, 1) - 1
 }
 
-func newtask(parent *Task, activity string, data []interface{}) *Task {
+func newtask(parent *Task, component string, activity string, data []interface{}) *Task {
 
 	t := &Task{
 		uid:    newtaskuid(),
 		parent: parent,
-
 		activity: activity,
-
 		data: DAggregate(data),
 	}
 
@@ -47,7 +45,11 @@ func newtask(parent *Task, activity string, data []interface{}) *Task {
 		t.root = Std
 	}
 
-	x.root.event(x, BEGIN, x.activity+" begin", d)
+	if component != "" {
+		t.component = component
+	}
+
+	t.root.event(t, BEGIN, t.activity+" begin", t.data)
 
 	return t
 
@@ -60,7 +62,7 @@ func newtask(parent *Task, activity string, data []interface{}) *Task {
 // events.  This call does not produce a log event.  Use Begin to
 // indicate the start of a long running task.
 func (x *Task) Task(activity string, data ...interface{}) *Task {
-	return newtask(x, activity, data)
+	return newtask(x, "", activity, data)
 }
 
 // Component creates a new Task object representing a set of related
@@ -72,7 +74,7 @@ func (x *Task) Task(activity string, data ...interface{}) *Task {
 // associated with the Task and reported with its events.  This call
 // does produce a log event marking the instantiation.
 func (x *Task) Component(component string, data ...interface{}) *Task {
-	return newtask(x, component, data).SetComponent(component).Begin()
+	return newtask(x, component, "Component " + component, data)
 }
 
 // AddData incorporates the given data into that associated and
@@ -146,22 +148,6 @@ func (x *Task) Stopped(data ...interface{}) {
 		DAggregate(data).CopyFrom(x.data))
 }
 
-// End generates an end log event reporting that the component the
-// Task represents has been finalized.  If the Task is being timed it
-// will be clocked and the duration reported.  Continuing to use the
-// Task will not cause an error but is discouraged.  The variadic data
-// parameter is aggregated as a D and reporting with the event, as is
-// the data permanently associated with the Task.  The given data is
-// not associated to the Task permanently.
-func (x *Task) End(data ...interface{}) {
-
-	d := DAggregate(data)
-	d.CopyFrom(x.data)
-
-	x.root.event(x, END, x.activity+" end", d)
-
-}
-
 // Success generates a success log event reporting that the activity
 // the Task represents has concluded successfully.  If the Task is
 // being timed it will be clocked and the duration reported.  It
@@ -195,7 +181,7 @@ func (x *Task) Error(err error, data ...interface{}) error {
 
 	m := x.activity + " failed"
 
-	x.data.Set("Error", err)
+	x.data["Error"] = err
 
 	e := wraperror(m, err, data)
 	e.Locate(1)
@@ -227,7 +213,7 @@ func (x *Task) WrapError(msg string, err error, data ...interface{}) error {
 
 	suberr := wraperror(msg, err, nil)
 	suberr.Locate(1)
-	x.data.Set("Error", suberr)
+	x.data["Error"] = suberr
 
 	x.root.event(x, ERROR, m, x.data)
 
@@ -256,7 +242,7 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 
 	m := x.activity + " failed"
 
-	x.data.Set("Error", err)
+	x.data["Error"] = err
 
 	e := wraperror(m, err, nil)
 	e.Locate(1)
@@ -265,5 +251,21 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 	x.root.event(x, ERROR, m, x.data)
 
 	return e
+
+}
+
+// End generates an end log event reporting that the component the
+// Task represents has been finalized.  If the Task is being timed it
+// will be clocked and the duration reported.  Continuing to use the
+// Task will not cause an error but is discouraged.  The variadic data
+// parameter is aggregated as a D and reporting with the event, as is
+// the data permanently associated with the Task.  The given data is
+// not associated to the Task permanently.
+func (x *Task) Finalized(data ...interface{}) {
+
+	d := DAggregate(data)
+	d.CopyFrom(x.data)
+
+	x.root.event(x, END, x.activity+" finalized", d)
 
 }

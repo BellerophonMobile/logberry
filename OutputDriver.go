@@ -9,8 +9,7 @@ package logberry
 // error with unspecified behavior to add an OutputDriver instance to
 // more than one Root simultaneously.
 type OutputDriver interface {
-	Attach(root Root)
+	Attach(root *Root)
 	Detach()
-
 	Event(event *Event)
 }

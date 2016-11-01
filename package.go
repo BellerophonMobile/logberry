@@ -28,7 +28,7 @@ import (
 )
 
 // Std is the default Root created at startup.
-var Std Root
+var Std *Root
 
 // Main is the default Task created at startup, roughly intended to
 // represent main program execution.
@@ -37,7 +37,7 @@ var Main *Task
 func init() {
 
 	//-- Construct the standard default root
-	Std = NewRoot()
+	Std = NewRoot(24)
 	Std.AddOutputDriver(NewStdOutput(path.Base(os.Args[0])))
 
 	//-- Construct the standard default task

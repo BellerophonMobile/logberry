@@ -22,7 +22,8 @@ type Root struct {
 // size of the channel buffer connecting event generation to outputs.
 // The goroutine that creates the Root should defer a call to Stop()
 // to ensure that all events are pushed.
-func NewRoot(buffer int) Root {
+func NewRoot(buffer int) *Root {
+	
 	r := &Root{
 		outputdrivers:  make([]OutputDriver, 0, 1),
 		errorlisteners: make([]ErrorListener, 0),
@@ -62,7 +63,7 @@ func (x *Root) run() {
 }
 
 // ClearOutputDrivers removes all of the currently registered outputs.
-func (x *Root) ClearOutputDrivers() Root {
+func (x *Root) ClearOutputDrivers() {
 
 	old := x.outputdrivers
 
@@ -74,59 +75,52 @@ func (x *Root) ClearOutputDrivers() Root {
 		o.Detach()
 	}
 
-	return x
-
 }
 
 // AddOutputDriver includes the given additional output in those to
 // which this Root forwards events.  This is not thread safe
 // with event generation, drivers are assumed to be attached in serial
 // at startup.
-func (x *Root) AddOutputDriver(driver OutputDriver) Root {
+func (x *Root) AddOutputDriver(driver OutputDriver) {
 
 	// Must attach first so that the OutputDriver won't receive output
 	// until it knows its root.
 	driver.Attach(x)
 	x.outputdrivers = append(x.outputdrivers, driver)
-	return x
 
 }
 
 // SetOutputDriver makes the given driver the only output for this
 // root.  It is identical to calling x.ClearOutputDrivers() and then
 // x.AddOutputDriver(driver).
-func (x *Root) SetOutputDriver(driver OutputDriver) Root {
+func (x *Root) SetOutputDriver(driver OutputDriver) {
 	x.ClearOutputDrivers()
 	x.AddOutputDriver(driver)
-	return x
 }
 
 // ClearErrorListeners removes all of the registered listeners.
-func (x *Root) ClearErrorListeners() Root {
+func (x *Root) ClearErrorListeners() {
 	x.errorlisteners = make([]ErrorListener, 0)
-	return x
 }
 
 // AddErrorListener includes the given listener among those to which
 // internal logging errors are reported.
-func (x *Root) AddErrorListener(listener ErrorListener) Root {
+func (x *Root) AddErrorListener(listener ErrorListener) {
 	x.errorlisteners = append(x.errorlisteners, listener)
-	return x
 }
 
 // SetErrorListener makes the given listener the only one for this
 // Root.  It is identical to calling x.ClearErrorListeners()
 // and then x.AddErrorListener(listener).
-func (x *Root) SetErrorListener(listener ErrorListener) Root {
+func (x *Root) SetErrorListener(listener ErrorListener) {
 	x.ClearErrorListeners()
 	x.AddErrorListener(listener)
-	return x
 }
 
 // Task creates a new top level Task under this Root,
 // representing a particular line of activity.
 func (x *Root) Task(activity string, data ...interface{}) *Task {
-	t := newtask(nil, activity, data)
+	t := newtask(nil, "", activity, data)
 	t.root = x
 	return t
 }
@@ -134,8 +128,7 @@ func (x *Root) Task(activity string, data ...interface{}) *Task {
 // Component creates a new top level Task under this Root,
 // representing a grouping of related functionality.
 func (x *Root) Component(component string, data ...interface{}) *Task {
-	t := newtask(nil, "Component "+component, data)
-	t.component = component
+	t := newtask(nil, component, "Component "+component, data)
 	t.root = x
 	return t
 }
