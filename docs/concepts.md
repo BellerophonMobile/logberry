@@ -2,9 +2,9 @@
 
 Logberry has four top level concepts/objects:
 
- * `Root`: An interface between Tasks and OutputDrivers.
+ * `Root`: A consolidation point between Tasks and OutputDrivers.
  * `OutputDriver`: Serializers for publishing events.
- * `Task`: A component, function, or logic that generates events.
+ * `Task`: A component, function, or logic path that generates events.
  * `D`: Data to be published with an event.
 
 Also important are two less fundamental but included concepts/objects:
@@ -17,28 +17,15 @@ Also important are two less fundamental but included concepts/objects:
 
 All logging is coordinated by a Root.  Tasks under a Root generate
 events, which are given to OutputDrivers to actually publish.
+Typically you would only have the default Root in a program.
 
-There are two kinds of Roots:
-
- * ImmediateRoot: Simply dispatches each event to registered outputs.
- * BackgroundRoot: Throws each event into a channel, which may or may
-   not be buffered.  A separate goroutine continually processes events
-   from the channel, dispatching them to registered outputs.
-
-Both serialize incoming events such that only one event is reported at
-a time, in order of first receipt.  From the user's perspective, the
-big difference is that the host program needs to call `Root::Stop()`
-on a BackgroundRoot to ensure that all generated events are output.
-Otherwise it is possible for the background goroutine to not activate
-before the program terminates, leaving events in the buffer.  However,
-that buffering and execution on a separate goroutine can be useful for
-long lived programs using OutputDrivers which may take some time,
-e.g., publishing to a remote log service.
-
-There is a default Root `logberry.Std`, which is an ImmediateRoot so
-that it intuitively outputs all events without any additional calls.
-However, programs need not make any use of this Root, instead
-generating Tasks under custom Roots as described below.
+Generated events are thown into a channel, which may or may not be
+buffered.  A separate goroutine continually processes events from the
+channel in the background, dispatching them to registered outputs.
+The host program needs to call `Root::Stop()` on a BackgroundRoot to
+ensure that all generated events are output.  Otherwise it is possible
+for the background goroutine to not activate before a short running
+program terminates, leaving events in the buffer.
 
 
 ## OutputDriver
@@ -47,7 +34,7 @@ Events are actually recorded, aggregated, or otherwise processed by
 OutputDrivers.  Applications may implement its interface and provide
 their own, but there are two included in Logberry:
 
- * TextOutput: Arguably human readable output, colorized if outputting
+ * TextOutput: Human readable output, colorized if outputting
    to a terminal.
  * JSONOutput: Machine readable JSON formatted output.
 
@@ -144,18 +131,15 @@ also have a human-oriented activity text, e.g., 'Save configuration'
 or 'Connect to database'.
 
 By default Tasks inherit the component tag of their parent and are
-given a text label specifying some focused activity.  They also do not
-log their instantiation, though the `Task::Begin()` function may be
-used to do so.  Tasks created using the Component creator though are
-assigned the given component label, presumably different from that of
-their parent Task.  Their activity text is also generated to identify
-that component, and their instantiation logged.  Termination of the
-component may then be logged using `Task::End()` in addition to the
-error reports.
+given a text label specifying some focused activity.  Tasks created
+using the Component creator though are assigned the given component
+label, presumably different from that of their parent Task.  Their
+activity text is also generated to identify that component.
+Termination of the component may then be logged using
+`Task::Finalized()` or the error reports as needed.
 
 Note, however, that these component Tasks are just regular Task
-objects that apply a few conventions when created.  Component tags and
-activity texts may also be manually set or changed for all Tasks.
+objects that apply a few conventions when created.
 
 
 ### Data
@@ -171,18 +155,12 @@ subsequent log events.  The task might then terminate on success by
 additionally reporting the number of bytes transmitted.
 
 Data to be associated with a Task may be passed to creation functions.
-The `Task::AddData(key, value)` function may also be used to assert
-data as the Task continues.  `Task::AggregateData(key, ...value)` does
-similarly in a slightly more general fashion, following the behavior
-of D objects as described below and in the [API
-GoDocs](https://godoc.org/github.com/BellerophonMobile/logberry).
+The `Task::AddData(data...)` function may also be used to assert data
+as the Task continues.
 
 Event specific data may be included in all of the reporting functions
 outlined in the following.  This data does not aggregate into the Task
 for output in subsequent calls.
-
-Several constants are defined to be used as data keys in order to
-promote common terms, but their use is completely optional.
 
 
 ### Reporting
@@ -204,49 +182,31 @@ A simple example is:
 	computerlog.Event("request", "Received request", req)
 ```
 
-Built on top of this basic function are a variety of common event
-functions:
+Built on top of this are a variety of common event triggers:
 
- * Configuration: Report on program or module initialization.
-   * `BuildMetadata`
-   * `BuildSignature`
-   * `Configuration`
-   * `CommandLine`
-   * `Environment`
-   * `Process`
  * Informational: Report generic data, human messages, or warnings.
    * `Info`
    * `Warning`
  * State: Mark the end of initialization or pause in processing.
    * `Ready`
    * `Stopped`
- * Lifetime: Report the start of components or long-running tasks, and
-   denote their termination state
-   * `Begin`
-   * `End`
+ * Lifetime: Report the termination state of components or tasks.
    * `Success`
    * `Error`
-   * `WrapError`
-   * `Fatal`
    * `Failure`
-   * `Die`
+   * `Finalized`
 
-Details on these and a full up-to-date list may be found in the [API
+There are also functions to report program or module initialization:
+
+   * `BuildMetadataEvent`
+   * `BuildSignatureEvent`
+   * `ConfigurationEvent`
+   * `CommandLineEvent`
+   * `EnvironmentEvent`
+   * `ProcessEvent`
+
+Details on all these functions may be found in the [API
 GoDocs](https://godoc.org/github.com/BellerophonMobile/logberry).
-
-
-### Utilities
-
-Task may additionally be muted (and unmuted).  In this state they will
-produce no log events.  This is useful when using a task simply to
-collect other tasks, or to generate and throw but not directly report
-a structured error message.
-
-Tasks may also be timed, and their duration reported by the
-terminating lifetime events.  To start the clock, invoke
-`Task::Time()`.  To additionally report the instationation, use
-`Task::Begin()`. Components automatically do the latter.  The current
-duration may be fetched using `Task::Clock()`.
 
 ## D
 
@@ -257,33 +217,30 @@ data to the call, which depending on the function is either associated
 to a Task or reported along with a specific event, e.g.:
 
 ```go
-// Task creates a new sub-task of the host task.  Parameter activity
-// should be a short natural language description of the work that the
-// Task represents, without any terminating punctuation.  Any data
-// given will be associated with the Task and reported with its
-// events.  This call does not produce a log event.  Use Begin to
-// indicate the start of a long running task.
+// Task creates a new sub-task.  Parameter activity should be a short
+// natural language description of the work that the Task represents,
+// without any terminating punctuation.  Any data given here will be
+// associated with the Task and reported with all its events.
 func (x *Task) Task(activity string, data ...interface{}) *Task
 
 // Error generates an error log event reporting an unrecoverable fault
-// in an activity or component.  If the Task is being timed it will be
-// clocked and the duration reported.  An error is returned wrapping
-// the original error with a message reporting that the Task's
-// activity has failed.  Continuing to use the Task will not cause an
-// error but is discouraged.  The variadic data parameter is
-// aggregated as a D and reported as data embedded in the generated
-// Task Error.  The data permanently associated with the Task is
-// reported with the event.
-func (x *Task) Error(err error, data ...interface{}) error
+// in an activity or component.  An error is returned wrapping the
+// original error with a message reporting that the Task's activity
+// has failed.  Continuing to use the Task is discouraged.  The
+// variadic data parameter is aggregated as a D and embedded in the
+// generated error.  It and the data permanently associated with the
+// Task is reported with the event.  The reported source code position
+// of the generated task error is adjusted to be the event invocation.
+func (x *Task) Error(err error, data ...interface{}) error {	
 ```
 
-D is just a standard Go map, with its real functionality is several
-functions for constructing instances from arbitrarily typed and
-variadic parameters.  In particular, it will automatically incorporate
-exposed fields of structs and keys of maps as keys of the constructed
-D.  In this way it is very easy to incorporate objects into a log
-event and have the data reported in a structured fashion.  E.g., the
-following log event will have `DataLabel` and `DataInt` fields:
+D is just a standard Go map, with its real functionality in several
+functions for copying instances from arbitrarily typed and variadic
+parameters.  In particular, it will automatically incorporate exposed
+fields of structs and keys of maps as keys of the constructed D.  In
+this way it is very easy to incorporate objects into a log event and
+have the data reported in a structured fashion.  E.g., the following
+log event will have `DataLabel` and `DataInt` fields:
 
 ```go
 	// Create some structured application data and log it
@@ -295,14 +252,6 @@ following log event will have `DataLabel` and `DataInt` fields:
 	logberry.Main.Info("Reporting some data", data)
 ```
 
-The D constructors also apply several conventions to simply reuse an
-existing D object if it is passed in as the data, and to absorb
-subsequent data into an existing D object passed at the head of a
-variadic parameter.  This supports several use cases for throwing D
-objects around without unduly cloning new objects.  Full details on
-this and the other construction rules are in the [GoDocs for the
-type](https://godoc.org/github.com/BellerophonMobile/logberry#D).
-
 Several functions to produce properly delimited but human-readable
 `key=value` text printouts of D objects are also provided.  However,
 note that as they're simply Go maps, they're trivial to throw into
@@ -311,11 +260,11 @@ JSON marshaling or other serialization.
 
 ## BuildMetadata
 
-Logberry also has a built in reporting functions and simple
+Logberry also has built in reporting functions and simple
 representation of a program's build environment, along with script
 tools to automatically construct those representations.
 
-First of these is `Task::BuildSignature()`, which takes and reports a
+First of these is `BuildSignatureEvent()`, which takes and reports a
 string as some arbitrary stamp of the binary's build profile.  The
 script `util/build-signature.sh` will automatically generate such from
 basic host device parameters and the Git repository assumed to be the
@@ -333,7 +282,7 @@ Go's linker flags, e.g.:
 go install -ldflags "-X main.buildsignature '`./util/build-signature.sh
 ```
 
-More expressively, `Task::BuildMetadata()` takes and reports a more
+More expressively, `BuildMetadataEvent()` takes and reports a more
 in-depth, structured representation of the build environment.  The
 program `util/build-metadata.go` constructs a BuildMetadata object,
 and is intended to be executed using `go run` or `go generate` to
@@ -431,7 +380,11 @@ source code location from which the event originates, and optionally
 an underlying preceding error that caused this higher level fault.
 The linked error may be a generic error, not necessarily a Logberry
 Error.  In this way the errors can capture a stacktrace of failures,
-each reporting structured data and source code location.
+each reporting structured data and source code location.  There is
+also a code string and a global convenience function to take an error
+and check if it has any of a set of code strings.  This is useful as a
+quick way to check the outcome of client code for a specific type of
+error, e.g., connection closed.
 
 
 ## Summary

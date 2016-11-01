@@ -60,6 +60,8 @@ func main() {
 
 	logberry.Main.Failure("Arbritrary failure")
 
+  logberry.Std.Stop()
+
 }
 ```
 
@@ -92,6 +94,7 @@ package main
 
 import (
 	"github.com/BellerophonMobile/logberry"
+//	"os"
 )
 
 func main() {
@@ -99,8 +102,8 @@ func main() {
 	// Uncomment this and "os" import for JSON output
 	// logberry.Std.SetOutputDriver(logberry.NewJSONOutput(os.Stdout))
 
-	// Report build information; a script generates buildmeta
-	logberry.Main.BuildMetadata(buildmetadata)
+	// Report build information; a script generates buildmetadata
+	logberry.BuildMetadataEvent(logberry.Main, buildmetadata)
 
 	// Report that the program is initialized & running
 	logberry.Main.Ready()
@@ -138,15 +141,19 @@ func main() {
 	}
 
 	// The component ends
-	computerlog.End()
+	computerlog.Finalized()
 
 	// The program shuts down
 	logberry.Main.Stopped()
 
+	// Wait for all log messages to be output
+	logberry.Std.Stop()
+
 }
 
 func somecomputation() (int, error) {
-	return 7, nil
+	return 7, nil // errors.New("Could not compute")
+	// return 7, errors.New("Could not compute")
 }
 
 func arbitraryfunc(component *logberry.Task) error {
@@ -212,6 +219,11 @@ Links to documentation:
    
 ## Changelog
 
+ * **2016/11/01: Release 2.5** After a fair bit of use and thought, we
+     decided Logberry was still pretty solid and just needed some
+     cleanup.  So the API was trimmed down, structure consolidated to
+     a single threadsafe Root, errors made less verbose, and some
+     other fixes and tweaks made.
  * **2015/06/22: Release 2.0!** The API has been conceptually
    simplified, errors structured, and underlying code improved.
  * **2014/10/30: Release 1.0!** Though definitely not mature at all,
@@ -225,7 +237,7 @@ Logberry is provided under the open source
 
 > The MIT License (MIT)
 >
-> Copyright (c) 2014, 2015 [Bellerophon Mobile](http://bellerophonmobile.com/)
+> Copyright (c) 2014, 2015, 2016 [Bellerophon Mobile](http://bellerophonmobile.com/)
 > 
 >
 > Permission is hereby granted, free of charge, to any person
