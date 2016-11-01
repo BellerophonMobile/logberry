@@ -122,7 +122,7 @@ func copydata(val reflect.Value) interface{} {
 		
 	default:
 		if val.CanInterface() {
-			return recursecopy(val.Interface())
+			return val.Interface()
 		}
 
 	}

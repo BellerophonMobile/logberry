@@ -40,8 +40,12 @@ func init() {
 	Std = NewRoot(24)
 	Std.AddOutputDriver(NewStdOutput(path.Base(os.Args[0])))
 
-	//-- Construct the standard default task
-	Main = Std.Component("main")
+	//-- Construct the standard default task manually so no event
+	Main = &Task{
+		uid:    newtaskuid(),
+		component: "main",
+		activity: "Component main",
+		root: Std,
+	}
 
-	// end init
 }

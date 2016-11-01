@@ -174,9 +174,10 @@ func (x *Task) Success(data ...interface{}) error {
 // of the generated task error is adjusted to be the event invocation.
 func (x *Task) Error(err error, data ...interface{}) error {	
 	m := x.activity + " failed"
+	x.root.event(x, ERROR, m, D{"Error": err}.CopyFrom(data).CopyFrom(x.data))
+
 	e := wraperror(m, err, data)
 	e.Locate(1)
-	x.root.event(x, ERROR, m, D{"Error": err}.CopyFrom(data).CopyFrom(x.data))
 	return e
 }
 
@@ -193,11 +194,13 @@ func (x *Task) Error(err error, data ...interface{}) error {
 // source code position of the generated task error is adjusted to be
 // the event invocation.
 func (x *Task) Failure(msg string, data ...interface{}) error {
-	err := newerror(msg)
+	err := newerror(msg, nil)
+
 	m := x.activity + " failed"
+	x.root.event(x, ERROR, m, D{"Error": err}.CopyFrom(data).CopyFrom(x.data))
+
 	e := wraperror(m, err, data)
 	e.Locate(1)
-	x.root.event(x, ERROR, m, D{"Error": err}.CopyFrom(data).CopyFrom(x.data))
 	return e
 }
 
