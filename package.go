@@ -7,7 +7,7 @@ typical, in readable and easily parsed forms.
 There are four central concepts/objects/interfaces:
 
  D              - Data to be published with an event.
- Task           - A component, function, or logic that generates events.
+ Task           - A component, function, or logic path generating events.
  OutputDriver   - Serializer for publishing events.
  Root           - An interface between Tasks and OutputDrivers.
 

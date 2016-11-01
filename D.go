@@ -44,33 +44,6 @@ func rolldown(data interface{}) (reflect.Value,bool) {
 
 }
 
-
-// CopyFrom populates a D from the given data object.  The following
-// rules are applied:
-//
-//   data is nil                Nothing happens.
-//
-//   data is a struct           Each exposed field in data is set as a
-//                              key/value in x, copying the value.
-//
-//   data is a map              Each key/value in data is set as a
-//                              key/value in x.  fmt.Sprint is used to
-//                              create a string key from the original
-//                              map key.  The value stored is the
-//                              original value, not a copy.
-//
-//   otherwise                  The value data is placed within a field
-//                              keyed as "value" in x.  If the field
-//                              already exists and is a single value,
-//                              it is replaced with a list of both
-//                              values.  Otherwise, if the field is
-//                              already a list, data is appended to it.
-//
-// If data is a pointer or interface, the construction descends to the
-// object it references.
-//
-	// The modified host x is itself returned.
-
 func recursecopy(data interface{}) interface{} {
 
 	val,n := rolldown(data)
@@ -78,7 +51,6 @@ func recursecopy(data interface{}) interface{} {
 		return nil
 	}
 
-	// Apply the rules listed above
 	switch val.Kind() {
 
 	case reflect.Struct:
@@ -90,7 +62,6 @@ func recursecopy(data interface{}) interface{} {
 	default:
 		return copydata(val)
 
-		// end switch type
 	}
 
 	return nil
@@ -144,14 +115,14 @@ func copydata(val reflect.Value) interface{} {
 		arr := make([]interface{}, val.Len())
 		
 		for i := 0; i < val.Len(); i++ {
-			arr[i] = val.Index(i)	
+			arr[i] = recursecopy(val.Index(i))
 		}
 
 		return arr
 		
 	default:
 		if val.CanInterface() {
-			return val.Interface()
+			return recursecopy(val.Interface())
 		}
 
 	}
@@ -160,7 +131,34 @@ func copydata(val reflect.Value) interface{} {
 
 }
 
-
+// CopyFrom populates a D from the given data object.  The following
+// rules are applied:
+//
+//   data is nil                Nothing happens.
+//
+//   data is a struct           Each exposed field in data is recursively
+//                              copied as a key/value pair into x.
+//
+//   data is a map              Each key/value in data recursively copied
+//                              copied as a key/value pair into x.
+//                              fmt.Sprint is used to create a string key
+//                              from the original map key.
+//
+//   otherwise                  The value data is recursively copied into
+//                              a field "value" in x.  If the field
+//                              already exists and is a single value,
+//                              it is replaced with a list of both
+//                              values.  Otherwise, if the field is
+//                              already a list, data is appended to it.
+//
+// If data is a pointer or interface, the construction descends to the
+// object it references.
+//
+// As a special case, if a struct value is an error but has no accessible
+// fields, its Error() function is called to get a text representation
+// and put in the "Error" value.
+//
+// The modified host x is itself returned.
 func (x D) CopyFrom(data interface{}) D {
 	
 	val,n := rolldown(data)
@@ -200,10 +198,7 @@ func (x D) CopyFrom(data interface{}) D {
 
 
 // DAggregate returns a new D object populated from the given array
-// using CopyFrom().  It is up to the caller to threadsafe and
-// otherwise correctly share the D.  This may matter because the
-// caller is using the same D object in another goroutine, or if a
-// Root or OutputDriver buffers the event and logs it asynchronously.
+// using CopyFrom().
 func DAggregate(data []interface{}) D {
 
 	var accum = D{}
@@ -218,56 +213,32 @@ func DAggregate(data []interface{}) D {
 }
 
 // String returns a text representation of the host D.  This is
-// presented as a sequence of key=value pairs for arguably
-// human-readable presentation.  To produce a JSON serialization,
-// simply marshal on the D as usual.  It is equivalent to casting
-// output from Text().
+// presented as a sequence of human-readable key=value pairs.  This
+// call is equivalent to casting output from Text(). To produce a JSON
+// serialization, simply marshal the D as usual.
 func (x D) String() string {
 	return string(x.Text())
 }
 
 // Text returns a byte slice textual representation of the host D.
-// This is presented as a sequence of key=value pairs for arguably
-// human-readable presentation.  To produce a JSON serialization,
-// simply marshal on the D as usual.
 func (x D) Text() []byte {
 	var buffer bytes.Buffer
 	x.WriteTo(&buffer)
 	return buffer.Bytes()
 }
 
-// WriteTo serializes the host D to the given io.Writer.  This is
-// presented as a sequence of key=value pairs for arguably
-// human-readable presentation.  To produce a JSON serialization,
-// simply marshal on the D as usual.
+// WriteTo serializes the host D to the given io.Writer.
 func (x D) WriteTo(w io.Writer) error {
 	return textrecurse(w, false, x)
 }
 
 func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 
-	var val = reflect.ValueOf(data)
-
-	// Chain through any pointers or interfaces
-	done := false
-	for !done {
-		switch val.Kind() {
-		case reflect.Interface:
-			fallthrough
-		case reflect.Ptr:
-
-			if val.IsNil() {
-				return nil
-			}
-
-			val = val.Elem()
-
-		default:
-			done = true
-		}
+	val,n := rolldown(data)
+	if n {
+		return nil
 	}
 
-	// Handle the possibilities
 	switch val.Kind() {
 
 	case reflect.Map:

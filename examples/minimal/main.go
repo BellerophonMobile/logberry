@@ -12,6 +12,7 @@ func main() {
 
 	logberry.Main.Failure("Arbitrary failure")
 
+	// Wait for all log messages to be output	
 	logberry.Std.Stop()
 
 }

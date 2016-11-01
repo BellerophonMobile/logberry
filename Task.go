@@ -55,34 +55,31 @@ func newtask(parent *Task, component string, activity string, data []interface{}
 
 }
 
-// Task creates a new sub-task of the host task.  Parameter activity
-// should be a short natural language description of the work that the
-// Task represents, without any terminating punctuation.  Any data
-// given will be associated with the Task and reported with its
-// events.  This call does not produce a log event.  Use Begin to
-// indicate the start of a long running task.
+// Task creates a new sub-task.  Parameter activity should be a short
+// natural language description of the work that the Task represents,
+// without any terminating punctuation.  Any data given here will be
+// associated with the Task and reported with all its events.
 func (x *Task) Task(activity string, data ...interface{}) *Task {
 	return newtask(x, "", activity, data)
 }
 
-// Component creates a new Task object representing a set of related
-// sub-functionality under the host Task, rather than a directed,
-// tightly scoped line of computation.  Parameter component should be
-// a short lowercase string identifying the class, module, or other
-// component that this Task represents.  The activity text of this
-// Task is set to be "Component " + component.  Any data given will be
-// associated with the Task and reported with its events.  This call
-// does produce a log event marking the instantiation.
+// Component creates a new Task object representing related long-lived
+// functionality, rather than a directed, tightly scoped line of
+// computation.  Parameter component should be a short lowercase
+// string identifying the class, module, or other component that this
+// Task represents.  The activity text of this Task is set to be
+// "Component " + component.  Any data given will be associated with
+// the Task and reported with all its events.
 func (x *Task) Component(component string, data ...interface{}) *Task {
 	return newtask(x, component, "Component " + component, data)
 }
 
 // AddData incorporates the given data into that associated and
 // reported with this Task.  The rules for this construction are
-// explained in AggregateFrom.  This call does not generate a log
-// event.  The host Task is passed through as the return.  Among other
-// things, this function is useful to silently accumulate data into
-// the Task as it proceeds, to be reported when it concludes.
+// explained in CopyFrom.  This call does not generate a log event.
+// The host Task is passed through as the return.  Among other things,
+// this function is useful to silently accumulate data into the Task
+// as it proceeds, to be reported when it concludes.
 func (x *Task) AddData(data ...interface{}) *Task {
 	x.data.CopyFrom(data)
 	return x
@@ -94,7 +91,7 @@ func (x *Task) AddData(data ...interface{}) *Task {
 // parameter.  This should generally be static, short, use sentence
 // capitalization but no terminating punctuation, and not itself
 // include any data, which is better left to the structured data.  The
-// variadic data parameter is aggregated as a D and reporting with the
+// variadic data parameter is aggregated as a D and reported with the
 // event, as is the data permanently associated with the Task.  The
 // given data is not associated to the Task permanently.
 func (x *Task) Event(event string, msg string, data ...interface{}) {
@@ -106,31 +103,28 @@ func (x *Task) Event(event string, msg string, data ...interface{}) {
 // static, short, use sentence capitalization but no terminating
 // punctuation, and not itself include any data, which is better left
 // to the structured data.  The variadic data parameter is aggregated
-// as a D and reporting with the event, as is the data permanently
+// as a D and reported with the event, as is the data permanently
 // associated with the Task.  The given data is not associated to the
 // Task permanently.
 func (x *Task) Info(msg string, data ...interface{}) {
 	x.root.event(x, INFO, msg, DAggregate(data).CopyFrom(x.data))
 }
 
-// Warning generates a warning log event reporting that a fault was
+// Warning generates a warning log event indicating that a fault was
 // encountered but the task is proceeding acceptably.  This should
 // generally be static, short, use sentence capitalization but no
 // terminating punctuation, and not itself include any data, which is
 // better left to the structured data.  The variadic data parameter is
-// aggregated as a D and reporting with the event, as is the data
+// aggregated as a D and reported with the event, as is the data
 // permanently associated with the Task.  The given data is not
 // associated to the Task permanently.
 func (x *Task) Warning(msg string, data ...interface{}) {
-	d := DAggregate(data)
-	d.CopyFrom(x.data)
-
-	x.root.event(x, WARNING, msg, d)
+	x.root.event(x, WARNING, msg, DAggregate(data).CopyFrom(x.data))
 }
 
 // Ready generates a ready log event reporting that the activity or
 // component the Task represents is initialized and prepared to begin.
-// The variadic data parameter is aggregated as a D and reporting with
+// The variadic data parameter is aggregated as a D and reported with
 // the event, as is the data permanently associated with the Task.
 // The given data is not associated to the Task permanently.
 func (x *Task) Ready(data ...interface{}) {
@@ -140,7 +134,7 @@ func (x *Task) Ready(data ...interface{}) {
 
 // Stopped generates a stopped log event reporting that the activity
 // or component the Task represents has paused or shutdown.  The
-// variadic data parameter is aggregated as a D and reporting with the
+// variadic data parameter is aggregated as a D and reported with the
 // event, as is the data permanently associated with the Task.  The
 // given data is not associated to the Task permanently.
 func (x *Task) Stopped(data ...interface{}) {
@@ -148,124 +142,62 @@ func (x *Task) Stopped(data ...interface{}) {
 		DAggregate(data).CopyFrom(x.data))
 }
 
+// Finalized generates an end log event reporting that the component
+// the Task represents has ceased.  It is generally intended to be
+// used for components, while Success is used for discrete activities.
+// Continuing to use the Task is discouraged.  The variadic data
+// parameter is aggregated as a D and reported with the event, as is
+// the data permanently associated with the Task.  The given data is
+// not associated to the Task permanently.
+func (x *Task) Finalized(data ...interface{}) {
+	x.root.event(x, END, x.activity+" finalized", DAggregate(data).CopyFrom(x.data))
+}
+
 // Success generates a success log event reporting that the activity
-// the Task represents has concluded successfully.  If the Task is
-// being timed it will be clocked and the duration reported.  It
-// always returns nil.  Continuing to use the Task will not cause an
-// error but is discouraged.  The variadic data parameter is
-// aggregated as a D and reporting with the event, as is the data
-// permanently associated with the Task.  The given data is not
-// associated to the Task permanently.
+// the Task represents has concluded successfully.  It always returns
+// nil.  Continuing to use the Task is discouraged.  The variadic data
+// parameter is aggregated as a D and reported with the event, as is
+// the data permanently associated with the Task.  The given data is
+// not associated to the Task permanently.
 func (x *Task) Success(data ...interface{}) error {
-
-	d := DAggregate(data)
-	d.CopyFrom(x.data)
-
-	x.root.event(x, SUCCESS, x.activity+" success", d)
-
+	x.root.event(x, SUCCESS, x.activity+" success", DAggregate(data).CopyFrom(x.data))
 	return nil
-
 }
 
 // Error generates an error log event reporting an unrecoverable fault
-// in an activity or component.  If the Task is being timed it will be
-// clocked and the duration reported.  An error is returned wrapping
-// the original error with a message reporting that the Task's
-// activity has failed.  Continuing to use the Task will not cause an
-// error but is discouraged.  The variadic data parameter is
-// aggregated as a D and reported as data embedded in the generated
-// task error.  The data permanently associated with the Task is
-// reported with the event.  The reported source code position of the
-// generated task error is adjusted to be the event invocation.
-func (x *Task) Error(err error, data ...interface{}) error {
-
+// in an activity or component.  An error is returned wrapping the
+// original error with a message reporting that the Task's activity
+// has failed.  Continuing to use the Task is discouraged.  The
+// variadic data parameter is aggregated as a D and embedded in the
+// generated error.  It and the data permanently associated with the
+// Task is reported with the event.  The reported source code position
+// of the generated task error is adjusted to be the event invocation.
+func (x *Task) Error(err error, data ...interface{}) error {	
 	m := x.activity + " failed"
-
-	x.data["Error"] = err
-
 	e := wraperror(m, err, data)
 	e.Locate(1)
-	e.Data.CopyFrom(x.data)
-
-	x.root.event(x, ERROR, m, x.data)
-
+	x.root.event(x, ERROR, m, D{"Error": err}.CopyFrom(data).CopyFrom(x.data))
 	return e
-
-}
-
-// WrapError generates an error log event reporting an unrecoverable
-// fault in an activity or component.  It is similar to Error but
-// useful for taking a causal error, wrapping it in an additional
-// message, and then throwing a task error.  If the Task is being
-// timed it will be clocked and the duration reported.  An error is
-// returned reporting that the activity or component represented by
-// the Task has failed, wrapping a causal error with the given
-// message, which in turn wraps the given root error.  Continuing to
-// use the Task will not cause an error but is discouraged.  The
-// variadic data parameter is aggregated as a D and reported as data
-// embedded in the generated task error.  The data permanently
-// associated with the Task is reported with the event.  The reported
-// source code position of the generated task error is adjusted to be
-// the event invocation.
-func (x *Task) WrapError(msg string, err error, data ...interface{}) error {
-
-	m := x.activity + " failed"
-
-	suberr := wraperror(msg, err, nil)
-	suberr.Locate(1)
-	x.data["Error"] = suberr
-
-	x.root.event(x, ERROR, m, x.data)
-
-	return suberr
-
 }
 
 // Failure generates an error log event reporting an unrecoverable
 // fault.  Failure and Error are essentially the same, the difference
-// being that Failure is useful to both report and generate a fault
-// detected directly by the calling code.  Error in contrast takes an
-// underlying error, typically as returned from another function or
-// component.  If the Task is being timed it will be clocked and the
-// duration reported.  An error is returned reporting that the
-// activity or component represented by the Task has failed due to the
-// underlying cause given in the message.  Continuing to use the Task
-// will not cause an error but is discouraged.  The variadic data
-// parameter is aggregated as a D and reported as data embedded in the
-// generated task error.  The data permanently associated with the
-// Task is reported with the event.  The reported source code position
-// of the generated task error is adjusted to be the event invocation.
+// being that Failure is the first point of fault while Error takes an
+// underlying error typically returned from another function or
+// component.  An error is returned reporting that the activity or
+// component represented by the Task has failed due to the underlying
+// cause given in the message.  Continuing to use the Task is
+// discouraged.  The variadic data parameter is aggregated as a D and
+// embedded in the generated task error.  It and the data permanently
+// associated with the Task is reported with the event.  The reported
+// source code position of the generated task error is adjusted to be
+// the event invocation.
 func (x *Task) Failure(msg string, data ...interface{}) error {
-
-	err := newerror(msg, data)
-	err.Locate(1)
-
+	err := newerror(msg)
 	m := x.activity + " failed"
-
-	x.data["Error"] = err
-
-	e := wraperror(m, err, nil)
+	e := wraperror(m, err, data)
 	e.Locate(1)
-	e.Data.CopyFrom(x.data)
-
-	x.root.event(x, ERROR, m, x.data)
-
+	x.root.event(x, ERROR, m, D{"Error": err}.CopyFrom(data).CopyFrom(x.data))
 	return e
-
 }
 
-// End generates an end log event reporting that the component the
-// Task represents has been finalized.  If the Task is being timed it
-// will be clocked and the duration reported.  Continuing to use the
-// Task will not cause an error but is discouraged.  The variadic data
-// parameter is aggregated as a D and reporting with the event, as is
-// the data permanently associated with the Task.  The given data is
-// not associated to the Task permanently.
-func (x *Task) Finalized(data ...interface{}) {
-
-	d := DAggregate(data)
-	d.CopyFrom(x.data)
-
-	x.root.event(x, END, x.activity+" finalized", d)
-
-}

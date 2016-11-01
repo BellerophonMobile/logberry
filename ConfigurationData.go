@@ -13,37 +13,39 @@ var contexttask = Task{
 	component: "[process]",
 }
 
-// BuildMetadata generates a configuration log event reporting the
-// build configuration, as captured by the passed object.  A utility
-// script to generate such metadata automatically is in the util/
-// folder of the Logberry repository.
-func ReportBuildMetadata(main *Task, build *BuildMetadata) {
+// BuildMetadataEvent generates a configuration log event for the
+// given Task reporting the build configuration, as captured by the
+// passed object.  A utility script to generate such metadata
+// automatically is in the util/ folder of the Logberry repository.
+func BuildMetadataEvent(main *Task, build *BuildMetadata) {
 	main.root.event(main, CONFIGURATION, "Build metadata", DAggregate([]interface{}{build}))
 }
 
-// BuildSignature generates a configuration log event reporting build
-// configuration, as captured by the given string.  A utility script
-// to generate such metadata automatically is in the util/ folder of
-// the Logberry repository.  It can be useful to use this string
-// rather than a BuildMetadata object so that it can be passed in
-// through the standard go tools command line, i.e., via linker flags.
-func ReportBuildSignature(main *Task, build string) {
+// BuildSignatureEvent generates a configuration log event for the
+// given Task reporting build configuration, as captured by the given
+// string.  A utility script to generate such metadata automatically
+// is in the util/ folder of the Logberry repository.  It can be
+// useful to use this string rather than a BuildMetadata object so
+// that it can be passed in through the standard go tools command
+// line, i.e., via linker flags.
+func BuildSignatureEvent(main *Task, build string) {
 	main.root.event(main, CONFIGURATION, "Build signature", D{"Signature": build})
 }
 
-// Configuration generates a configuration log event reporting
-// parameters or other initialization data.  The variadic data
-// parameter is aggregated as a D and reporting with the event, as is
-// the data permanently associated with the Task.  The given data is
-// not associated to the Task permanently.
-func ReportConfiguration(main *Task, data ...interface{}) {
+// ConfigurationEvent generates a configuration log event for the
+// given Task reporting parameters or other initialization data.  The
+// variadic data parameter is aggregated as a D and reporting with the
+// event, as is the data permanently associated with the Task.  The
+// given data is not associated to the Task permanently.
+func ConfigurationEvent(main *Task, data ...interface{}) {
 	d := DAggregate(append(data, main.data))
 	main.root.event(main, CONFIGURATION, "Configuration", d)
 }
 
-// CommandLine generates a configuration log event reporting the
-// command line used to execute the currently executing process.
-func ReportCommandLine(main *Task) {
+// CommandLineEvent generates a configuration log event for the given
+// Task reporting the command line used to execute the currently
+// executing process.
+func CommandLineEvent(main *Task) {
 
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -78,10 +80,10 @@ func ReportCommandLine(main *Task) {
 
 }
 
-// Environment generates a configuration log event reporting the
-// current operating system host environment variables of the
-// currently executing process.
-func ReportEnvironment(main *Task) {
+// EnvironmentEvent generates a configuration log event for the given
+// Task reporting the current operating system host environment
+// variables of the currently executing process.
+func EnvironmentEvent(main *Task) {
 
 	d := D{}
 	for _, e := range os.Environ() {
@@ -94,9 +96,9 @@ func ReportEnvironment(main *Task) {
 
 }
 
-// Process generates a configuration log event reporting identifiers
-// for the currently executing process.
-func ReportProcess(main *Task) {
+// ProcessEvent generates a configuration log event for the given Task
+// reporting identifiers for the currently executing process.
+func ProcessEvent(main *Task) {
 
 	hostname, err := os.Hostname()
 	if err != nil {

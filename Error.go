@@ -78,7 +78,8 @@ func (e *Error) SetCode(code string) {
 	e.Code = code
 }
 
-// IsCode checks if the error is tagged with any of the given codes.
+// IsError checks if the given error is a Logberry Error tagged with
+// any of the given codes, returning true if so and false otherwise.
 func IsError(e error, code ...string) bool {
 
 	err, ok := e.(*Error)
@@ -98,8 +99,8 @@ func IsError(e error, code ...string) bool {
 
 
 // Error returns a human-oriented serialization of the error.  It does
-// not report the wrapped cause, if any.  If that should be reported
-// at this point it must be retrieved manually.
+// not report the wrapped cause, if any.  That must be retrieved and
+// reported manually.
 func (e *Error) Error() string {
 
 	var buffer = new(bytes.Buffer)
@@ -123,7 +124,8 @@ func (e *Error) Error() string {
 	return buffer.String()
 }
 
-// String returns a human-oriented serialization of the error.
+// String returns a human-oriented serialization of the error.  It is
+// the same as Error().
 func (e *Error) String() string {
 	return e.Error()
 }
