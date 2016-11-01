@@ -16,14 +16,14 @@ type Error struct {
 	Message string
 
 	// Inputs, parameters, and other data associated with the fault
-	Data    D
+	Data D
 
 	// The source code file and line number where the error occurred
 	File string
 	Line int
 
 	// Optional link to a preceding error underlying the fault
-	Cause error
+	Cause error `logberry:"quiet"`
 
 }
 
@@ -79,10 +79,15 @@ func (e *Error) SetCode(code string) {
 }
 
 // IsCode checks if the error is tagged with any of the given codes.
-func (e *Error) IsCode(code ...string) bool {
+func IsError(e error, code ...string) bool {
 
+	err, ok := e.(*Error)
+	if !ok {
+		return false
+	}
+	
 	for _,c := range(code) {
-		if e.Code == c {
+		if err.Code == c {
 			return true
 		}
 	}
@@ -92,7 +97,9 @@ func (e *Error) IsCode(code ...string) bool {
 }
 
 
-// Error returns a human-oriented serialization of the error.
+// Error returns a human-oriented serialization of the error.  It does
+// not report the wrapped cause, if any.  If that should be reported
+// at this point it must be retrieved manually.
 func (e *Error) Error() string {
 
 	var buffer = new(bytes.Buffer)

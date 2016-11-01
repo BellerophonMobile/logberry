@@ -206,10 +206,6 @@ func (x D) CopyFrom(data interface{}) D {
 // Root or OutputDriver buffers the event and logs it asynchronously.
 func DAggregate(data []interface{}) D {
 
-	if data == nil || len(data) == 0 {
-		return D{}
-	}
-	
 	var accum = D{}
 
 	for _,d := range(data) {

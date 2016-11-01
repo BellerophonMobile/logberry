@@ -6,14 +6,12 @@ import (
 	"testing"
 )
 
-type expectation struct {
+type d_expectation struct {
 	ex string
 	v  D
 }
 
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-func runcases(tests []expectation, t *testing.T) {
+func runcases_d(tests []d_expectation, t *testing.T) {
 
 	for _, c := range tests {
 		t.Run(c.ex, func(t *testing.T) {
@@ -27,11 +25,8 @@ func runcases(tests []expectation, t *testing.T) {
 		})
 	}
 
-	// end runcases
 }
 
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
 type test struct {
 	StringField string
 	IntField    int
@@ -47,7 +42,7 @@ func TestCopyFrom(t *testing.T) {
 	// Data used in tests
 	var mushi1 *test
 	
-	var tests = []expectation{
+	var tests = []d_expectation{
 		
 		{
 			v:  (D{}).CopyFrom(nil),
@@ -115,15 +110,13 @@ func TestCopyFrom(t *testing.T) {
 		},
 	}
 
-	runcases(tests, t)
+	runcases_d(tests, t)
 
-	// TestCopyFrom
 }
 
-//----------------------------------------------------------------------
 func TestDAggregate(t *testing.T) {
 
-	var tests = []expectation{
+	var tests = []d_expectation{
 		
 		{
 			v:  DAggregate([]interface{}{nil}),
@@ -144,10 +137,14 @@ func TestDAggregate(t *testing.T) {
 			v:  DAggregate([]interface{}{8, D{"Fruit": "Banana"}, 9, D{"Fruit": "Candy"}}),
 			ex: "{\"Fruit\":\"Candy\",\"value\":[8,9]}",
 		},
+
+		{
+			v:  DAggregate([]interface{}{D{"Fruit": "Banana"}, 8, 9, D{"LP": "Help"}}),
+			ex: "{\"Fruit\":\"Banana\",\"LP\":\"Help\",\"value\":[8,9]}",
+		},
 		
 	}
 
-	runcases(tests, t)
+	runcases_d(tests, t)
 
-	// end TestDAggregate
 }
