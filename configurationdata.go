@@ -17,7 +17,7 @@ var contexttask = Task{
 // build configuration, as captured by the passed object.  A utility
 // script to generate such metadata automatically is in the util/
 // folder of the Logberry repository.
-func BuildMetadata(main *logberry.Task, build *BuildMetadata) {
+func BuildMetadata(main *Task, build *BuildMetadata) {
 	main.root.event(main, CONFIGURATION, "Build metadata", DBuild(build))
 }
 
@@ -27,7 +27,7 @@ func BuildMetadata(main *logberry.Task, build *BuildMetadata) {
 // the Logberry repository.  It can be useful to use this string
 // rather than a BuildMetadata object so that it can be passed in
 // through the standard go tools command line, i.e., via linker flags.
-func BuildSignature(main *logberry.Task, build string) {
+func BuildSignature(main *Task, build string) {
 	main.root.event(main, CONFIGURATION, "Build signature", D{"Signature": build})
 }
 
@@ -36,14 +36,14 @@ func BuildSignature(main *logberry.Task, build string) {
 // parameter is aggregated as a D and reporting with the event, as is
 // the data permanently associated with the Task.  The given data is
 // not associated to the Task permanently.
-func Configuration(main *logberry.Task, data ...interface{}) {
+func Configuration(main *Task, data ...interface{}) {
 	d := DAggregate(append(data, main.data))
 	main.root.event(main, CONFIGURATION, "Configuration", d)
 }
 
 // CommandLine generates a configuration log event reporting the
 // command line used to execute the currently executing process.
-func CommandLine(main *logberry.Task) {
+func CommandLine(main *Task) {
 
 	hostname, err := os.Hostname()
 	if err != nil {
@@ -81,7 +81,7 @@ func CommandLine(main *logberry.Task) {
 // Environment generates a configuration log event reporting the
 // current operating system host environment variables of the
 // currently executing process.
-func Environment(main *logberry.Task) {
+func Environment(main *Task) {
 
 	d := D{}
 	for _, e := range os.Environ() {
@@ -96,7 +96,7 @@ func Environment(main *logberry.Task) {
 
 // Process generates a configuration log event reporting identifiers
 // for the currently executing process.
-func Process(main *logberry.Task) {
+func Process(main *Task) {
 
 	hostname, err := os.Hostname()
 	if err != nil {

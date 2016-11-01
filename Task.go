@@ -1,11 +1,6 @@
 package logberry
 
 import (
-	"os"
-	"os/user"
-	"path"
-	"path/filepath"
-	"strings"
 	"sync/atomic"
 )
 
