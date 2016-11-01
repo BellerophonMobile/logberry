@@ -10,6 +10,6 @@ func main() {
 
 	logberry.Main.Info("Computed data", logberry.D{"X": 23, "Label": "priority"})
 
-	logberry.Main.Failure("Arbritrary failure")
+	logberry.Main.Failure("Arbitrary failure")
 
 }
