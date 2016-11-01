@@ -174,7 +174,7 @@ func (x *Task) Success(data ...interface{}) error {
 // of the generated task error is adjusted to be the event invocation.
 func (x *Task) Error(err error, data ...interface{}) error {	
 	m := x.activity + " failed"
-	x.root.event(x, ERROR, m, D{"Error": err}.CopyFrom(DAggregate(data)).CopyFrom(x.data))
+	x.root.event(x, ERROR, m, D{"Error": DAggregate([]interface{}{err})}.CopyFrom(DAggregate(data)).CopyFrom(x.data))
 
 	e := wraperror(m, err, data)
 	e.Locate(1)
@@ -198,7 +198,7 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 	err.Locate(1)
 	
 	m := x.activity + " failed"
-	x.root.event(x, ERROR, m, D{"Error": err}.CopyFrom(DAggregate(data)).CopyFrom(x.data))
+	x.root.event(x, ERROR, m, D{"Error": DAggregate([]interface{}{err})}.CopyFrom(DAggregate(data)).CopyFrom(x.data))
 
 	e := wraperror(m, err, data)
 	e.Locate(1)
