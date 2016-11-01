@@ -25,6 +25,7 @@ package logberry
 import (
 	"os"
 	"path"
+	"io/ioutil"
 )
 
 // Std is the default Root created at startup.
@@ -38,7 +39,25 @@ func init() {
 
 	//-- Construct the standard default root
 	Std = NewRoot(24)
-	Std.AddOutputDriver(NewStdOutput(path.Base(os.Args[0])))
+
+	stdout := NewStdOutput(path.Base(os.Args[0]))
+
+	filterfn := os.Getenv("LogberryFilter")
+	if filterfn != "" {
+		bytes,err := ioutil.ReadFile(filterfn)
+		if err != nil {
+			panic("Could not read filter file:" + err.Error())
+		}
+		
+		filter,err := NewFilterOutput(bytes, "std", stdout)
+		if err != nil {
+			panic("Could not parse filter file:" + err.Error())
+		}
+
+		Std.AddOutputDriver(filter)		
+	} else {
+		Std.AddOutputDriver(stdout)
+	}
 
 	//-- Construct the standard default task
 	Main = Std.Component("main")
