@@ -181,6 +181,18 @@ func (x *Task) Error(err error, data ...interface{}) error {
 	return e
 }
 
+func (x *Task) WrapError(msg string, source error, data ...interface{}) error {
+	err := wraperror(msg, source, nil)
+	err.Locate(1)
+	
+	m := x.activity + " failed"
+	x.root.event(x, ERROR, m, D{"Error": DAggregate([]interface{}{err})}.CopyFrom(DAggregate(data)).CopyFrom(x.data))
+
+	e := wraperror(m, err, data)
+	e.Locate(1)
+	return e
+}
+
 // Failure generates an error log event reporting an unrecoverable
 // fault.  Failure and Error are essentially the same, the difference
 // being that Failure is the first point of fault while Error takes an
