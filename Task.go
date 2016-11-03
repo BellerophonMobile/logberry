@@ -173,11 +173,26 @@ func (x *Task) Success(data ...interface{}) error {
 // Task is reported with the event.  The reported source code position
 // of the generated task error is adjusted to be the event invocation.
 func (x *Task) Error(err error, data ...interface{}) error {
+
 	m := x.activity + " failed"
-	x.root.event(x, ERROR, m, D{"Error": DAggregate([]interface{}{err})}.CopyFrom(DAggregate(data)).CopyFrom(x.data))
 
 	e := wraperror(m, err, data)
 	e.Locate(1)
+	e.reported = true
+
+	rep := D{
+		"Source": e.Source,
+	}
+
+	if ex,ok := err.(*Error); !ok || !ex.reported {
+		rep["Cause"] = DAggregate([]interface{}{err})
+	}
+
+	rep.CopyFrom(DAggregate(data))
+	rep.CopyFrom(x.data)
+	
+	x.root.event(x, ERROR, m, rep)
+
 	return e
 }
 

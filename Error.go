@@ -6,6 +6,11 @@ import (
 	"runtime"
 )
 
+type Position struct {
+	File string
+	Line int	
+}
+
 // Error captures structured information about a fault.
 type Error struct {
 
@@ -19,11 +24,13 @@ type Error struct {
 	Data D
 
 	// The source code file and line number where the error occurred
-	File string
-	Line int
+	Source Position
 
 	// Optional link to a preceding error underlying the fault
 	Cause error `logberry:"quiet"`
+
+	reported bool
+
 }
 
 func newerror(msg string, data []interface{}) *Error {
@@ -67,8 +74,8 @@ func WrapError(msg string, err error, data ...interface{}) *Error {
 func (e *Error) Locate(skip int) {
 	_, file, line, ok := runtime.Caller(skip + 1)
 	if ok {
-		e.File = file
-		e.Line = line
+		e.Source.File = file
+		e.Source.Line = line
 	}
 }
 
@@ -105,8 +112,8 @@ func (e *Error) Error() string {
 
 	buffer.WriteString(e.Message)
 
-	if e.File != "" {
-		fmt.Fprintf(buffer, " [%v:%v]", e.File, e.Line)
+	if e.Source.File != "" {
+		fmt.Fprintf(buffer, " [%v:%v]", e.Source.File, e.Source.Line)
 	}
 
 	if len(e.Data) > 0 {

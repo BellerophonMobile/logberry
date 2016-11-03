@@ -121,7 +121,12 @@ func copydata(val reflect.Value) interface{} {
 		return arr
 
 	default:
+
 		if val.CanInterface() {
+			if err, ok := val.Interface().(error); ok {
+				return err.Error()
+			}
+
 			return val.Interface()
 		}
 
@@ -371,8 +376,9 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 		if e != nil {
 			return e
 		}
-
+		
 	default:
+
 		if val.IsValid() && val.CanInterface() {
 			_, e := fmt.Fprintf(buffer, "%v", val.Interface())
 			if e != nil {
