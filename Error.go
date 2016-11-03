@@ -8,7 +8,7 @@ import (
 
 type Position struct {
 	File string
-	Line int	
+	Line int
 }
 
 // Error captures structured information about a fault.
@@ -30,7 +30,6 @@ type Error struct {
 	Cause error `logberry:"quiet"`
 
 	reported bool
-
 }
 
 func newerror(msg string, data []interface{}) *Error {

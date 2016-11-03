@@ -184,13 +184,13 @@ func (x *Task) Error(err error, data ...interface{}) error {
 		"Source": e.Source,
 	}
 
-	if ex,ok := err.(*Error); !ok || !ex.reported {
+	if ex, ok := err.(*Error); !ok || !ex.reported {
 		rep["Cause"] = DAggregate([]interface{}{err})
 	}
 
 	rep.CopyFrom(DAggregate(data))
 	rep.CopyFrom(x.data)
-	
+
 	x.root.event(x, ERROR, m, rep)
 
 	return e

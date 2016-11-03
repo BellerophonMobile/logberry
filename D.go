@@ -376,7 +376,7 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 		if e != nil {
 			return e
 		}
-		
+
 	default:
 
 		if val.IsValid() && val.CanInterface() {
