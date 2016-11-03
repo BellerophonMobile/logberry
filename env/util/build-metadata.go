@@ -22,18 +22,18 @@ var header string = `
 
 package {{.package}}
 
-import "github.com/BellerophonMobile/logberry"
+import "github.com/BellerophonMobile/logberry/env"
 
-var buildmetadata = &logberry.BuildMetadata{
+var buildmetadata = &env.BuildMetadata{
   Host:     "{{.host}}",
   User:     "{{.user}}",
   Date:     "{{.date}}",
 
-  Repositories: []logberry.RepositoryMetadata {
+  Repositories: []env.RepositoryMetadata {
 `
 
 var repo string = `
-    logberry.RepositoryMetadata{
+    env.RepositoryMetadata{
       Repository: "{{.root}}",
       Branch:     "{{.branch}}",
       Commit:     "{{.commit}}",

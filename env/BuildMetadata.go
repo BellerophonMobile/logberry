@@ -1,4 +1,4 @@
-package logberry
+package env
 
 // BuildMetadata is a simple structured representation of some basic
 // properties characterizing the build of a particular binary.
