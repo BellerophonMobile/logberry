@@ -20,12 +20,11 @@ type RepositoryMetadata struct {
 	Path       string
 }
 
-
 func (x *BuildMetadata) Map() map[string]*RepositoryMetadata {
 
 	m := make(map[string]*RepositoryMetadata)
 
-	for _,r := range(x.Repositories) {
+	for _, r := range x.Repositories {
 		m[r.Repository] = &r
 	}
 

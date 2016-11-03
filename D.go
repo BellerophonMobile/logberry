@@ -12,15 +12,14 @@ import (
 // data to be logged.
 type D map[string]interface{}
 
-
-func rolldown(data interface{}) (reflect.Value,bool) {
+func rolldown(data interface{}) (reflect.Value, bool) {
 
 	if data == nil {
-		return reflect.Value{},true
+		return reflect.Value{}, true
 	}
-	
+
 	val := reflect.ValueOf(data)
-	
+
 	// Chain through any pointers or interfaces
 	done := false
 	for !done {
@@ -30,7 +29,7 @@ func rolldown(data interface{}) (reflect.Value,bool) {
 		case reflect.Ptr:
 
 			if val.IsNil() {
-				return reflect.Value{},true
+				return reflect.Value{}, true
 			}
 
 			val = val.Elem()
@@ -46,7 +45,7 @@ func rolldown(data interface{}) (reflect.Value,bool) {
 
 func recursecopy(data interface{}) interface{} {
 
-	val,n := rolldown(data)
+	val, n := rolldown(data)
 	if n {
 		return nil
 	}
@@ -58,7 +57,7 @@ func recursecopy(data interface{}) interface{} {
 
 	case reflect.Map:
 		return (D{}).copymap(val)
-		
+
 	default:
 		return copydata(val)
 
@@ -72,7 +71,7 @@ func (x D) copystruct(val reflect.Value) D {
 
 	var vtype = val.Type()
 	var haspublic bool
-		
+
 	for i := 0; i < val.NumField(); i++ {
 		var f = val.Field(i)
 		if f.IsValid() && f.CanInterface() && !strings.Contains(vtype.Field(i).Tag.Get("logberry"), "quiet") {
@@ -90,7 +89,7 @@ func (x D) copystruct(val reflect.Value) D {
 	}
 
 	return x
-	
+
 }
 
 func (x D) copymap(val reflect.Value) D {
@@ -110,16 +109,17 @@ func (x D) copymap(val reflect.Value) D {
 func copydata(val reflect.Value) interface{} {
 
 	switch val.Kind() {
-	case reflect.Array: fallthrough
+	case reflect.Array:
+		fallthrough
 	case reflect.Slice:
 		arr := make([]interface{}, val.Len())
-		
+
 		for i := 0; i < val.Len(); i++ {
 			arr[i] = recursecopy(val.Index(i))
 		}
 
 		return arr
-		
+
 	default:
 		if val.CanInterface() {
 			return val.Interface()
@@ -160,8 +160,8 @@ func copydata(val reflect.Value) interface{} {
 //
 // The modified host x is itself returned.
 func (x D) CopyFrom(data interface{}) D {
-	
-	val,n := rolldown(data)
+
+	val, n := rolldown(data)
 	if n {
 		return x
 	}
@@ -173,7 +173,7 @@ func (x D) CopyFrom(data interface{}) D {
 
 	case reflect.Map:
 		x.copymap(val)
-		
+
 	default:
 		newval := copydata(val)
 		prev, find := x["value"]
@@ -193,9 +193,8 @@ func (x D) CopyFrom(data interface{}) D {
 	}
 
 	return x
-	
-}
 
+}
 
 // DAggregate returns a new D object populated from the given array
 // using CopyFrom().
@@ -203,7 +202,7 @@ func DAggregate(data []interface{}) D {
 
 	var accum = D{}
 
-	for _,d := range(data) {
+	for _, d := range data {
 		accum.CopyFrom(d)
 	}
 
@@ -234,7 +233,7 @@ func (x D) WriteTo(w io.Writer) error {
 
 func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 
-	val,n := rolldown(data)
+	val, n := rolldown(data)
 	if n {
 		return nil
 	}
@@ -348,7 +347,7 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 				return e
 			}
 
-			v := val.Index(i)			
+			v := val.Index(i)
 			if v.CanInterface() {
 				e = textrecurse(buffer, true, val.Index(i).Interface())
 				if e != nil {

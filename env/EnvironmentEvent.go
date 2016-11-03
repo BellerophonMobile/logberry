@@ -1,12 +1,12 @@
 package env
 
 import (
+	"github.com/BellerophonMobile/logberry"
 	"os"
 	"os/user"
 	"path"
 	"path/filepath"
 	"strings"
-	"github.com/BellerophonMobile/logberry"
 )
 
 // BuildMetadataEvent generates a configuration log event for the
@@ -118,5 +118,5 @@ func LogProcess(main *logberry.Task) error {
 	main.Event(logberry.CONFIGURATION, "Process", d)
 
 	return nil
-	
+
 }

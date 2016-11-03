@@ -24,7 +24,6 @@ type Error struct {
 
 	// Optional link to a preceding error underlying the fault
 	Cause error `logberry:"quiet"`
-
 }
 
 func newerror(msg string, data []interface{}) *Error {
@@ -86,17 +85,16 @@ func IsError(e error, code ...string) bool {
 	if !ok {
 		return false
 	}
-	
-	for _,c := range(code) {
+
+	for _, c := range code {
 		if err.Code == c {
 			return true
 		}
 	}
 
 	return false
-	
-}
 
+}
 
 // Error returns a human-oriented serialization of the error.  It does
 // not report the wrapped cause, if any.  That must be retrieved and
@@ -116,11 +114,11 @@ func (e *Error) Error() string {
 	}
 
 	/*
-	if e.Cause != nil {
-		fmt.Fprintf(buffer, ": %v", e.Cause.Error())
-	}
-	 */
-	
+		if e.Cause != nil {
+			fmt.Fprintf(buffer, ": %v", e.Cause.Error())
+		}
+	*/
+
 	return buffer.String()
 }
 

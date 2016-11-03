@@ -23,7 +23,7 @@ type Root struct {
 // The goroutine that creates the Root should defer a call to Stop()
 // to ensure that all events are pushed.
 func NewRoot(buffer int) *Root {
-	
+
 	r := &Root{
 		outputdrivers:  make([]OutputDriver, 0, 1),
 		errorlisteners: make([]ErrorListener, 0),

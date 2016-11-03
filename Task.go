@@ -32,10 +32,10 @@ func newtaskuid() uint64 {
 func newtask(parent *Task, component string, activity string, data []interface{}) *Task {
 
 	t := &Task{
-		uid:    newtaskuid(),
-		parent: parent,
+		uid:      newtaskuid(),
+		parent:   parent,
 		activity: activity,
-		data: DAggregate(data),
+		data:     DAggregate(data),
 	}
 
 	if parent != nil {
@@ -71,7 +71,7 @@ func (x *Task) Task(activity string, data ...interface{}) *Task {
 // "Component " + component.  Any data given will be associated with
 // the Task and reported with all its events.
 func (x *Task) Component(component string, data ...interface{}) *Task {
-	return newtask(x, component, "Component " + component, data)
+	return newtask(x, component, "Component "+component, data)
 }
 
 // AddData incorporates the given data into that associated and
@@ -172,7 +172,7 @@ func (x *Task) Success(data ...interface{}) error {
 // generated error.  It and the data permanently associated with the
 // Task is reported with the event.  The reported source code position
 // of the generated task error is adjusted to be the event invocation.
-func (x *Task) Error(err error, data ...interface{}) error {	
+func (x *Task) Error(err error, data ...interface{}) error {
 	m := x.activity + " failed"
 	x.root.event(x, ERROR, m, D{"Error": DAggregate([]interface{}{err})}.CopyFrom(DAggregate(data)).CopyFrom(x.data))
 
@@ -184,7 +184,7 @@ func (x *Task) Error(err error, data ...interface{}) error {
 func (x *Task) WrapError(msg string, source error, data ...interface{}) error {
 	err := wraperror(msg, source, nil)
 	err.Locate(1)
-	
+
 	m := x.activity + " failed"
 	x.root.event(x, ERROR, m, D{"Error": DAggregate([]interface{}{err})}.CopyFrom(DAggregate(data)).CopyFrom(x.data))
 
@@ -208,7 +208,7 @@ func (x *Task) WrapError(msg string, source error, data ...interface{}) error {
 func (x *Task) Failure(msg string, data ...interface{}) error {
 	err := newerror(msg, nil)
 	err.Locate(1)
-	
+
 	m := x.activity + " failed"
 	x.root.event(x, ERROR, m, D{"Error": DAggregate([]interface{}{err})}.CopyFrom(DAggregate(data)).CopyFrom(x.data))
 

@@ -41,9 +41,9 @@ func TestCopyFrom(t *testing.T) {
 
 	// Data used in tests
 	var mushi1 *test
-	
+
 	var tests = []d_expectation{
-		
+
 		{
 			v:  (D{}).CopyFrom(nil),
 			ex: "{}",
@@ -117,7 +117,7 @@ func TestCopyFrom(t *testing.T) {
 func TestDAggregate(t *testing.T) {
 
 	var tests = []d_expectation{
-		
+
 		{
 			v:  DAggregate([]interface{}{nil}),
 			ex: "{}",
@@ -142,7 +142,6 @@ func TestDAggregate(t *testing.T) {
 			v:  DAggregate([]interface{}{D{"Fruit": "Banana"}, 8, 9, D{"LP": "Help"}}),
 			ex: "{\"Fruit\":\"Banana\",\"LP\":\"Help\",\"value\":[8,9]}",
 		},
-		
 	}
 
 	runcases_d(tests, t)

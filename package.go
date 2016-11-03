@@ -42,10 +42,10 @@ func init() {
 
 	//-- Construct the standard default task manually so no event
 	Main = &Task{
-		uid:    newtaskuid(),
+		uid:       newtaskuid(),
 		component: "main",
-		activity: "Component main",
-		root: Std,
+		activity:  "Component main",
+		root:      Std,
 	}
 
 }
