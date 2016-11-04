@@ -1,11 +1,10 @@
 language: go
 go: tip
 
-before_install:
- - go get github.com/BellerophonMobile/logberry
- 
+install:
+ - go generate examples/small/main.go
+
 script:
  - go test -v .
  - go build examples/minimal/main.go
- - go generate examples/small/main.go
  - go build examples/small/main.go examples/small/build.go
