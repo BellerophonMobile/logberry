@@ -1,7 +1,10 @@
 package main
 
+//go:generate go run ../../env/util/build-metadata.go -workspace=../../ -out=build
+
 import (
 	"github.com/BellerophonMobile/logberry"
+	"github.com/BellerophonMobile/logberry/env"	
 	//	"os"
 )
 
@@ -11,7 +14,7 @@ func main() {
 	// logberry.Std.SetOutputDriver(logberry.NewJSONOutput(os.Stdout))
 
 	// Report build information; a script generates buildmetadata
-	logberry.BuildMetadataEvent(logberry.Main, buildmetadata)
+	env.LogBuildMetadata(logberry.Main, buildmetadata)
 
 	// Report that the program is initialized & running
 	logberry.Main.Ready()
