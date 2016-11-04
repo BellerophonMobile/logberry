@@ -35,7 +35,6 @@ func newtask(parent *Task, component string, activity string, data []interface{}
 		uid:      newtaskuid(),
 		parent:   parent,
 		activity: activity,
-		data:     DAggregate(data),
 	}
 
 	if parent != nil {
@@ -49,7 +48,7 @@ func newtask(parent *Task, component string, activity string, data []interface{}
 		t.component = component
 	}
 
-	t.root.event(t, BEGIN, t.activity+" begin", t.data)
+	t.root.event(t, BEGIN, t.activity+" begin", DAggregate(data))
 
 	return t
 
@@ -57,8 +56,7 @@ func newtask(parent *Task, component string, activity string, data []interface{}
 
 // Task creates a new sub-task.  Parameter activity should be a short
 // natural language description of the work that the Task represents,
-// without any terminating punctuation.  Any data given here will be
-// associated with the Task and reported with all its events.
+// without any terminating punctuation.
 func (x *Task) Task(activity string, data ...interface{}) *Task {
 	return newtask(x, "", activity, data)
 }
@@ -68,8 +66,7 @@ func (x *Task) Task(activity string, data ...interface{}) *Task {
 // computation.  Parameter component should be a short lowercase
 // string identifying the class, module, or other component that this
 // Task represents.  The activity text of this Task is set to be
-// "Component " + component.  Any data given will be associated with
-// the Task and reported with all its events.
+// "Component " + component.
 func (x *Task) Component(component string, data ...interface{}) *Task {
 	return newtask(x, component, "Component "+component, data)
 }
