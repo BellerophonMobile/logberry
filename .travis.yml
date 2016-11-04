@@ -3,3 +3,6 @@ go: tip
 
 script:
  - go test -v .
+ - go build examples/minimal/main.go
+ - go generate examples/small/main.go
+ - go build examples/small/main.go examples/small/build.go
