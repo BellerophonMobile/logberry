@@ -35,6 +35,7 @@ func newtask(parent *Task, component string, activity string, data []interface{}
 		uid:      newtaskuid(),
 		parent:   parent,
 		activity: activity,
+		data: D{},
 	}
 
 	if parent != nil {
