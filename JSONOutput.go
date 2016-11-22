@@ -39,19 +39,19 @@ func (x *JSONOutput) Event(event *Event) {
 	var err error
 	bytes, err = json.Marshal(event)
 	if err != nil {
-		x.root.internalerror(WrapError("Could not marshal log entry", err))
+		x.root.InternalError(WrapError("Could not marshal log entry", err))
 		return
 	}
 
 	_, e := x.writer.Write(bytes)
 	if e != nil {
-		x.root.internalerror(WrapError("Could not write entry", e))
+		x.root.InternalError(WrapError("Could not write entry", e))
 		return
 	}
 
 	_, e = x.writer.Write([]byte("\n"))
 	if e != nil {
-		x.root.internalerror(WrapError("Could not write entry", e))
+		x.root.InternalError(WrapError("Could not write entry", e))
 		return
 	}
 

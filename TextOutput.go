@@ -146,7 +146,7 @@ func (o *TextOutput) Event(event *Event) {
 
 		_, e := fmt.Fprintf(o.writer, "\x1b[%dm", c+color)
 		if e != nil {
-			o.root.internalerror(WrapError("Could write entry", e))
+			o.root.InternalError(WrapError("Could write entry", e))
 			return
 		}
 	}
@@ -154,7 +154,7 @@ func (o *TextOutput) Event(event *Event) {
 	n, e := fmt.Fprintf(o.writer, "%v %v %-12v ",
 		event.Timestamp.Format(time.RFC3339), o.Program, event.Component)
 	if e != nil {
-		o.root.internalerror(WrapError("Could write entry", e))
+		o.root.InternalError(WrapError("Could write entry", e))
 		return
 	}
 	writsofar += n
@@ -163,14 +163,14 @@ func (o *TextOutput) Event(event *Event) {
 	if o.Color {
 		_, e := fmt.Fprintf(o.writer, "\x1b[%dm", style.intensity+color)
 		if e != nil {
-			o.root.internalerror(WrapError("Could write entry", e))
+			o.root.InternalError(WrapError("Could write entry", e))
 			return
 		}
 
 		if style.bold {
 			_, e := fmt.Fprintf(o.writer, "\x1b[1m")
 			if e != nil {
-				o.root.internalerror(WrapError("Could write entry", e))
+				o.root.InternalError(WrapError("Could write entry", e))
 				return
 			}
 
@@ -179,7 +179,7 @@ func (o *TextOutput) Event(event *Event) {
 
 	n, e = fmt.Fprintf(o.writer, "%v ", event.Message)
 	if e != nil {
-		o.root.internalerror(WrapError("Could write entry", e))
+		o.root.InternalError(WrapError("Could write entry", e))
 		return
 	}
 	writsofar += n
@@ -194,14 +194,14 @@ func (o *TextOutput) Event(event *Event) {
 		if color != black {
 			_, e := fmt.Fprintf(o.writer, "\x1b[0;%dm", lowintensity+color)
 			if e != nil {
-				o.root.internalerror(WrapError("Could write entry", e))
+				o.root.InternalError(WrapError("Could write entry", e))
 				return
 			}
 
 		} else {
 			_, e := fmt.Fprintf(o.writer, "\x1b[0;%dm", highintensity+color)
 			if e != nil {
-				o.root.internalerror(WrapError("Could write entry", e))
+				o.root.InternalError(WrapError("Could write entry", e))
 				return
 			}
 
@@ -211,7 +211,7 @@ func (o *TextOutput) Event(event *Event) {
 	n, e = fmt.Fprintf(o.writer, "%16v %2v:%-2v",
 		event.Event, event.TaskID, event.ParentID)
 	if e != nil {
-		o.root.internalerror(WrapError("Could write entry", e))
+		o.root.InternalError(WrapError("Could write entry", e))
 		return
 	}
 	writsofar += n
@@ -219,7 +219,7 @@ func (o *TextOutput) Event(event *Event) {
 	for writsofar < o.DataOffset {
 		n, e = fmt.Fprintf(o.writer, " ")
 		if e != nil {
-			o.root.internalerror(WrapError("Could write entry", e))
+			o.root.InternalError(WrapError("Could write entry", e))
 			return
 		}
 		writsofar += n
@@ -230,13 +230,13 @@ func (o *TextOutput) Event(event *Event) {
 	if o.Color {
 		_, e := fmt.Fprintf(o.writer, "\x1b[0m")
 		if e != nil {
-			o.root.internalerror(WrapError("Could write entry", e))
+			o.root.InternalError(WrapError("Could write entry", e))
 			return
 		}
 	}
 	_, e = fmt.Fprintf(o.writer, "\n")
 	if e != nil {
-		o.root.internalerror(WrapError("Could write entry", e))
+		o.root.InternalError(WrapError("Could write entry", e))
 		return
 	}
 
