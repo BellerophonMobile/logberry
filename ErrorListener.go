@@ -1,5 +1,9 @@
 package logberry
 
+import (
+	"fmt"
+)
+
 // An ErrorListener is registered to Roots and notified of internal
 // logging errors.  Examples include an inability to write to disk, or
 // contact a logging server.  That notification could be utilized to
@@ -8,4 +12,11 @@ package logberry
 // than one Root simultaneously.
 type ErrorListener interface {
 	Error(err error)
+}
+
+type StdErrorListener struct {
+}
+
+func (x *StdErrorListener) Error(err error) {
+	fmt.Println(err)
 }
