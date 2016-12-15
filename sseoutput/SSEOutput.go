@@ -1,9 +1,9 @@
 package sseoutput
 
 import (
-	"net/http"
 	"github.com/BellerophonMobile/logberry"
 	"github.com/BellerophonMobile/sse"
+	"net/http"
 )
 
 type Options struct {
@@ -11,17 +11,15 @@ type Options struct {
 }
 
 type SSEOutput struct {
-
 	internalroot *logberry.Root
-	log *logberry.Task
+	log          *logberry.Task
 
 	receiveroot *logberry.Root
 
 	server *sse.EventServer
-	
 }
 
-func New(options *Options) (*SSEOutput,error) {
+func New(options *Options) (*SSEOutput, error) {
 
 	if options == nil {
 		options = &Options{}
@@ -30,16 +28,16 @@ func New(options *Options) (*SSEOutput,error) {
 	sseopts := sse.EventServerOptions{
 		HistoryLimit: options.HistoryLimit,
 	}
-	
+
 	sse := &SSEOutput{
 		internalroot: logberry.NewRoot(11),
-		server: sse.NewEventServer(&sseopts),
+		server:       sse.NewEventServer(&sseopts),
 	}
 
 	sse.internalroot.AddOutputDriver(logberry.NewStdOutput("sseoutput"))
 	sse.log = sse.internalroot.Component("SSEOutput")
-	
-	return sse,nil
+
+	return sse, nil
 }
 
 func (x *SSEOutput) Attach(root *logberry.Root) {
@@ -48,14 +46,14 @@ func (x *SSEOutput) Attach(root *logberry.Root) {
 }
 
 func (x *SSEOutput) Detach() {
-	x.log.Info("Detached")	
+	x.log.Info("Detached")
 	x.receiveroot = nil
 }
 
-func (x *SSEOutput) Event (event *logberry.Event) {
+func (x *SSEOutput) Event(event *logberry.Event) {
 
 	x.server.JSONMessage(event)
-	
+
 }
 
 func (x *SSEOutput) Handler() func(w http.ResponseWriter, r *http.Request) {
