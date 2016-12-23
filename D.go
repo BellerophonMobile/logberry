@@ -82,12 +82,13 @@ func (x D) copystruct(val reflect.Value) D {
 
 	// Special case: If the value is an error but has no accessible
 	// fields, call its Error() function to get a text representation.
-	if !haspublic && val.CanInterface() {
-		if err, ok := val.Interface().(error); ok {
+	if !haspublic && val.CanAddr() {
+		v2 := val.Addr().Interface()
+		if err, ok := (v2).(error); ok {
 			x["Error"] = err.Error()
 		}
 	}
-
+	
 	return x
 
 }

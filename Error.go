@@ -27,7 +27,7 @@ type Error struct {
 	Source Position
 
 	// Optional link to a preceding error underlying the fault
-	Cause error `logberry:"quiet"`
+	Cause error //`logberry:"quiet"`
 
 	reported bool
 }

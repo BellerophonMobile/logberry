@@ -1,12 +1,12 @@
 package main
 
 import (
-	"time"
-	"net/http"
 	"fmt"
-	"log"
 	"github.com/BellerophonMobile/logberry"
-	"github.com/BellerophonMobile/logberry/sseoutput"	
+	"github.com/BellerophonMobile/logberry/sseoutput"
+	"log"
+	"net/http"
+	"time"
 )
 
 func main() {
@@ -14,33 +14,33 @@ func main() {
 	opts := sseoutput.Options{
 		HistoryLimit: 2,
 	}
-	
-	sse,err := sseoutput.New(&opts)
+
+	sse, err := sseoutput.New(&opts)
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	logberry.Std.SetOutputDriver(sse)
 
-		go func() {
-			c := 0
-			for {
-				logberry.Main.Info("Important log data!", logberry.D{"Count": c})
-				fmt.Printf("Generated %v\n", c)
-				time.Sleep(2 * time.Second)
-				c++
-	}
+	go func() {
+		c := 0
+		for {
+			logberry.Main.Info("Important log data!", logberry.D{"Count": c})
+			fmt.Printf("Generated %v\n", c)
+			time.Sleep(2 * time.Second)
+			c++
+		}
 	}()
-	
+
 	http.HandleFunc("/events", sse.Handler())
 	http.HandleFunc("/view", Viewer)
 	log.Fatal(http.ListenAndServe(":8080", nil))
-	
+
 }
 
 func Viewer(w http.ResponseWriter, r *http.Request) {
 	log.Println("Viewer")
-	
+
 	fmt.Fprint(w, `
 <!DOCTYPE html>
 <html>
@@ -67,5 +67,5 @@ Events:<br/>
 </body>
 </html>
 `)
-	
+
 }

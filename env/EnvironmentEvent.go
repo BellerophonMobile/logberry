@@ -37,6 +37,10 @@ func LogConfiguration(main *logberry.Task, data ...interface{}) {
 	main.Event(logberry.CONFIGURATION, "Configuration", data...)
 }
 
+func LogVersion(main *logberry.Task, data ...interface{}) {
+	main.Event(logberry.CONFIGURATION, "Version", data...)
+}
+
 // CommandLineEvent generates a configuration log event for the given
 // Task reporting the command line used to execute the currently
 // executing process.
