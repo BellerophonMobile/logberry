@@ -115,7 +115,7 @@ func copydata(val reflect.Value) interface{} {
 		arr := make([]interface{}, val.Len())
 
 		for i := 0; i < val.Len(); i++ {
-			arr[i] = recursecopy(val.Index(i))
+			arr[i] = recursecopy(val.Index(i).Interface())
 		}
 
 		return arr
@@ -326,7 +326,7 @@ func textrecurse(buffer io.Writer, wrap bool, data interface{}) error {
 	case reflect.Array:
 		fallthrough
 	case reflect.Slice:
-		_, e := fmt.Fprint(buffer, "[")
+		_, e := fmt.Fprint(buffer, "[ ")
 		if e != nil {
 			return e
 		}

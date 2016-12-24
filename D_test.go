@@ -108,6 +108,16 @@ func TestCopyFrom(t *testing.T) {
 			v:  (D{"Field2": "Atad", "Field3": "Foo"}).CopyFrom(D{"Field1": "Data", "Field4": "Bar"}),
 			ex: "{\"Field1\":\"Data\",\"Field2\":\"Atad\",\"Field3\":\"Foo\",\"Field4\":\"Bar\"}",
 		},
+
+		{
+			v:  (D{}).CopyFrom([]string{"foo", "bar"}),
+			ex: `{"value":["foo","bar"]}`,
+		},
+
+		{
+			v:  (D{}).CopyFrom(D{"baz": []string{"foo", "bar"}}),
+			ex: `{"baz":["foo","bar"]}`,
+		},
 	}
 
 	runcases_d(tests, t)
