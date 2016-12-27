@@ -181,15 +181,24 @@ func (x *Task) Error(cause error, data ...interface{}) error {
 
 	d := Aggregate(data).Aggregate(D{"Source": taskerr.Source})
 
-	if ce, ok := cause.(*Error); ok {
-		if !ce.Reported {
-			d["Cause"] = Copy(ce)
-			ce.Reported = true
+	dsub := d
+	for cursor := cause; cursor != nil; {	
+		if ce, ok := cursor.(*Error); ok {
+			if !ce.Reported {
+				ce.Reported = true
+				next := EventDataMap{}.Aggregate(ce)
+				dsub["Cause"] = next
+				dsub = next
+				cursor = ce.Cause
+			} else {
+				break
+			}
+		} else {
+			dsub["Cause"] = Copy(cursor)
+			break
 		}
-	} else {
-		d["Cause"] = Copy(cause)
 	}
-
+	
 	d.Aggregate(x.data)
 
 	x.root.event(x, ERROR, m, d)
@@ -210,19 +219,29 @@ func (x *Task) WrapError(msg string, cause error, data ...interface{}) error {
 	usererr.Reported = true
 	taskerr.Reported = true
 
-	dsub := Aggregate([]interface{}{usererr})
-
-	if ce, ok := cause.(*Error); ok {
-		if !ce.Reported {
-			dsub["Cause"] = Copy(ce)
-			ce.Reported = true
-		}
-	} else {
-		dsub["Cause"] = Copy(cause)
-	}
 
 	d := Aggregate(data)
+
+	dsub := Aggregate([]interface{}{usererr})
 	d["Cause"] = dsub
+
+	for cursor := cause; cursor != nil; {
+		if ce, ok := cursor.(*Error); ok {
+			if !ce.Reported {
+				ce.Reported = true
+				next := EventDataMap{}.Aggregate(ce)
+				dsub["Cause"] = next
+				dsub = next
+				cursor = ce.Cause
+			} else {
+				break
+			}
+		} else {
+			dsub["Cause"] = Copy(cursor)
+			break
+		}
+	}
+	
 	d.Aggregate(x.data)
 
 	x.root.event(x, ERROR, m, d)

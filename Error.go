@@ -133,7 +133,7 @@ func (e *Error) Error() string {
 	}
 
 	if e.Cause != nil {
-		fmt.Fprintf(buffer, "\n%v", e.Cause.Error())
+		fmt.Fprintf(buffer, ": %v", e.Cause.Error())
 	}
 
 	return buffer.String()

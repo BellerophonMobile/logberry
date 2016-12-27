@@ -261,7 +261,7 @@ func (x EventDataMap) aggregatestruct(val reflect.Value) EventDataMap {
 	if !haspublic && val.CanAddr() {
 		v2 := val.Addr().Interface()
 		if err, ok := (v2).(error); ok {
-			x["Error"] = EventDataString(err.Error())
+			x["Message"] = EventDataString(err.Error())
 		}
 	}
 
