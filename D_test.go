@@ -18,7 +18,7 @@ func runcases_d(tests []d_expectation, t *testing.T) {
 
 			buff := new(bytes.Buffer)
 			eventdata.WriteTo(buff)
-			
+
 			if bytes.Compare(buff.Bytes(), []byte(c.ex)) != 0 {
 				t.Errorf("Expected '%v', got '%v'", c.ex, buff.String())
 			}
@@ -70,7 +70,7 @@ func TestCopyFrom(t *testing.T) {
 		},
 
 		{
-			v:  D{ "Fruit": "Banana" },
+			v:  D{"Fruit": "Banana"},
 			ex: "{ Fruit=\"Banana\" }",
 		},
 
@@ -105,15 +105,14 @@ func TestCopyFrom(t *testing.T) {
 		},
 
 		{
-			v: []string{"foo", "bar"},
+			v:  []string{"foo", "bar"},
 			ex: "[\"foo\", \"bar\"]",
 		},
 
 		{
-			v: D{"baz": []string{"foo", "bar"}},
+			v:  D{"baz": []string{"foo", "bar"}},
 			ex: "{ baz=[\"foo\", \"bar\"] }",
 		},
-		
 	}
 
 	runcases_d(tests, t)

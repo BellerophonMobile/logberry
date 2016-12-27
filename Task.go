@@ -78,7 +78,7 @@ func (x *Task) Component(component string, data ...interface{}) *Task {
 // this function is useful to silently accumulate data into the Task
 // as it proceeds, to be reported when it concludes.
 func (x *Task) AddData(data ...interface{}) *Task {
-	for _, v := range(data) {
+	for _, v := range data {
 		x.data.Aggregate(v)
 	}
 	return x
@@ -174,14 +174,14 @@ func (x *Task) Success(data ...interface{}) error {
 func (x *Task) Error(cause error, data ...interface{}) error {
 
 	m := x.activity + " failed"
-	taskerr := wraperror(m, cause, data)	
+	taskerr := wraperror(m, cause, data)
 	taskerr.Locate(1) // Locate up the call stack
 
 	taskerr.Reported = true
 
 	d := Aggregate(data).Aggregate(D{"Source": taskerr.Source})
 
-	if ce,ok := cause.(*Error); ok {
+	if ce, ok := cause.(*Error); ok {
 		if !ce.Reported {
 			d["Cause"] = Copy(ce)
 			ce.Reported = true
@@ -212,7 +212,7 @@ func (x *Task) WrapError(msg string, cause error, data ...interface{}) error {
 
 	dsub := Aggregate([]interface{}{usererr})
 
-	if ce,ok := cause.(*Error); ok {
+	if ce, ok := cause.(*Error); ok {
 		if !ce.Reported {
 			dsub["Cause"] = Copy(ce)
 			ce.Reported = true
@@ -224,7 +224,7 @@ func (x *Task) WrapError(msg string, cause error, data ...interface{}) error {
 	d := Aggregate(data)
 	d["Cause"] = dsub
 	d.Aggregate(x.data)
-	
+
 	x.root.event(x, ERROR, m, d)
 
 	return taskerr
@@ -247,7 +247,7 @@ func (x *Task) Failure(msg string, data ...interface{}) error {
 
 	cause := newerror(msg, nil)
 	cause.Locate(1)
-	
+
 	m := x.activity + " failed"
 	taskerr := wraperror(m, cause, data)
 

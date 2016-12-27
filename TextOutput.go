@@ -230,7 +230,7 @@ func (o *TextOutput) Event(event *Event) {
 	if len(event.Data) > 0 {
 		event.Data.WriteTo(o.writer)
 	}
-	
+
 	if o.Color {
 		_, e := fmt.Fprintf(o.writer, "\x1b[0m")
 		if e != nil {

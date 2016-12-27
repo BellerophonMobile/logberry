@@ -31,13 +31,12 @@ type Error struct {
 
 	// Whether or not this error has already been reported
 	Reported bool `logberry:"quiet"`
-
 }
 
 func newerror(msg string, data []interface{}) *Error {
 	e := &Error{
 		Message: msg,
-		Data: Aggregate(data),
+		Data:    Aggregate(data),
 	}
 	return e
 }
@@ -46,10 +45,10 @@ func wraperror(msg string, err error, data []interface{}) *Error {
 	e := newerror(msg, data)
 	e.Cause = err
 
-	if le,ok := err.(*Error); ok {
+	if le, ok := err.(*Error); ok {
 		e.Code = le.Code
 	}
-	
+
 	return e
 }
 
@@ -123,7 +122,7 @@ func (e *Error) Error() string {
 	if e.Code != "" {
 		fmt.Fprintf(buffer, " <%v>", e.Code)
 	}
-	
+
 	if e.Source != nil {
 		fmt.Fprintf(buffer, " [%v:%v]", e.Source.File, e.Source.Line)
 	}
@@ -133,9 +132,9 @@ func (e *Error) Error() string {
 		e.Data.WriteTo(buffer)
 	}
 
-		if e.Cause != nil {
-			fmt.Fprintf(buffer, "\n%v", e.Cause.Error())
-		}
+	if e.Cause != nil {
+		fmt.Fprintf(buffer, "\n%v", e.Cause.Error())
+	}
 
 	return buffer.String()
 }

@@ -2,9 +2,9 @@ package logberry
 
 import (
 	"bytes"
-	"testing"
-	"github.com/stretchr/testify/require"
 	"encoding/json"
+	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func Test_EventData_NilMap(t *testing.T) {
@@ -18,20 +18,20 @@ func Test_EventData_NilMap(t *testing.T) {
 	test := "{ }"
 
 	require.Equal(buff.String(), test)
-	
+
 }
 
 func Test_EventData_Basic(t *testing.T) {
 	require := require.New(t)
-	
+
 	data := EventDataMap{
-		"Alice": EventDataString("Miranda"),
+		"Alice":     EventDataString("Miranda"),
 		"Kobayashi": EventDataString("Maru"),
 		"Star Trek": EventDataMap{
-			"Season": EventDataInt64(5),
+			"Season":    EventDataInt64(5),
 			"Episode #": EventDataInt64(2),
-			"Title": EventDataString("Darmok"),
-			"Quality": EventDataFloat64(9.9),
+			"Title":     EventDataString("Darmok"),
+			"Quality":   EventDataFloat64(9.9),
 		},
 	}
 
@@ -41,20 +41,20 @@ func Test_EventData_Basic(t *testing.T) {
 	test := "{ Alice=\"Miranda\" Kobayashi=\"Maru\" \"Star Trek\"={ \"Episode #\"=2 Quality=9.9 Season=5 Title=\"Darmok\" } }"
 
 	require.Equal(test, buff.String())
-	
+
 }
 
 func Test_EventData_JSON(t *testing.T) {
 	require := require.New(t)
-	
+
 	data := EventDataMap{
-		"Alice": EventDataString("Miranda"),
+		"Alice":     EventDataString("Miranda"),
 		"Kobayashi": EventDataString("Maru"),
 		"Star Trek": EventDataMap{
-			"Season": EventDataInt64(5),
+			"Season":    EventDataInt64(5),
 			"Episode #": EventDataInt64(2),
-			"Title": EventDataString("Darmok"),
-			"Quality": EventDataFloat64(9.9),
+			"Title":     EventDataString("Darmok"),
+			"Quality":   EventDataFloat64(9.9),
 		},
 	}
 
@@ -67,7 +67,7 @@ func Test_EventData_JSON(t *testing.T) {
 
 func Test_EventData_Slice(t *testing.T) {
 	require := require.New(t)
-	
+
 	data := EventDataMap{
 		"Name": EventDataString("Alice Miranda"),
 		"Friends": EventDataSlice{
@@ -75,7 +75,7 @@ func Test_EventData_Slice(t *testing.T) {
 			EventDataString("Black Bear"),
 			EventDataMap{
 				"First": EventDataString("Melvin"),
-				"Last": EventDataString("Hedgehog"),
+				"Last":  EventDataString("Hedgehog"),
 			},
 			EventDataString("Miles"),
 		},
@@ -87,5 +87,5 @@ func Test_EventData_Slice(t *testing.T) {
 	test := "{ Friends=[\"Anna\", \"Black Bear\", { First=\"Melvin\" Last=\"Hedgehog\" }, \"Miles\"] Name=\"Alice Miranda\" }"
 
 	require.Equal(test, buff.String())
-	
+
 }

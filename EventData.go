@@ -2,10 +2,10 @@ package logberry
 
 import (
 	"bytes"
-	"sort"
-	"reflect"
 	"fmt"
 	"io"
+	"reflect"
+	"sort"
 	"strings"
 )
 
@@ -32,16 +32,16 @@ func (x EventDataMap) WriteTo(out io.Writer) {
 
 	keys := make([]string, len(x))
 	i := 0
-	for k,_ := range(x) {
+	for k, _ := range x {
 		keys[i] = k
 		i++
 	}
 
 	sort.Strings(keys)
-	
-	for _,k := range(keys) {
+
+	for _, k := range keys {
 		v := x[k]
-		
+
 		if strings.ContainsAny(k, "\"= {}[]") {
 			fmt.Fprintf(out, " %q=", k)
 		} else {
@@ -59,13 +59,13 @@ func (x EventDataMap) WriteTo(out io.Writer) {
 func (x EventDataSlice) WriteTo(out io.Writer) {
 
 	fmt.Fprintf(out, "[")
-	
-	for k,v := range(x) {
+
+	for k, v := range x {
 
 		if k > 0 {
 			fmt.Fprintf(out, ", ")
 		}
-		
+
 		v.WriteTo(out)
 
 	}
@@ -99,36 +99,36 @@ func MakeEventData(data []interface{}) EventData {
 
 	case 1:
 		return makeeventdata(data[0])
-		
+
 	default:
 
 		data := make(EventDataSlice, len(data))
-		
+
 		for i, v := range(data) {
 			data[i] = copy(v)
 		}
 
 		return data
 	}
-	
+
 	return EventDataMap(nil)
 
 }
 */
 func Copy(data interface{}) EventData {
-	e,_ := copy(data)
+	e, _ := copy(data)
 	return e
 }
 
-func copy(data interface{}) (EventData,bool) {
+func copy(data interface{}) (EventData, bool) {
 
 	val, null := rolldown(data)
 	if null {
-		return EventDataMap(nil),true
+		return EventDataMap(nil), true
 	}
 
 	zero := true
-	
+
 	switch val.Kind() {
 
 	case reflect.Struct:
@@ -136,28 +136,28 @@ func copy(data interface{}) (EventData,bool) {
 		if len(r) != 0 {
 			zero = false
 		}
-		return r,zero
-		
+		return r, zero
+
 	case reflect.Map:
 		r := EventDataMap{}.aggregatemap(val)
 		if len(r) != 0 {
 			zero = false
 		}
-		return r,zero
+		return r, zero
 
 	default:
 		return copydata(val)
 
 	}
 
-	return EventDataMap(nil),zero
-	
+	return EventDataMap(nil), zero
+
 }
 
 func Aggregate(data []interface{}) EventDataMap {
 
 	x := EventDataMap{}
-	for _, v := range(data) {
+	for _, v := range data {
 		x.Aggregate(v)
 	}
 	return x
@@ -180,12 +180,12 @@ func (x EventDataMap) Aggregate(data interface{}) EventDataMap {
 		x.aggregatemap(val)
 
 	default:
-		newval,zero := copydata(val)
+		newval, zero := copydata(val)
 
 		if zero {
 			break
 		}
-		
+
 		prev, find := x["value"]
 
 		if find {
@@ -199,9 +199,9 @@ func (x EventDataMap) Aggregate(data interface{}) EventDataMap {
 		} else {
 			x["value"] = newval
 		}
-		
+
 	}
-	
+
 	return x
 
 }
@@ -247,7 +247,7 @@ func (x EventDataMap) aggregatestruct(val reflect.Value) EventDataMap {
 		if f.IsValid() && f.CanInterface() && !strings.Contains(vtype.Field(i).Tag.Get("logberry"), "quiet") {
 
 			fi := f.Interface()
-			c,zero := copy(fi)
+			c, zero := copy(fi)
 			if !zero || strings.Contains(vtype.Field(i).Tag.Get("logberry"), "always") {
 				x[vtype.Field(i).Name] = c
 			}
@@ -266,7 +266,7 @@ func (x EventDataMap) aggregatestruct(val reflect.Value) EventDataMap {
 	}
 
 	return x
-	
+
 }
 
 func (x EventDataMap) aggregatemap(val reflect.Value) EventDataMap {
@@ -275,7 +275,7 @@ func (x EventDataMap) aggregatemap(val reflect.Value) EventDataMap {
 	for _, k := range vals {
 		v := val.MapIndex(k)
 		if k.CanInterface() && v.CanInterface() {
-			x[fmt.Sprint(k.Interface())],_ = copy(v.Interface())
+			x[fmt.Sprint(k.Interface())], _ = copy(v.Interface())
 		}
 	}
 
@@ -283,64 +283,73 @@ func (x EventDataMap) aggregatemap(val reflect.Value) EventDataMap {
 
 }
 
-
-func copydata(val reflect.Value) (EventData,bool) {
+func copydata(val reflect.Value) (EventData, bool) {
 
 	zero := true
 
 	switch val.Kind() {
-	case reflect.Array: fallthrough
+	case reflect.Array:
+		fallthrough
 	case reflect.Slice:
 		arr := make(EventDataSlice, val.Len())
 		for i := 0; i < val.Len(); i++ {
-			arr[i],_ = copy(val.Index(i).Interface())
+			arr[i], _ = copy(val.Index(i).Interface())
 		}
-		
+
 		if len(arr) > 0 {
 			zero = false
 		}
 
-		return arr,zero
+		return arr, zero
 
-	case reflect.Int: fallthrough
-	case reflect.Int8: fallthrough
-	case reflect.Int16: fallthrough
-	case reflect.Int32: fallthrough
+	case reflect.Int:
+		fallthrough
+	case reflect.Int8:
+		fallthrough
+	case reflect.Int16:
+		fallthrough
+	case reflect.Int32:
+		fallthrough
 	case reflect.Int64:
 		i := val.Int()
 		if i != 0 {
 			zero = false
 		}
-		return EventDataInt64(i),zero
+		return EventDataInt64(i), zero
 
-	case reflect.Uint: fallthrough
-	case reflect.Uint8: fallthrough
-	case reflect.Uint16: fallthrough
-	case reflect.Uint32: fallthrough
+	case reflect.Uint:
+		fallthrough
+	case reflect.Uint8:
+		fallthrough
+	case reflect.Uint16:
+		fallthrough
+	case reflect.Uint32:
+		fallthrough
 	case reflect.Uint64:
 		u := val.Uint()
 		if u != 0 {
 			zero = false
 		}
-		return EventDataUInt64(u),zero
+		return EventDataUInt64(u), zero
 
-	case reflect.Float32: fallthrough
+	case reflect.Float32:
+		fallthrough
 	case reflect.Float64:
 		f := val.Float()
 		if f != 0.0 {
 			zero = false
 		}
-		return EventDataFloat64(f),zero
+		return EventDataFloat64(f), zero
 
 	default:
 		s := val.String()
 		if s != "" {
 			zero = false
 		}
-		return EventDataString(s),zero
+		return EventDataString(s), zero
 
 	}
 
-	return EventDataString("##"),false
+	return EventDataString("##"), false
 
 }
