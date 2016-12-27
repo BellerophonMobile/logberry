@@ -2,9 +2,11 @@ language: go
 go: tip
 
 install:
+ - go get github.com/stretchr/testify/require
  - go generate examples/small/main.go
 
 script:
  - go test -v .
  - go build examples/minimal/main.go
+ - go build examples/errors/main.go 
  - go build examples/small/main.go examples/small/build.go
