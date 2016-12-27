@@ -21,21 +21,23 @@ type Error struct {
 	Message string
 
 	// Inputs, parameters, and other data associated with the fault
-	Data D
+	Data EventData
 
 	// The source code file and line number where the error occurred
 	Source Position
 
 	// Optional link to a preceding error underlying the fault
-	Cause error //`logberry:"quiet"`
+	Cause error `logberry:"quiet"`
 
-	reported bool
+	// Whether or not this error has already been reported
+	Reported bool `logberry:"quiet"`
+
 }
 
 func newerror(msg string, data []interface{}) *Error {
 	e := &Error{
 		Message: msg,
-		Data:    DAggregate(data),
+		Data: Copy(data),
 	}
 	return e
 }
@@ -43,6 +45,11 @@ func newerror(msg string, data []interface{}) *Error {
 func wraperror(msg string, err error, data []interface{}) *Error {
 	e := newerror(msg, data)
 	e.Cause = err
+
+	if le,ok := err.(Error); ok {
+		e.Code = le.Code
+	}
+	
 	return e
 }
 
@@ -111,6 +118,10 @@ func (e *Error) Error() string {
 
 	buffer.WriteString(e.Message)
 
+	if e.Code != "" {
+		fmt.Fprintf(buffer, " <%v>", e.Code)
+	}
+	
 	if e.Source.File != "" {
 		fmt.Fprintf(buffer, " [%v:%v]", e.Source.File, e.Source.Line)
 	}
@@ -119,11 +130,9 @@ func (e *Error) Error() string {
 		fmt.Fprintf(buffer, " %v", e.Data.String())
 	}
 
-	/*
 		if e.Cause != nil {
-			fmt.Fprintf(buffer, ": %v", e.Cause.Error())
+			fmt.Fprintf(buffer, "\n%v", e.Cause.Error())
 		}
-	*/
 
 	return buffer.String()
 }
