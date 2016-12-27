@@ -7,6 +7,20 @@ import (
 	"encoding/json"
 )
 
+func Test_EventData_NilMap(t *testing.T) {
+	require := require.New(t)
+
+	data := EventDataMap(nil)
+
+	buff := new(bytes.Buffer)
+	data.WriteRecurse(buff)
+
+	test := "{ }"
+
+	require.Equal(buff.String(), test)
+	
+}
+
 func Test_EventData_Basic(t *testing.T) {
 	require := require.New(t)
 	
@@ -14,20 +28,19 @@ func Test_EventData_Basic(t *testing.T) {
 		"Alice": EventDataString("Miranda"),
 		"Kobayashi": EventDataString("Maru"),
 		"Star Trek": EventDataMap{
-			"Season": EventDataInt32(5),
-			"Episode #": EventDataInt32(2),
+			"Season": EventDataInt64(5),
+			"Episode #": EventDataInt64(2),
 			"Title": EventDataString("Darmok"),
-			"Quality": EventDataFloat32(9.9),
+			"Quality": EventDataFloat64(9.9),
 		},
 	}
 
 	buff := new(bytes.Buffer)
 	data.WriteRecurse(buff)
-	t.Log(buff.String())
 
-	test := "{ Alice=\"Miranda\" Kobayashi=\"Maru\" \"Star Trek\"={ Season=5 \"Episode #\"=2 Title=\"Darmok\" Quality=9.9 } }"
+	test := "{ Alice=\"Miranda\" Kobayashi=\"Maru\" \"Star Trek\"={ \"Episode #\"=2 Quality=9.9 Season=5 Title=\"Darmok\" } }"
 
-	require.Equal(buff.String(), test)
+	require.Equal(test, buff.String())
 	
 }
 
@@ -38,18 +51,17 @@ func Test_EventData_JSON(t *testing.T) {
 		"Alice": EventDataString("Miranda"),
 		"Kobayashi": EventDataString("Maru"),
 		"Star Trek": EventDataMap{
-			"Season": EventDataInt32(5),
-			"Episode #": EventDataInt32(2),
+			"Season": EventDataInt64(5),
+			"Episode #": EventDataInt64(2),
 			"Title": EventDataString("Darmok"),
-			"Quality": EventDataFloat32(9.9),
+			"Quality": EventDataFloat64(9.9),
 		},
 	}
 
 	b, err := json.Marshal(data)
 	require.Nil(err)
 
-	t.Log(string(b))
-	require.Equal(string(b), "{\"Alice\":\"Miranda\",\"Kobayashi\":\"Maru\",\"Star Trek\":{\"Episode #\":2,\"Quality\":9.9,\"Season\":5,\"Title\":\"Darmok\"}}")
+	require.Equal("{\"Alice\":\"Miranda\",\"Kobayashi\":\"Maru\",\"Star Trek\":{\"Episode #\":2,\"Quality\":9.9,\"Season\":5,\"Title\":\"Darmok\"}}", string(b))
 
 }
 
@@ -71,10 +83,9 @@ func Test_EventData_Slice(t *testing.T) {
 
 	buff := new(bytes.Buffer)
 	data.WriteRecurse(buff)
-	t.Log(buff.String())
 
-	test := "{ Name=\"Alice Miranda\" Friends=[ \"Anna\", \"Black Bear\", { First=\"Melvin\" Last=\"Hedgehog\" }, \"Miles\" ] }"
+	test := "{ Friends=[ \"Anna\", \"Black Bear\", { First=\"Melvin\" Last=\"Hedgehog\" }, \"Miles\" ] Name=\"Alice Miranda\" }"
 
-	require.Equal(buff.String(), test)
+	require.Equal(test, buff.String())
 	
 }
