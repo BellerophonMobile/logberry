@@ -144,7 +144,7 @@ func (x *Root) InternalError(err error) {
 
 // event indicates something to report, a log entry to make.  It is
 // generally to be used by Tasks.
-func (x *Root) event(task *Task, event string, message string, data D) *Event {
+func (x *Root) event(task *Task, event string, message string, data EventDataMap) *Event {
 
 	e := &Event{
 		TaskID:    task.uid,

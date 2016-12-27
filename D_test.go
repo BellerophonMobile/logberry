@@ -17,7 +17,7 @@ func runcases_d(tests []d_expectation, t *testing.T) {
 			eventdata := Copy(c.v)
 
 			buff := new(bytes.Buffer)
-			eventdata.WriteRecurse(buff)
+			eventdata.WriteTo(buff)
 			
 			if bytes.Compare(buff.Bytes(), []byte(c.ex)) != 0 {
 				t.Errorf("Expected '%v', got '%v'", c.ex, buff.String())

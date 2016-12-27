@@ -13,7 +13,7 @@ func Test_EventData_NilMap(t *testing.T) {
 	data := EventDataMap(nil)
 
 	buff := new(bytes.Buffer)
-	data.WriteRecurse(buff)
+	data.WriteTo(buff)
 
 	test := "{ }"
 
@@ -36,7 +36,7 @@ func Test_EventData_Basic(t *testing.T) {
 	}
 
 	buff := new(bytes.Buffer)
-	data.WriteRecurse(buff)
+	data.WriteTo(buff)
 
 	test := "{ Alice=\"Miranda\" Kobayashi=\"Maru\" \"Star Trek\"={ \"Episode #\"=2 Quality=9.9 Season=5 Title=\"Darmok\" } }"
 
@@ -82,7 +82,7 @@ func Test_EventData_Slice(t *testing.T) {
 	}
 
 	buff := new(bytes.Buffer)
-	data.WriteRecurse(buff)
+	data.WriteTo(buff)
 
 	test := "{ Friends=[ \"Anna\", \"Black Bear\", { First=\"Melvin\" Last=\"Hedgehog\" }, \"Miles\" ] Name=\"Alice Miranda\" }"
 

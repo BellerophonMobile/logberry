@@ -27,7 +27,7 @@ type Event struct {
 
 	Event   string
 	Message string
-	Data    D
+	Data    EventDataMap
 
 	Timestamp time.Time
 }

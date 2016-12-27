@@ -55,5 +55,4 @@ func (x *JSONOutput) Event(event *Event) {
 		return
 	}
 
-	// end Event
 }

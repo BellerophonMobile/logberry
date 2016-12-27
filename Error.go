@@ -24,7 +24,7 @@ type Error struct {
 	Data EventData
 
 	// The source code file and line number where the error occurred
-	Source Position
+	Source *Position
 
 	// Optional link to a preceding error underlying the fault
 	Cause error `logberry:"quiet"`
@@ -37,7 +37,7 @@ type Error struct {
 func newerror(msg string, data []interface{}) *Error {
 	e := &Error{
 		Message: msg,
-		Data: Copy(data),
+		Data: Aggregate(data),
 	}
 	return e
 }
@@ -46,7 +46,7 @@ func wraperror(msg string, err error, data []interface{}) *Error {
 	e := newerror(msg, data)
 	e.Cause = err
 
-	if le,ok := err.(Error); ok {
+	if le,ok := err.(*Error); ok {
 		e.Code = le.Code
 	}
 	
@@ -80,8 +80,10 @@ func WrapError(msg string, err error, data ...interface{}) *Error {
 func (e *Error) Locate(skip int) {
 	_, file, line, ok := runtime.Caller(skip + 1)
 	if ok {
-		e.Source.File = file
-		e.Source.Line = line
+		e.Source = &Position{
+			File: file,
+			Line: line,
+		}
 	}
 }
 
@@ -122,12 +124,13 @@ func (e *Error) Error() string {
 		fmt.Fprintf(buffer, " <%v>", e.Code)
 	}
 	
-	if e.Source.File != "" {
+	if e.Source != nil {
 		fmt.Fprintf(buffer, " [%v:%v]", e.Source.File, e.Source.Line)
 	}
 
-	if len(e.Data) > 0 {
-		fmt.Fprintf(buffer, " %v", e.Data.String())
+	if e.Data != nil {
+		fmt.Fprintf(buffer, " ")
+		e.Data.WriteTo(buffer)
 	}
 
 		if e.Cause != nil {

@@ -14,7 +14,7 @@ import (
 // passed object.  A utility script to generate such metadata
 // automatically is in the util/ folder of the Logberry repository.
 func LogBuildMetadata(main *logberry.Task, build *BuildMetadata) {
-	main.Event(logberry.CONFIGURATION, "Build metadata", logberry.DAggregate([]interface{}{build}))
+	main.Event(logberry.CONFIGURATION, "Build metadata", build)
 }
 
 // BuildSignatureEvent generates a configuration log event for the

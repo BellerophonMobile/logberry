@@ -9,7 +9,7 @@ import (
 )
 
 type EventData interface {
-	WriteRecurse(io.Writer)
+	WriteTo(io.Writer)
 }
 
 type EventDataMap map[string]EventData
@@ -19,7 +19,7 @@ type EventDataInt64 int64
 type EventDataUInt64 uint64
 type EventDataFloat64 float64
 
-func (x EventDataMap) WriteRecurse(out io.Writer) {
+func (x EventDataMap) WriteTo(out io.Writer) {
 
 	fmt.Fprintf(out, "{")
 
@@ -41,7 +41,7 @@ func (x EventDataMap) WriteRecurse(out io.Writer) {
 			fmt.Fprintf(out, " %v=", k)
 		}
 
-		v.WriteRecurse(out)
+		v.WriteTo(out)
 
 	}
 
@@ -49,7 +49,7 @@ func (x EventDataMap) WriteRecurse(out io.Writer) {
 
 }
 
-func (x EventDataSlice) WriteRecurse(out io.Writer) {
+func (x EventDataSlice) WriteTo(out io.Writer) {
 
 	fmt.Fprintf(out, "[ ")
 	
@@ -59,7 +59,7 @@ func (x EventDataSlice) WriteRecurse(out io.Writer) {
 			fmt.Fprintf(out, ", ")
 		}
 		
-		v.WriteRecurse(out)
+		v.WriteTo(out)
 
 	}
 
@@ -67,22 +67,23 @@ func (x EventDataSlice) WriteRecurse(out io.Writer) {
 
 }
 
-func (x EventDataString) WriteRecurse(out io.Writer) {
+func (x EventDataString) WriteTo(out io.Writer) {
 	fmt.Fprintf(out, "%q", x)
 }
 
-func (x EventDataInt64) WriteRecurse(out io.Writer) {
+func (x EventDataInt64) WriteTo(out io.Writer) {
 	fmt.Fprintf(out, "%v", x)
 }
 
-func (x EventDataUInt64) WriteRecurse(out io.Writer) {
+func (x EventDataUInt64) WriteTo(out io.Writer) {
 	fmt.Fprintf(out, "%v", x)
 }
 
-func (x EventDataFloat64) WriteRecurse(out io.Writer) {
+func (x EventDataFloat64) WriteTo(out io.Writer) {
 	fmt.Fprintf(out, "%v", x)
 }
 
+/*
 func MakeEventData(data []interface{}) EventData {
 
 	switch len(data) {
@@ -90,14 +91,14 @@ func MakeEventData(data []interface{}) EventData {
 		return EventDataMap(nil)
 
 	case 1:
-		return Copy(data[0])
+		return makeeventdata(data[0])
 		
 	default:
 
 		data := make(EventDataSlice, len(data))
 		
 		for i, v := range(data) {
-			data[i] = Copy(v)
+			data[i] = copy(v)
 		}
 
 		return data
@@ -106,33 +107,96 @@ func MakeEventData(data []interface{}) EventData {
 	return EventDataMap(nil)
 
 }
-
+*/
 func Copy(data interface{}) EventData {
+	e,_ := copy(data)
+	return e
+}
+
+func copy(data interface{}) (EventData,bool) {
 
 	val, null := rolldown(data)
 	if null {
-		return EventDataMap(nil)
+		return EventDataMap(nil),true
 	}
 
+	zero := true
+	
 	switch val.Kind() {
 
 	case reflect.Struct:
-		return copystruct(val)
-
+		r := EventDataMap{}.aggregatestruct(val)
+		if len(r) != 0 {
+			zero = false
+		}
+		return r,zero
+		
 	case reflect.Map:
-		return copymap(val)
-
-	case reflect.Array: fallthrough
-	case reflect.Slice:
-		return copyslice(val)
+		r := EventDataMap{}.aggregatemap(val)
+		if len(r) != 0 {
+			zero = false
+		}
+		return r,zero
 
 	default:
 		return copydata(val)
 
 	}
+
+	return EventDataMap(nil),zero
 	
-	return EventDataString("###")
+}
+
+func Aggregate(data []interface{}) EventDataMap {
+
+	x := EventDataMap{}
+	for _, v := range(data) {
+		x.Aggregate(v)
+	}
+	return x
+
+}
+
+func (x EventDataMap) Aggregate(data interface{}) EventDataMap {
+
+	val, null := rolldown(data)
+	if null {
+		return x
+	}
+
+	switch val.Kind() {
+
+	case reflect.Struct:
+		x.aggregatestruct(val)
+
+	case reflect.Map:
+		x.aggregatemap(val)
+
+	default:
+		newval,zero := copydata(val)
+
+		if zero {
+			break
+		}
+		
+		prev, find := x["value"]
+
+		if find {
+			switch p := prev.(type) {
+			case EventDataSlice:
+				x["value"] = append(p, newval)
+
+			default:
+				x["value"] = EventDataSlice{p, newval}
+			}
+		} else {
+			x["value"] = newval
+		}
+		
+	}
 	
+	return x
+
 }
 
 func rolldown(data interface{}) (reflect.Value, bool) {
@@ -166,10 +230,7 @@ func rolldown(data interface{}) (reflect.Value, bool) {
 
 }
 
-
-func copystruct(val reflect.Value) EventDataMap {
-
-	res := make(EventDataMap)
+func (x EventDataMap) aggregatestruct(val reflect.Value) EventDataMap {
 
 	var vtype = val.Type()
 	var haspublic bool
@@ -177,7 +238,13 @@ func copystruct(val reflect.Value) EventDataMap {
 	for i := 0; i < val.NumField(); i++ {
 		var f = val.Field(i)
 		if f.IsValid() && f.CanInterface() && !strings.Contains(vtype.Field(i).Tag.Get("logberry"), "quiet") {
-			res[vtype.Field(i).Name] = Copy(f.Interface())
+
+			fi := f.Interface()
+			c,zero := copy(fi)
+			if !zero || strings.Contains(vtype.Field(i).Tag.Get("logberry"), "always") {
+				x[vtype.Field(i).Name] = c
+			}
+
 			haspublic = true
 		}
 	}
@@ -187,69 +254,86 @@ func copystruct(val reflect.Value) EventDataMap {
 	if !haspublic && val.CanAddr() {
 		v2 := val.Addr().Interface()
 		if err, ok := (v2).(error); ok {
-			res["Error"] = EventDataString(err.Error())
+			x["Error"] = EventDataString(err.Error())
 		}
 	}
-	
-	return res
 
+	return x
+	
 }
 
-func copymap(val reflect.Value) EventDataMap {
+func (x EventDataMap) aggregatemap(val reflect.Value) EventDataMap {
 
-	res := make(EventDataMap)
-	
 	var vals = val.MapKeys()
 	for _, k := range vals {
 		v := val.MapIndex(k)
 		if k.CanInterface() && v.CanInterface() {
-			res[fmt.Sprint(k.Interface())] = Copy(v.Interface())
+			x[fmt.Sprint(k.Interface())],_ = copy(v.Interface())
 		}
 	}
 
-	return res
+	return x
 
 }
 
-func copyslice(val reflect.Value) EventDataSlice {
 
-	arr := make(EventDataSlice, val.Len())
+func copydata(val reflect.Value) (EventData,bool) {
 
-	for i := 0; i < val.Len(); i++ {
-		arr[i] = Copy(val.Index(i))
-	}
-
-	return arr
-
-}
-
-func copydata(val reflect.Value) EventData {
+	zero := true
 
 	switch val.Kind() {
+	case reflect.Array: fallthrough
+	case reflect.Slice:
+		arr := make(EventDataSlice, val.Len())
+		for i := 0; i < val.Len(); i++ {
+			arr[i],_ = copy(val.Index(i))
+		}
+		
+		if len(arr) > 0 {
+			zero = false
+		}
+
+		return arr,zero
 
 	case reflect.Int: fallthrough
 	case reflect.Int8: fallthrough
 	case reflect.Int16: fallthrough
 	case reflect.Int32: fallthrough
 	case reflect.Int64:
-		return EventDataInt64(val.Int())		
+		i := val.Int()
+		if i != 0 {
+			zero = false
+		}
+		return EventDataInt64(i),zero
 
 	case reflect.Uint: fallthrough
 	case reflect.Uint8: fallthrough
 	case reflect.Uint16: fallthrough
 	case reflect.Uint32: fallthrough
 	case reflect.Uint64:
-		return EventDataUInt64(val.Uint())
+		u := val.Uint()
+		if u != 0 {
+			zero = false
+		}
+		return EventDataUInt64(u),zero
 
 	case reflect.Float32: fallthrough
 	case reflect.Float64:
-		return EventDataFloat64(val.Uint())
+		f := val.Float()
+		if f != 0.0 {
+			zero = false
+		}
+		return EventDataFloat64(f),zero
 
 	default:
-		return EventDataString(val.String())
+		s := val.String()
+		if s != "" {
+			zero = false
+		}
+		return EventDataString(s),zero
 
 	}
 
-	return EventDataString("##")
+	return EventDataString("##"),false
 
 }

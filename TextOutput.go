@@ -225,8 +225,10 @@ func (o *TextOutput) Event(event *Event) {
 		writsofar += n
 	}
 
-	event.Data.WriteTo(o.writer)
-
+	if len(event.Data) > 0 {
+		event.Data.WriteTo(o.writer)
+	}
+	
 	if o.Color {
 		_, e := fmt.Fprintf(o.writer, "\x1b[0m")
 		if e != nil {

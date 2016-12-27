@@ -10,6 +10,9 @@ import (
 
 func main() {
 
+	// Wait for all log messages to be output
+	defer logberry.Std.Stop()
+
 	// Uncomment this and "os" import for JSON output
 	// logberry.Std.SetOutputDriver(logberry.NewJSONOutput(os.Stdout))
 
@@ -56,9 +59,6 @@ func main() {
 
 	// The program shuts down
 	logberry.Main.Stopped()
-
-	// Wait for all log messages to be output
-	logberry.Std.Stop()
 
 }
 

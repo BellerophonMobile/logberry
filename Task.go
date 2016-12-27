@@ -19,7 +19,7 @@ type Task struct {
 
 	activity string
 
-	data D
+	data EventDataMap
 }
 
 var numtasks uint64
@@ -35,7 +35,7 @@ func newtask(parent *Task, component string, activity string, data []interface{}
 		uid:      newtaskuid(),
 		parent:   parent,
 		activity: activity,
-		data:     D{},
+		data:     EventDataMap{},
 	}
 
 	if parent != nil {
@@ -49,7 +49,7 @@ func newtask(parent *Task, component string, activity string, data []interface{}
 		t.component = component
 	}
 
-	t.root.event(t, BEGIN, t.activity+" begin", DAggregate(data))
+	t.root.event(t, BEGIN, t.activity+" begin", Aggregate(data))
 
 	return t
 
@@ -73,13 +73,14 @@ func (x *Task) Component(component string, data ...interface{}) *Task {
 }
 
 // AddData incorporates the given data into that associated and
-// reported with this Task.  The rules for this construction are
-// explained in CopyFrom.  This call does not generate a log event.
+// reported with this Task.  This call does not generate a log event.
 // The host Task is passed through as the return.  Among other things,
 // this function is useful to silently accumulate data into the Task
 // as it proceeds, to be reported when it concludes.
 func (x *Task) AddData(data ...interface{}) *Task {
-	x.data.CopyFrom(data)
+	for _, v := range(data) {
+		x.data.Aggregate(v)
+	}
 	return x
 }
 
@@ -93,7 +94,7 @@ func (x *Task) AddData(data ...interface{}) *Task {
 // event, as is the data permanently associated with the Task.  The
 // given data is not associated to the Task permanently.
 func (x *Task) Event(event string, msg string, data ...interface{}) {
-	x.root.event(x, event, msg, DAggregate(data).CopyFrom(x.data))
+	x.root.event(x, event, msg, Aggregate(data).Aggregate(x.data))
 }
 
 // Info generates an informational log event.  A human-oriented text
@@ -105,7 +106,7 @@ func (x *Task) Event(event string, msg string, data ...interface{}) {
 // associated with the Task.  The given data is not associated to the
 // Task permanently.
 func (x *Task) Info(msg string, data ...interface{}) {
-	x.root.event(x, INFO, msg, DAggregate(data).CopyFrom(x.data))
+	x.root.event(x, INFO, msg, Aggregate(data).Aggregate(x.data))
 }
 
 // Warning generates a warning log event indicating that a fault was
@@ -117,7 +118,7 @@ func (x *Task) Info(msg string, data ...interface{}) {
 // permanently associated with the Task.  The given data is not
 // associated to the Task permanently.
 func (x *Task) Warning(msg string, data ...interface{}) {
-	x.root.event(x, WARNING, msg, DAggregate(data).CopyFrom(x.data))
+	x.root.event(x, WARNING, msg, Aggregate(data).Aggregate(x.data))
 }
 
 // Ready generates a ready log event reporting that the activity or
@@ -126,8 +127,7 @@ func (x *Task) Warning(msg string, data ...interface{}) {
 // the event, as is the data permanently associated with the Task.
 // The given data is not associated to the Task permanently.
 func (x *Task) Ready(data ...interface{}) {
-	x.root.event(x, READY, x.activity+" ready",
-		DAggregate(data).CopyFrom(x.data))
+	x.root.event(x, READY, x.activity+" ready", Aggregate(data).Aggregate(x.data))
 }
 
 // Stopped generates a stopped log event reporting that the activity
@@ -136,8 +136,7 @@ func (x *Task) Ready(data ...interface{}) {
 // event, as is the data permanently associated with the Task.  The
 // given data is not associated to the Task permanently.
 func (x *Task) Stopped(data ...interface{}) {
-	x.root.event(x, STOPPED, x.activity+" stopped",
-		DAggregate(data).CopyFrom(x.data))
+	x.root.event(x, STOPPED, x.activity+" stopped", Aggregate(data).Aggregate(x.data))
 }
 
 // Finalized generates an end log event reporting that the component
@@ -148,7 +147,7 @@ func (x *Task) Stopped(data ...interface{}) {
 // the data permanently associated with the Task.  The given data is
 // not associated to the Task permanently.
 func (x *Task) Finalized(data ...interface{}) {
-	x.root.event(x, END, x.activity+" finalized", DAggregate(data).CopyFrom(x.data))
+	x.root.event(x, END, x.activity+" finalized", Aggregate(data).Aggregate(x.data))
 }
 
 // Success generates a success log event reporting that the activity
@@ -158,52 +157,78 @@ func (x *Task) Finalized(data ...interface{}) {
 // the data permanently associated with the Task.  The given data is
 // not associated to the Task permanently.
 func (x *Task) Success(data ...interface{}) error {
-	x.root.event(x, SUCCESS, x.activity+" success", DAggregate(data).CopyFrom(x.data))
+	x.root.event(x, SUCCESS, x.activity+" success", Aggregate(data).Aggregate(x.data))
 	return nil
 }
 
 // Error generates an error log event reporting an unrecoverable fault
-// in an activity or component.  An error is returned wrapping the
-// original error with a message reporting that the Task's activity
-// has failed.  Continuing to use the Task is discouraged.  The
-// variadic data parameter is aggregated as a D and embedded in the
-// generated error.  It and the data permanently associated with the
-// Task is reported with the event.  The reported source code position
-// of the generated task error is adjusted to be the event invocation.
-func (x *Task) Error(err error, data ...interface{}) error {
+// in an activity or component.  If the given error is not a Logberry
+// Error that has already been logged then it will be reported.  An
+// error is returned wrapping the original error with a message
+// reporting that the Task's activity has failed.  Continuing to use
+// the Task is discouraged.  The variadic data parameter is aggregated
+// as a D and embedded in the generated error.  It and the data
+// permanently associated with the Task is reported with the event.
+// The reported source code position of the generated task error is
+// adjusted to be the event invocation.
+func (x *Task) Error(cause error, data ...interface{}) error {
 
 	m := x.activity + " failed"
+	taskerr := wraperror(m, cause, data)	
+	taskerr.Locate(1) // Locate up the call stack
 
-	e := wraperror(m, err, data)
-	e.Locate(1)
-	e.reported = true
+	taskerr.Reported = true
 
-	rep := D{
-		"Source": e.Source,
+	d := Aggregate(data).Aggregate(D{"Source": taskerr.Source})
+
+	if ce,ok := cause.(*Error); ok {
+		if !ce.Reported {
+			d["Cause"] = Copy(ce)
+			ce.Reported = true
+		}
+	} else {
+		d["Cause"] = Copy(cause)
 	}
 
-	if ex, ok := err.(*Error); !ok || !ex.reported {
-		rep["Cause"] = DAggregate([]interface{}{err})
-	}
+	d.Aggregate(x.data)
 
-	rep.CopyFrom(DAggregate(data))
-	rep.CopyFrom(x.data)
+	x.root.event(x, ERROR, m, d)
 
-	x.root.event(x, ERROR, m, rep)
+	return taskerr
 
-	return e
 }
 
-func (x *Task) WrapError(msg string, source error, data ...interface{}) error {
-	err := wraperror(msg, source, nil)
-	err.Locate(1)
+func (x *Task) WrapError(msg string, cause error, data ...interface{}) error {
+
+	usererr := wraperror(msg, cause, nil)
+	usererr.Reported = true
+	usererr.Locate(1)
 
 	m := x.activity + " failed"
-	x.root.event(x, ERROR, m, D{"Error": DAggregate([]interface{}{err})}.CopyFrom(DAggregate(data)).CopyFrom(x.data))
+	taskerr := wraperror(m, usererr, data)
 
-	e := wraperror(m, err, data)
-	e.Locate(1)
-	return e
+	usererr.Reported = true
+	taskerr.Reported = true
+
+	dsub := Aggregate([]interface{}{usererr})
+
+	if ce,ok := cause.(*Error); ok {
+		if !ce.Reported {
+			dsub["Cause"] = Copy(ce)
+			ce.Reported = true
+		}
+	} else {
+		dsub["Cause"] = Copy(cause)
+	}
+
+	d := Aggregate(data)
+	d["Cause"] = dsub
+	d.Aggregate(x.data)
+	
+	x.root.event(x, ERROR, m, d)
+
+	return taskerr
+
 }
 
 // Failure generates an error log event reporting an unrecoverable
@@ -219,13 +244,22 @@ func (x *Task) WrapError(msg string, source error, data ...interface{}) error {
 // source code position of the generated task error is adjusted to be
 // the event invocation.
 func (x *Task) Failure(msg string, data ...interface{}) error {
-	err := newerror(msg, nil)
-	err.Locate(1)
 
+	cause := newerror(msg, nil)
+	cause.Locate(1)
+	
 	m := x.activity + " failed"
-	x.root.event(x, ERROR, m, D{"Error": DAggregate([]interface{}{err})}.CopyFrom(DAggregate(data)).CopyFrom(x.data))
+	taskerr := wraperror(m, cause, data)
 
-	e := wraperror(m, err, data)
-	e.Locate(1)
-	return e
+	cause.Reported = true
+	taskerr.Reported = true
+
+	d := Aggregate(data)
+	d["Cause"] = Copy(cause)
+	d.Aggregate(x.data)
+
+	x.root.event(x, ERROR, m, d)
+
+	return taskerr
+
 }
