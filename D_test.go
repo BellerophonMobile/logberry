@@ -104,6 +104,16 @@ func TestCopyFrom(t *testing.T) {
 			ex: "{ Field1=\"Data\" Field2=\"Atad\" Field3=\"Foo\" }",
 		},
 
+		{
+			v: []string{"foo", "bar"},
+			ex: "[\"foo\", \"bar\"]",
+		},
+
+		{
+			v: D{"baz": []string{"foo", "bar"}},
+			ex: "{ baz=[\"foo\", \"bar\"] }",
+		},
+		
 	}
 
 	runcases_d(tests, t)

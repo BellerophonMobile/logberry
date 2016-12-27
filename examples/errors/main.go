@@ -35,7 +35,7 @@ func main() {
 	task = logberry.Main.Task("Final computation")
 	err = logberry.NewError("Unspeakable horror", 49)
 	task.Error(err)
-	
+
 	logberry.Main.Stopped()
 
 }

@@ -1,6 +1,7 @@
 package logberry
 
 import (
+	"bytes"
 	"sort"
 	"reflect"
 	"fmt"
@@ -19,6 +20,12 @@ type EventDataInt64 int64
 type EventDataUInt64 uint64
 type EventDataFloat64 float64
 
+func (x EventDataMap) String() string {
+	buff := new(bytes.Buffer)
+	x.WriteTo(buff)
+	return buff.String()
+}
+
 func (x EventDataMap) WriteTo(out io.Writer) {
 
 	fmt.Fprintf(out, "{")
@@ -34,8 +41,8 @@ func (x EventDataMap) WriteTo(out io.Writer) {
 	
 	for _,k := range(keys) {
 		v := x[k]
-
-		if strings.ContainsAny(k, "\"= {}") {
+		
+		if strings.ContainsAny(k, "\"= {}[]") {
 			fmt.Fprintf(out, " %q=", k)
 		} else {
 			fmt.Fprintf(out, " %v=", k)
@@ -51,7 +58,7 @@ func (x EventDataMap) WriteTo(out io.Writer) {
 
 func (x EventDataSlice) WriteTo(out io.Writer) {
 
-	fmt.Fprintf(out, "[ ")
+	fmt.Fprintf(out, "[")
 	
 	for k,v := range(x) {
 
@@ -63,7 +70,7 @@ func (x EventDataSlice) WriteTo(out io.Writer) {
 
 	}
 
-	fmt.Fprintf(out, " ]")
+	fmt.Fprintf(out, "]")
 
 }
 
@@ -286,7 +293,7 @@ func copydata(val reflect.Value) (EventData,bool) {
 	case reflect.Slice:
 		arr := make(EventDataSlice, val.Len())
 		for i := 0; i < val.Len(); i++ {
-			arr[i],_ = copy(val.Index(i))
+			arr[i],_ = copy(val.Index(i).Interface())
 		}
 		
 		if len(arr) > 0 {

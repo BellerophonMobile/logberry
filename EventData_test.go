@@ -84,7 +84,7 @@ func Test_EventData_Slice(t *testing.T) {
 	buff := new(bytes.Buffer)
 	data.WriteTo(buff)
 
-	test := "{ Friends=[ \"Anna\", \"Black Bear\", { First=\"Melvin\" Last=\"Hedgehog\" }, \"Miles\" ] Name=\"Alice Miranda\" }"
+	test := "{ Friends=[\"Anna\", \"Black Bear\", { First=\"Melvin\" Last=\"Hedgehog\" }, \"Miles\"] Name=\"Alice Miranda\" }"
 
 	require.Equal(test, buff.String())
 	
