@@ -21,7 +21,7 @@ type Error struct {
 	Message string
 
 	// Inputs, parameters, and other data associated with the fault
-	Data EventData
+	Data EventDataMap
 
 	// The source code file and line number where the error occurred
 	Source *Position
@@ -36,7 +36,7 @@ type Error struct {
 func newerror(msg string, data []interface{}) *Error {
 	e := &Error{
 		Message: msg,
-		Data:    Aggregate(data),
+		Data:    EventDataMap{}.Aggregate(data),
 	}
 	return e
 }
@@ -127,7 +127,7 @@ func (e *Error) Error() string {
 		fmt.Fprintf(buffer, " [%v:%v]", e.Source.File, e.Source.Line)
 	}
 
-	if e.Data != nil {
+	if e.Data != nil && len(e.Data) > 0 {
 		fmt.Fprintf(buffer, " ")
 		e.Data.WriteTo(buffer)
 	}
