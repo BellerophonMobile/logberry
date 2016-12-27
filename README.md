@@ -7,7 +7,7 @@ than managing them, and tries to be lightweight while capturing more
 semantics and structure than is typical, in both readable and easily
 parsed forms.
 
-[![Build Status](https://travis-ci.org/BellerophonMobile/logberry.svg)](https://travis-ci.org/BellerophonMobile/logberry) [![GoDoc](https://godoc.org/github.com/BellerophonMobile/logberry?status.svg)](https://godoc.org/github.com/BellerophonMobile/logberry) 
+[![Build Status](https://travis-ci.org/BellerophonMobile/logberry.svg?branch=master)](https://travis-ci.org/BellerophonMobile/logberry?branch=master) [![GoDoc](https://godoc.org/github.com/BellerophonMobile/logberry?status.svg)](https://godoc.org/github.com/BellerophonMobile/logberry) 
 
 
 ## Introduction
