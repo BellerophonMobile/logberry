@@ -63,18 +63,13 @@ func (x *Root) run() {
 }
 
 // ClearOutputDrivers removes all of the currently registered outputs.
+// This is not thread safe with event generation, drivers are assumed
+// to be managed in serial at startup.
 func (x *Root) ClearOutputDrivers() {
-
-	old := x.outputdrivers
-
-	x.outputdrivers = make([]OutputDriver, 0, 1)
-
-	// Must detach after clearing so the OutputDrivers won't
-	// receive output after being detached.
-	for _, o := range old {
+	for _, o := range x.outputdrivers {
 		o.Detach()
 	}
-
+	x.outputdrivers = make([]OutputDriver, 0, 1)
 }
 
 // AddOutputDriver includes the given additional output in those to

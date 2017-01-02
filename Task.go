@@ -171,7 +171,7 @@ func (x *Task) Success(data ...interface{}) error {
 // permanently associated with the Task is reported with the event.
 // The reported source code position of the generated task error is
 // adjusted to be the event invocation.
-func (x *Task) Error(cause error, data ...interface{}) error {
+func (x *Task) Error(cause error, data ...interface{}) *Error {
 
 	m := x.activity + " failed"
 	taskerr := wraperror(m, cause, data)
@@ -182,7 +182,7 @@ func (x *Task) Error(cause error, data ...interface{}) error {
 	d := Aggregate(data).Aggregate(D{"Source": taskerr.Source})
 
 	dsub := d
-	for cursor := cause; cursor != nil; {	
+	for cursor := cause; cursor != nil; {
 		if ce, ok := cursor.(*Error); ok {
 			if !ce.Reported {
 				ce.Reported = true
@@ -198,7 +198,7 @@ func (x *Task) Error(cause error, data ...interface{}) error {
 			break
 		}
 	}
-	
+
 	d.Aggregate(x.data)
 
 	x.root.event(x, ERROR, m, d)
@@ -207,7 +207,7 @@ func (x *Task) Error(cause error, data ...interface{}) error {
 
 }
 
-func (x *Task) WrapError(msg string, cause error, data ...interface{}) error {
+func (x *Task) WrapError(msg string, cause error, data ...interface{}) *Error {
 
 	usererr := wraperror(msg, cause, nil)
 	usererr.Reported = true
@@ -218,7 +218,6 @@ func (x *Task) WrapError(msg string, cause error, data ...interface{}) error {
 
 	usererr.Reported = true
 	taskerr.Reported = true
-
 
 	d := Aggregate(data)
 
@@ -241,7 +240,7 @@ func (x *Task) WrapError(msg string, cause error, data ...interface{}) error {
 			break
 		}
 	}
-	
+
 	d.Aggregate(x.data)
 
 	x.root.event(x, ERROR, m, d)
@@ -262,7 +261,7 @@ func (x *Task) WrapError(msg string, cause error, data ...interface{}) error {
 // associated with the Task is reported with the event.  The reported
 // source code position of the generated task error is adjusted to be
 // the event invocation.
-func (x *Task) Failure(msg string, data ...interface{}) error {
+func (x *Task) Failure(msg string, data ...interface{}) *Error {
 
 	cause := newerror(msg, nil)
 	cause.Locate(1)

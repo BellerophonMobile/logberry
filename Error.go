@@ -87,8 +87,9 @@ func (e *Error) Locate(skip int) {
 }
 
 // SetCode associates the error with a particular error class string.
-func (e *Error) SetCode(code string) {
+func (e *Error) SetCode(code string) *Error {
 	e.Code = code
+	return e
 }
 
 // IsError checks if the given error is a Logberry Error tagged with
