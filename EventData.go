@@ -350,6 +350,15 @@ func copydata(val reflect.Value) (EventData, bool) {
 		return EventDataBool(f), false
 
 	default:
+		// Special case: If the value is an error, call its Error() function
+		// to get a text representation.
+		if val.CanInterface() {
+			v2 := val.Interface()
+			if err, ok := (v2).(error); ok {
+				return EventDataString(err.Error()), false
+			}
+		}
+
 		s := val.String()
 		if s != "" {
 			zero = false
