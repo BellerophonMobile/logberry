@@ -47,6 +47,7 @@ func (x *Root) Stop() {
 func (x *Root) run() {
 
 	for {
+
 		e, more := <-x.events
 		if !more {
 			break
@@ -156,6 +157,7 @@ func (x *Root) event(task *Task, event string, message string, data EventDataMap
 	}
 
 	x.events <- e
+
 	return e
 
 	// end event
