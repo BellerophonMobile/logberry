@@ -1,4 +1,4 @@
-package logberry
+package testing
 
 import (
 	"bytes"
