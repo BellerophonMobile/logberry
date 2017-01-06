@@ -19,6 +19,7 @@ type EventDataString string
 type EventDataInt64 int64
 type EventDataUInt64 uint64
 type EventDataFloat64 float64
+type EventDataBool bool
 
 func (x EventDataMap) String() string {
 	buff := new(bytes.Buffer)
@@ -87,6 +88,10 @@ func (x EventDataUInt64) WriteTo(out io.Writer) {
 }
 
 func (x EventDataFloat64) WriteTo(out io.Writer) {
+	fmt.Fprintf(out, "%v", x)
+}
+
+func (x EventDataBool) WriteTo(out io.Writer) {
 	fmt.Fprintf(out, "%v", x)
 }
 
@@ -340,6 +345,10 @@ func copydata(val reflect.Value) (EventData, bool) {
 			zero = false
 		}
 		return EventDataFloat64(f), zero
+
+	case reflect.Bool:
+		f := val.Bool()
+		return EventDataBool(f), false
 
 	default:
 		s := val.String()
