@@ -19,7 +19,7 @@ func main() {
 	task := logberry.Main.Task("Compute something")
 	task.AddData(logberry.D{"Priority": 17})
 	task.Failure("Value out of bounds")
-	
+
 	task = logberry.Main.Task("Bigger computation")
 	err := errors.New("Bad input")
 	task.Error(err)
@@ -30,7 +30,7 @@ func main() {
 		task.Error(err)
 	} else {
 		task.Success()
-	}	
+	}
 
 	task = logberry.Main.Task("Final computation")
 	err = logberry.NewError("Unspeakable horror", 49)

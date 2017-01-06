@@ -4,11 +4,12 @@ package logberry
 
 import (
 	"fmt"
-	"github.com/BellerophonMobile/logberry/terminal"
 	"io"
 	"os"
 	"syscall"
 	"time"
+
+	"github.com/BellerophonMobile/logberry/terminal"
 )
 
 // TextOutput is an OutputDriver that writes out log events in a
@@ -131,7 +132,7 @@ func (o *TextOutput) Event(event *Event) {
 	//		style.bold = true
 	//	}
 
-	var writsofar int // Track characters writen so far, to space;
+	var writsofar int // Track characters written so far, to space;
 	// terminal commands produce no text, so don't
 	// include in writsofar
 

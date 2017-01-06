@@ -129,7 +129,7 @@ func (x *Root) Component(component string, data ...interface{}) *Task {
 	return t
 }
 
-// internalerror reports an internal logging error.  It is generally
+// InternalError reports an internal logging error.  It is generally
 // to be used only by OutputDrivers.
 func (x *Root) InternalError(err error) {
 	for _, listener := range x.errorlisteners {

@@ -14,8 +14,7 @@ type ErrorListener interface {
 	Error(err error)
 }
 
-type StdErrorListener struct {
-}
+type StdErrorListener struct{}
 
 func (x *StdErrorListener) Error(err error) {
 	fmt.Println(err)

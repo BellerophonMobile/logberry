@@ -33,7 +33,7 @@ func (x EventDataMap) WriteTo(out io.Writer) {
 
 	keys := make([]string, len(x))
 	i := 0
-	for k, _ := range x {
+	for k := range x {
 		keys[i] = k
 		i++
 	}
@@ -120,6 +120,7 @@ func MakeEventData(data []interface{}) EventData {
 
 }
 */
+
 func Copy(data interface{}) EventData {
 	e, _ := copy(data)
 	return e
@@ -154,8 +155,6 @@ func copy(data interface{}) (EventData, bool) {
 		return copydata(val)
 
 	}
-
-	return EventDataMap(nil), zero
 
 }
 
@@ -358,7 +357,5 @@ func copydata(val reflect.Value) (EventData, bool) {
 		return EventDataString(s), zero
 
 	}
-
-	return EventDataString("##"), false
 
 }
