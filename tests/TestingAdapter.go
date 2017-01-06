@@ -1,8 +1,10 @@
-package testing
+package tests
 
 import (
+	"github.com/BellerophonMobile/logberry"
 	"bytes"
 	"testing"
+	"sync/atomic"
 )
 
 type TestingAdapter struct {
@@ -23,15 +25,17 @@ func (x *TestingAdapter) Write(p []byte) (int, error) {
 
 }
 
+var numtasks uint64
+
+func newtaskuid() uint64 {
+	// We have seen this atomic call cause problems on ARM...
+	return atomic.AddUint64(&numtasks, 1) - 1
+}
+
 func SetStdTesting(t *testing.T) {
 
-	Std = NewRoot(24)
-	Std.AddOutputDriver(NewTextOutput(&TestingAdapter{t: t}, "testing"))
-	Main = &Task{
-		uid:       newtaskuid(),
-		component: "testing",
-		activity:  "Component main",
-		root:      Std,
-	}
+	logberry.Std = logberry.NewRoot(24)
+	logberry.Std.AddOutputDriver(logberry.NewTextOutput(&TestingAdapter{t: t}, "testing"))
+	logberry.Main = logberry.Std.Task("Test")
 
 }
