@@ -1,13 +1,15 @@
 package tests
 
 import (
-	"github.com/BellerophonMobile/logberry"
 	"bytes"
-	"testing"
+	"github.com/BellerophonMobile/logberry"
 	"sync/atomic"
+	"testing"
 )
 
 type TestingAdapter struct {
+	std    *logberry.Root
+	main   *logberry.Task
 	t      *testing.T
 	buffer bytes.Buffer
 }
@@ -32,10 +34,25 @@ func newtaskuid() uint64 {
 	return atomic.AddUint64(&numtasks, 1) - 1
 }
 
-func SetStdTesting(t *testing.T) {
+func SetStdTesting(t *testing.T) *TestingAdapter {
+
+	adapter := &TestingAdapter{
+		std:  logberry.Std,
+		main: logberry.Main,
+		t:    t,
+	}
 
 	logberry.Std = logberry.NewRoot(24)
-	logberry.Std.AddOutputDriver(logberry.NewTextOutput(&TestingAdapter{t: t}, "testing"))
+	logberry.Std.AddOutputDriver(logberry.NewTextOutput(adapter, "testing"))
 	logberry.Main = logberry.Std.Task("Test")
 
+	return adapter
+
+}
+
+func (x *TestingAdapter) Stop() {
+	logberry.Main.Success()
+	logberry.Std.Stop()
+	logberry.Main = x.main
+	logberry.Std = x.std
 }
