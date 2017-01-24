@@ -36,7 +36,7 @@ type Error struct {
 func newerror(msg string, data []interface{}) *Error {
 	e := &Error{
 		Message: msg,
-		Data:    EventDataMap{}.Aggregate(data),
+		Data:    Aggregate(data),
 	}
 	return e
 }
