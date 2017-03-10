@@ -244,7 +244,7 @@ func rolldown(data interface{}) (reflect.Value, bool) {
 func (x EventDataMap) aggregatestruct(val reflect.Value) EventDataMap {
 
 	var vtype = val.Type()
-	var haspublic bool
+	//	var haspublic bool
 
 	for i := 0; i < val.NumField(); i++ {
 		var f = val.Field(i)
@@ -256,16 +256,21 @@ func (x EventDataMap) aggregatestruct(val reflect.Value) EventDataMap {
 				x[vtype.Field(i).Name] = c
 			}
 
-			haspublic = true
+			//			haspublic = true
 		}
 	}
 
 	// Special case: If the value is an error but has no accessible
 	// fields, call its Error() function to get a text representation.
-	if !haspublic && val.CanAddr() {
+	if val.CanAddr() { // && haspublic
 		v2 := val.Addr().Interface()
 		if err, ok := (v2).(error); ok {
-			x["Message"] = EventDataString(err.Error())
+			x["Error()"] = EventDataString(err.Error())
+		}
+	} else if val.CanInterface() {
+		v2 := val.Interface()
+		if err, ok := (v2).(error); ok {
+			x["Error()"] = EventDataString(err.Error())
 		}
 	}
 
