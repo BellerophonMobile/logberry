@@ -29,6 +29,10 @@ func (x EventDataMap) String() string {
 
 func (x EventDataMap) WriteTo(out io.Writer) {
 
+	if len(x) == 0 {
+		return
+	}
+
 	fmt.Fprintf(out, "{")
 
 	keys := make([]string, len(x))
