@@ -1,8 +1,8 @@
 package gocuioutput
 
 import (
-	"github.com/BellerophonMobile/logberry"
 	"github.com/BellerophonMobile/gocui"
+	"github.com/BellerophonMobile/logberry"
 )
 
 type GoCUIOutput struct {
@@ -13,7 +13,7 @@ type GoCUIOutput struct {
 
 func New(g *gocui.Gui, output logberry.OutputDriver) *GoCUIOutput {
 	return &GoCUIOutput{
-		gui: g,
+		gui:    g,
 		output: output,
 	}
 }
