@@ -2,7 +2,7 @@ package gocuioutput
 
 import (
 	"github.com/BellerophonMobile/logberry"
-	"github.com/jroimartin/gocui"
+	"github.com/BellerophonMobile/gocui"
 )
 
 type GoCUIOutput struct {
