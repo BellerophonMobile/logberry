@@ -9,6 +9,11 @@ import (
 	"strings"
 )
 
+// A DBuilder is a type that can return logberry data when logged.
+type DBuilder interface {
+	D() D
+}
+
 type EventData interface {
 	WriteTo(io.Writer)
 }
@@ -127,6 +132,10 @@ func Copy(data interface{}) EventData {
 }
 
 func copy(data interface{}) (EventData, bool) {
+
+	if der, ok := data.(DBuilder); ok {
+		data = der.D()
+	}
 
 	val, null := rolldown(data)
 	if null {
