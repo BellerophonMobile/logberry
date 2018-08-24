@@ -271,14 +271,12 @@ func (x EventDataMap) aggregatestruct(val reflect.Value) EventDataMap {
 
 	// Special case: If the value is an error but has no accessible
 	// fields, call its Error() function to get a text representation.
-	if val.CanAddr() { // && haspublic
-		v2 := val.Addr().Interface()
-		if err, ok := (v2).(error); ok {
-			x["Error()"] = EventDataString(err.Error())
+	if val.NumField() == 0 {
+		v2 := val
+		if v2.CanAddr() {
+			v2 = v2.Addr()
 		}
-	} else if val.CanInterface() {
-		v2 := val.Interface()
-		if err, ok := (v2).(error); ok {
+		if err, ok := (v2.Interface()).(error); ok {
 			x["Error()"] = EventDataString(err.Error())
 		}
 	}
