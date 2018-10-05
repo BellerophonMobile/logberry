@@ -253,7 +253,8 @@ func rolldown(data interface{}) (reflect.Value, bool) {
 func (x EventDataMap) aggregatestruct(val reflect.Value) EventDataMap {
 
 	var vtype = val.Type()
-	//	var haspublic bool
+
+	fieldCount := 0
 
 	for i := 0; i < val.NumField(); i++ {
 		var f = val.Field(i)
@@ -263,15 +264,14 @@ func (x EventDataMap) aggregatestruct(val reflect.Value) EventDataMap {
 			c, zero := copy(fi)
 			if !zero || strings.Contains(vtype.Field(i).Tag.Get("logberry"), "always") {
 				x[vtype.Field(i).Name] = c
+				fieldCount++
 			}
-
-			//			haspublic = true
 		}
 	}
 
 	// Special case: If the value is an error but has no accessible
 	// fields, call its Error() function to get a text representation.
-	if val.NumField() == 0 {
+	if fieldCount == 0 {
 		v2 := val
 		if v2.CanAddr() {
 			v2 = v2.Addr()
