@@ -258,12 +258,21 @@ func (x EventDataMap) aggregatestruct(val reflect.Value) EventDataMap {
 
 	for i := 0; i < val.NumField(); i++ {
 		var f = val.Field(i)
-		if f.IsValid() && f.CanInterface() && !strings.Contains(vtype.Field(i).Tag.Get("logberry"), "quiet") {
 
+		tags := vtype.Field(i).Tag.Get("logberry")
+		isQuiet := strings.Contains(tags, "quiet")
+		isAlways := strings.Contains(tags, "always")
+		isHidden := strings.Contains(tags, "hidden")
+
+		if f.IsValid() && f.CanInterface() && !isQuiet {
 			fi := f.Interface()
 			c, zero := copy(fi)
-			if !zero || strings.Contains(vtype.Field(i).Tag.Get("logberry"), "always") {
-				x[vtype.Field(i).Name] = c
+			if !zero || isAlways {
+				if isHidden {
+					x[vtype.Field(i).Name] = EventDataString("<!hidden!>")
+				} else {
+					x[vtype.Field(i).Name] = c
+				}
 				fieldCount++
 			}
 		}
