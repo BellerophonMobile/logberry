@@ -38,7 +38,7 @@ func init() {
 
 	//-- Construct the standard default root
 	Std = NewRoot(24)
-	Std.AddOutputDriver(NewStdOutput(path.Base(os.Args[0])))
+	Std.AddOutputDriver(NewIndentedStdOutput(path.Base(os.Args[0])))
 	Std.AddErrorListener(new(StdErrorListener))
 
 	//-- Construct the standard default task manually so no event
