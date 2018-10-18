@@ -1,5 +1,3 @@
-// +build !appengine
-
 /*
 Package logberry implements a structured logging framework.  It is
 focused on generating logs, rather than managing them, and tries to be
