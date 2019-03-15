@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// BuildMetadataEvent generates a configuration log event for the
+// LogBuildMetadata generates a configuration log event for the
 // given Task reporting the build configuration, as captured by the
 // passed object.  A utility script to generate such metadata
 // automatically is in the util/ folder of the Logberry repository.
@@ -17,7 +17,7 @@ func LogBuildMetadata(main *logberry.Task, build *BuildMetadata) {
 	main.Event(logberry.CONFIGURATION, "Build metadata", build)
 }
 
-// BuildSignatureEvent generates a configuration log event for the
+// LogBuildSignature generates a configuration log event for the
 // given Task reporting build configuration, as captured by the given
 // string.  A utility script to generate such metadata automatically
 // is in the util/ folder of the Logberry repository.  It can be
@@ -28,7 +28,7 @@ func LogBuildSignature(main *logberry.Task, build string) {
 	main.Event(logberry.CONFIGURATION, "Build signature", logberry.D{"Signature": build})
 }
 
-// ConfigurationEvent generates a configuration log event for the
+// LogConfiguration generates a configuration log event for the
 // given Task reporting parameters or other initialization data.  The
 // variadic data parameter is aggregated as a D and reporting with the
 // event, as is the data permanently associated with the Task.  The
@@ -41,7 +41,7 @@ func LogVersion(main *logberry.Task, data ...interface{}) {
 	main.Event(logberry.CONFIGURATION, "Version", data...)
 }
 
-// CommandLineEvent generates a configuration log event for the given
+// LogCommandLine generates a configuration log event for the given
 // Task reporting the command line used to execute the currently
 // executing process.
 func LogCommandLine(main *logberry.Task) error {
@@ -77,7 +77,7 @@ func LogCommandLine(main *logberry.Task) error {
 
 }
 
-// EnvironmentEvent generates a configuration log event for the given
+// LogEnvironment generates a configuration log event for the given
 // Task reporting the current operating system host environment
 // variables of the currently executing process.
 func LogEnvironment(main *logberry.Task) {
@@ -92,7 +92,7 @@ func LogEnvironment(main *logberry.Task) {
 
 }
 
-// ProcessEvent generates a configuration log event for the given Task
+// LogProcess generates a configuration log event for the given Task
 // reporting identifiers for the currently executing process.
 func LogProcess(main *logberry.Task) error {
 
